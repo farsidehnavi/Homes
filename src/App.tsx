@@ -1,15 +1,19 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { RealEstateItem, FilterState, SortField, SortOrder } from './types';
-import { INITIAL_REAL_ESTATE_DATA } from './data/sampleRealEstateData';
+import {
+  DIVAR_NAJAFABAD_24H_DATA,
+  DIVAR_METADATA,
+  DivarFetchMeta,
+} from './data/divarNajafabadData';
 import { Navbar } from './components/Navbar';
+import { DivarSyncBanner } from './components/DivarSyncBanner';
 import { StatsOverview } from './components/StatsOverview';
-import { UploadDropzone } from './components/UploadDropzone';
 import { FilterPanel } from './components/FilterPanel';
 import { PropertyTable } from './components/PropertyTable';
 import { PropertyCardList } from './components/PropertyCardList';
 import { PropertyDetailModal } from './components/PropertyDetailModal';
 import { Pagination } from './components/Pagination';
-import { parseExcelFile, exportToExcel } from './utils/excelUtils';
+import { exportToExcel } from './utils/excelUtils';
 import { normalizePersianText } from './utils/formatters';
 import { CheckCircle2, AlertCircle, X } from 'lucide-react';
 
@@ -34,8 +38,10 @@ const INITIAL_FILTER: FilterState = {
 };
 
 export default function App() {
-  const [data, setData] = useState<RealEstateItem[]>(INITIAL_REAL_ESTATE_DATA);
-  const [currentFileName, setCurrentFileName] = useState<string>('فایل نمونه (PDF املاک نجف‌آباد)');
+  const [data, setData] = useState<RealEstateItem[]>(DIVAR_NAJAFABAD_24H_DATA);
+  const [metadata, setMetadata] = useState<DivarFetchMeta | null>(DIVAR_METADATA);
+  const [isLoadingDivar, setIsLoadingDivar] = useState<boolean>(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(new Date());
   const [filter, setFilter] = useState<FilterState>(INITIAL_FILTER);
   const [sortField, setSortField] = useState<SortField>('rowNumber');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -47,59 +53,75 @@ export default function App() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Auto-switch to cards view on very small mobile screens by default if desired
+  // Auto-switch to cards view on very small mobile screens
   useEffect(() => {
     if (window.innerWidth < 768) {
       setActiveView('cards');
     }
   }, []);
 
-  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+  const showToast = useCallback((text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => {
       setToastMessage(null);
     }, 4000);
-  };
+  }, []);
 
-  // Upload handler
-  const handleFileUpload = async (file: File) => {
-    const result = await parseExcelFile(file);
-    if (result.success && result.items.length > 0) {
-      setData(result.items);
-      setCurrentFileName(file.name);
-      setFilter(INITIAL_FILTER);
-      setCurrentPage(1);
-      showToast(`فایل "${file.name}" با موفقیت با ${result.items.length} رکورد بارگذاری شد.`, 'success');
-    } else {
-      showToast(result.errorMessage || 'خطا در بارگذاری فایل اکسل', 'error');
+  // Fetch live Divar data from server route
+  const fetchLiveDivar = useCallback(async () => {
+    setIsLoadingDivar(true);
+    try {
+      const res = await fetch('/api/divar/najafabad-24h');
+      if (!res.ok) {
+        throw new Error(`خطای سرور: ${res.status}`);
+      }
+      const json = await res.json();
+      if (json && Array.isArray(json.items) && json.items.length > 0) {
+        setData(json.items);
+        if (json.metadata) {
+          setMetadata(json.metadata);
+        }
+        setLastSyncedAt(new Date());
+        showToast(
+          `آگهی‌های ۲۴ ساعت گذشته دیوار نجف‌آباد با موفقیت همگام‌سازی شد (${json.items.length} آگهی).`,
+          'success'
+        );
+      } else {
+        showToast('آگهی جدیدی در پاسخ دیوار دریافت نشد.', 'error');
+      }
+    } catch (err: any) {
+      // In case network issue or offline, fallback to offline Divar data
+      showToast(
+        'خطا در ارتباط با دیوار؛ استفاده از آخرین نسخه ذخیره‌شده ۲۴ ساعت اخیر.',
+        'error'
+      );
+    } finally {
+      setIsLoadingDivar(false);
     }
-  };
+  }, [showToast]);
 
-  // Reset to initial dataset
+  // Reset filters and data
   const handleResetData = () => {
-    setData(INITIAL_REAL_ESTATE_DATA);
-    setCurrentFileName('فایل نمونه (PDF املاک نجف‌آباد)');
     setFilter(INITIAL_FILTER);
     setCurrentPage(1);
-    showToast('اطلاعات به ۱۰۰ ردیف اولیه بازنشانی شد.', 'success');
+    setSortField('rowNumber');
+    setSortOrder('asc');
+    showToast('فیلترها و مرتب‌سازی با موفقیت بازنشانی شدند.', 'success');
   };
 
-  // Download Sample Excel
-  const handleDownloadSample = () => {
-    exportToExcel(INITIAL_REAL_ESTATE_DATA, 'املاک_نمونه_نجف_آباد.xlsx');
-    showToast('فایل اکسل نمونه با موفقیت دانلود شد.', 'success');
-  };
-
-  // Export currently filtered items
+  // Export currently filtered items to Excel
   const handleExportFiltered = () => {
-    exportToExcel(filteredAndSortedItems, 'املاک_فیلتر_شده.xlsx');
-    showToast(`فایل اکسل شامل ${filteredAndSortedItems.length} مورد با موفقیت صادر شد.`, 'success');
+    exportToExcel(filteredAndSortedItems, 'املاک_دیوار_نجف_آباد_۲۴ساعت.xlsx');
+    showToast(
+      `فایل اکسل شامل ${filteredAndSortedItems.length} مورد با موفقیت ذخیره شد.`,
+      'success'
+    );
   };
 
   // Unique values for dynamic filter options
   const availablePropertyTypes = useMemo(() => {
     const types = Array.from(new Set(data.map((i) => i.propertyType))).filter(Boolean);
-    return types.length > 0 ? types : ['آپارتمان', 'دوبلکس', 'ویلایی', 'کلنگی'];
+    return types.length > 0 ? types : ['آپارتمان', 'دوبلکس', 'ویلایی', 'خانه مسکونی', 'زمین / کلنگی'];
   }, [data]);
 
   const availableDocumentTypes = useMemo(() => {
@@ -125,7 +147,9 @@ export default function App() {
     if (filter.searchQuery.trim()) {
       const q = normalizePersianText(filter.searchQuery);
       result = result.filter((item) => {
+        const titleNorm = item.title ? normalizePersianText(item.title) : '';
         const addressNorm = normalizePersianText(item.address);
+        const districtNorm = item.district ? normalizePersianText(item.district) : '';
         const typeNorm = normalizePersianText(item.propertyType);
         const facadeNorm = normalizePersianText(item.facade);
         const oriNorm = normalizePersianText(item.orientation);
@@ -133,7 +157,9 @@ export default function App() {
         const rowStr = item.rowNumber.toString();
 
         return (
+          titleNorm.includes(q) ||
           addressNorm.includes(q) ||
+          districtNorm.includes(q) ||
           typeNorm.includes(q) ||
           facadeNorm.includes(q) ||
           oriNorm.includes(q) ||
@@ -241,8 +267,6 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-['Vazirmatn',sans-serif]">
       {/* Top Navigation */}
       <Navbar
-        onFileUpload={handleFileUpload}
-        onDownloadSample={handleDownloadSample}
         onResetData={handleResetData}
         activeView={activeView}
         onToggleView={setActiveView}
@@ -252,17 +276,23 @@ export default function App() {
         filteredCount={filteredAndSortedItems.length}
         isFilterOpenMobile={isMobileFilterOpen}
         onToggleFilterMobile={() => setIsMobileFilterOpen((prev) => !prev)}
-        fileName={currentFileName}
+        onRefreshDivar={fetchLiveDivar}
+        isRefreshingDivar={isLoadingDivar}
+        onExportExcel={handleExportFiltered}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Upload Dropzone */}
-        <UploadDropzone
-          onFileUpload={handleFileUpload}
-          onDownloadSample={handleDownloadSample}
-          currentFileName={currentFileName}
-          totalRecords={data.length}
+        {/* Divar 24h Real-Time Sync & Status Banner (No Excel input) */}
+        <DivarSyncBanner
+          metadata={metadata}
+          totalItems={data.length}
+          filteredItemsCount={filteredAndSortedItems.length}
+          isLoading={isLoadingDivar}
+          onRefresh={fetchLiveDivar}
+          onExportExcel={handleExportFiltered}
+          usePersianDigits={usePersianDigits}
+          lastSyncedAt={lastSyncedAt}
         />
 
         {/* Stats Overview */}
@@ -281,7 +311,7 @@ export default function App() {
           }}
         />
 
-        {/* Content Layout: Left/Right Sidebar (Filter) + Main Content (Table / Cards) */}
+        {/* Content Layout: Sidebar Filter + Main Content (Table / Cards) */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
           {/* Desktop Filter Sidebar */}
           <div className="hidden lg:block lg:col-span-1 sticky top-20 max-h-[calc(100vh-6rem)]">
@@ -396,7 +426,7 @@ export default function App() {
             <span>{toastMessage.text}</span>
             <button
               onClick={() => setToastMessage(null)}
-              className="mr-2 p-1 text-white/70 hover:text-white"
+              className="mr-2 p-1 text-white/70 hover:text-white cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>

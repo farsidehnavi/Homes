@@ -67,3 +67,15 @@ export const parseBooleanStatus = (val: any): boolean => {
   }
   return false;
 };
+
+export const formatRelativeTimePersian = (date: Date): string => {
+  const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diffSec < 60) return 'چند لحظه پیش';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${toPersianDigits(diffMin)} دقیقه پیش`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${toPersianDigits(diffHours)} ساعت پیش`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${toPersianDigits(diffDays)} روز پیش`;
+};
+
