@@ -22,21 +22,11 @@ export interface RealEstateItem {
   documentType: DocumentType; // نوع سند
   price: number; // قیمت (تومان)
   pricePerMeter?: number; // محاسبه شده: قیمت هر متر
-  title?: string; // عنوان آگهی دیوار
-  district?: string; // محله / منطقه در نجف‌آباد (مثل ویلاشهر، فردوسی، یزدانشهر...)
-  divarToken?: string; // توکن آگهی در دیوار
-  divarUrl?: string; // لینک مستقیم آگهی در دیوار
-  imageUrl?: string; // عکس شاخص آگهی در دیوار
-  publishedAt?: string; // تاریخ و زمان انتشار در دیوار (ISO)
-  relativeTime?: string; // زمان نسبی انتشار (مثل نیم ساعت پیش، یک ربع پیش)
-  priceText?: string; // متن خام قیمت در دیوار (مثلاً ۳,۵۰۰,۰۰۰,۰۰۰ تومان یا توافقی)
-  source?: 'divar' | 'excel' | 'sample'; // منبع داده
   rawRow?: Record<string, any>; // برای ستون‌های اضافی در اکسل‌های دلخواه
 }
 
 export interface FilterState {
   searchQuery: string;
-  districts?: string[];
   propertyTypes: string[];
   minPrice: number | null;
   maxPrice: number | null;
