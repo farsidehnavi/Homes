@@ -1,17 +1,25 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { RealEstateItem, FilterState, SortField, SortOrder } from './types';
+import {
+  DIVAR_NAJAFABAD_24H_DATA,
+  DIVAR_METADATA,
+  DivarFetchMeta,
+} from './data/divarNajafabadData';
 import { INITIAL_REAL_ESTATE_DATA } from './data/sampleRealEstateData';
+import { ModeSelectionScreen } from './components/ModeSelectionScreen';
 import { Navbar } from './components/Navbar';
-import { StatsOverview } from './components/StatsOverview';
+import { DivarSyncBanner } from './components/DivarSyncBanner';
+import { ExcelBanner } from './components/ExcelBanner';
 import { UploadDropzone } from './components/UploadDropzone';
+import { StatsOverview } from './components/StatsOverview';
 import { FilterPanel } from './components/FilterPanel';
 import { PropertyTable } from './components/PropertyTable';
 import { PropertyCardList } from './components/PropertyCardList';
 import { PropertyDetailModal } from './components/PropertyDetailModal';
 import { Pagination } from './components/Pagination';
-import { parseExcelFile, exportToExcel } from './utils/excelUtils';
+import { exportToExcel } from './utils/excelUtils';
 import { normalizePersianText } from './utils/formatters';
-import { CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, ChevronUp } from 'lucide-react';
 
 const INITIAL_FILTER: FilterState = {
   searchQuery: '',
@@ -34,8 +42,21 @@ const INITIAL_FILTER: FilterState = {
 };
 
 export default function App() {
-  const [data, setData] = useState<RealEstateItem[]>(INITIAL_REAL_ESTATE_DATA);
-  const [currentFileName, setCurrentFileName] = useState<string>('فایل نمونه (PDF املاک نجف‌آباد)');
+  // Navigation Mode: 'home' (the 2-button landing page), 'excel', or 'divar'
+  const [currentMode, setCurrentMode] = useState<'home' | 'excel' | 'divar'>('home');
+
+  // Excel dataset state
+  const [excelData, setExcelData] = useState<RealEstateItem[]>(INITIAL_REAL_ESTATE_DATA);
+  const [excelFileName, setExcelFileName] = useState<string>('داده‌های_پیش‌فرض_املاک_نجف‌آباد.xlsx');
+  const [showExcelDropzone, setShowExcelDropzone] = useState<boolean>(false);
+
+  // Divar dataset state
+  const [divarData, setDivarData] = useState<RealEstateItem[]>(DIVAR_NAJAFABAD_24H_DATA);
+  const [divarMeta, setDivarMeta] = useState<DivarFetchMeta | null>(DIVAR_METADATA);
+  const [isLoadingDivar, setIsLoadingDivar] = useState<boolean>(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(new Date());
+
+  // Shared UI & Filter state
   const [filter, setFilter] = useState<FilterState>(INITIAL_FILTER);
   const [sortField, setSortField] = useState<SortField>('rowNumber');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -47,85 +68,131 @@ export default function App() {
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Auto-switch to cards view on very small mobile screens by default if desired
+  // Auto-switch to cards view on mobile screens
   useEffect(() => {
     if (window.innerWidth < 768) {
       setActiveView('cards');
     }
   }, []);
 
-  const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+  const showToast = useCallback((text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => {
       setToastMessage(null);
     }, 4000);
-  };
+  }, []);
 
-  // Upload handler
-  const handleFileUpload = async (file: File) => {
-    const result = await parseExcelFile(file);
-    if (result.success && result.items.length > 0) {
-      setData(result.items);
-      setCurrentFileName(file.name);
-      setFilter(INITIAL_FILTER);
-      setCurrentPage(1);
-      showToast(`فایل "${file.name}" با موفقیت با ${result.items.length} رکورد بارگذاری شد.`, 'success');
-    } else {
-      showToast(result.errorMessage || 'خطا در بارگذاری فایل اکسل', 'error');
+  // Fetch live Divar data from server route
+  const fetchLiveDivar = useCallback(async () => {
+    setIsLoadingDivar(true);
+    try {
+      const res = await fetch('/api/divar/najafabad-24h');
+      if (!res.ok) {
+        throw new Error(`خطای سرور: ${res.status}`);
+      }
+      const json = await res.json();
+      if (json && Array.isArray(json.items) && json.items.length > 0) {
+        setDivarData(json.items);
+        if (json.metadata) {
+          setDivarMeta(json.metadata);
+        }
+        setLastSyncedAt(new Date());
+        showToast(
+          `آگهی‌های ۲۴ ساعت گذشته دیوار نجف‌آباد با موفقیت همگام‌سازی شد (${json.items.length} آگهی).`,
+          'success'
+        );
+      } else {
+        showToast('آگهی جدیدی در پاسخ دیوار دریافت نشد.', 'error');
+      }
+    } catch (err: any) {
+      showToast(
+        'خطا در ارتباط با دیوار؛ استفاده از آخرین نسخه ذخیره‌شده ۲۴ ساعت اخیر.',
+        'error'
+      );
+    } finally {
+      setIsLoadingDivar(false);
     }
-  };
+  }, [showToast]);
 
-  // Reset to initial dataset
-  const handleResetData = () => {
-    setData(INITIAL_REAL_ESTATE_DATA);
-    setCurrentFileName('فایل نمونه (PDF املاک نجف‌آباد)');
+  // Handle new Excel file loaded from dropzone
+  const handleExcelDataLoaded = (items: RealEstateItem[], fileName: string) => {
+    setExcelData(items);
+    setExcelFileName(fileName);
+    setShowExcelDropzone(false);
     setFilter(INITIAL_FILTER);
     setCurrentPage(1);
-    showToast('اطلاعات به ۱۰۰ ردیف اولیه بازنشانی شد.', 'success');
+    showToast(`فایل «${fileName}» با ${items.length} ملک با موفقیت بارگذاری شد.`, 'success');
   };
 
-  // Download Sample Excel
-  const handleDownloadSample = () => {
-    exportToExcel(INITIAL_REAL_ESTATE_DATA, 'املاک_نمونه_نجف_آباد.xlsx');
-    showToast('فایل اکسل نمونه با موفقیت دانلود شد.', 'success');
+  // Reload default sample Excel data
+  const handleLoadSampleExcel = () => {
+    setExcelData(INITIAL_REAL_ESTATE_DATA);
+    setExcelFileName('داده‌های_پیش‌فرض_املاک_نجف‌آباد.xlsx');
+    setShowExcelDropzone(false);
+    setFilter(INITIAL_FILTER);
+    setCurrentPage(1);
+    showToast('دیتاست نمونه ۱۰۰ ملک نجف‌آباد بارگذاری گردید.', 'success');
   };
 
-  // Export currently filtered items
+  // Reset filters and data
+  const handleResetData = () => {
+    setFilter(INITIAL_FILTER);
+    setCurrentPage(1);
+    setSortField('rowNumber');
+    setSortOrder('asc');
+    showToast('فیلترها و مرتب‌سازی بازنشانی شدند.', 'success');
+  };
+
+  // Active dataset depending on mode
+  const activeDataset = useMemo(() => {
+    return currentMode === 'excel' ? excelData : divarData;
+  }, [currentMode, excelData, divarData]);
+
+  // Export currently filtered items to Excel
   const handleExportFiltered = () => {
-    exportToExcel(filteredAndSortedItems, 'املاک_فیلتر_شده.xlsx');
-    showToast(`فایل اکسل شامل ${filteredAndSortedItems.length} مورد با موفقیت صادر شد.`, 'success');
+    const fileName =
+      currentMode === 'excel'
+        ? `خروجی_${excelFileName.replace(/\.[^/.]+$/, '')}.xlsx`
+        : 'املاک_دیوار_نجف_آباد_۲۴ساعت.xlsx';
+    exportToExcel(filteredAndSortedItems, fileName);
+    showToast(
+      `فایل اکسل شامل ${filteredAndSortedItems.length} مورد با موفقیت دانلود شد.`,
+      'success'
+    );
   };
 
-  // Unique values for dynamic filter options
+  // Unique values for dynamic filter options based on active dataset
   const availablePropertyTypes = useMemo(() => {
-    const types = Array.from(new Set(data.map((i) => i.propertyType))).filter(Boolean);
-    return types.length > 0 ? types : ['آپارتمان', 'دوبلکس', 'ویلایی', 'کلنگی'];
-  }, [data]);
+    const types = Array.from(new Set(activeDataset.map((i) => i.propertyType))).filter(Boolean);
+    return types.length > 0 ? types : ['آپارتمان', 'دوبلکس', 'ویلایی', 'خانه مسکونی', 'زمین / کلنگی'];
+  }, [activeDataset]);
 
   const availableDocumentTypes = useMemo(() => {
-    const docs = Array.from(new Set(data.map((i) => i.documentType))).filter(Boolean);
+    const docs = Array.from(new Set(activeDataset.map((i) => i.documentType))).filter(Boolean);
     return docs.length > 0 ? docs : ['تک برگ', 'منگوله‌دار', 'قولنامه‌ای'];
-  }, [data]);
+  }, [activeDataset]);
 
   const availableFacades = useMemo(() => {
-    const facs = Array.from(new Set(data.map((i) => i.facade))).filter(Boolean);
+    const facs = Array.from(new Set(activeDataset.map((i) => i.facade))).filter(Boolean);
     return facs.length > 0 ? facs : ['سنگ', 'آجر', 'سرامیک', 'کامپوزیت'];
-  }, [data]);
+  }, [activeDataset]);
 
   const availableOrientations = useMemo(() => {
-    const oris = Array.from(new Set(data.map((i) => i.orientation))).filter(Boolean);
+    const oris = Array.from(new Set(activeDataset.map((i) => i.orientation))).filter(Boolean);
     return oris.length > 0 ? oris : ['شمالی', 'جنوبی', 'شرقی', 'غربی'];
-  }, [data]);
+  }, [activeDataset]);
 
   // Filtering & Sorting
   const filteredAndSortedItems = useMemo(() => {
-    let result = [...data];
+    let result = [...activeDataset];
 
     // 1. Search Query
     if (filter.searchQuery.trim()) {
       const q = normalizePersianText(filter.searchQuery);
       result = result.filter((item) => {
+        const titleNorm = item.title ? normalizePersianText(item.title) : '';
         const addressNorm = normalizePersianText(item.address);
+        const districtNorm = item.district ? normalizePersianText(item.district) : '';
         const typeNorm = normalizePersianText(item.propertyType);
         const facadeNorm = normalizePersianText(item.facade);
         const oriNorm = normalizePersianText(item.orientation);
@@ -133,7 +200,9 @@ export default function App() {
         const rowStr = item.rowNumber.toString();
 
         return (
+          titleNorm.includes(q) ||
           addressNorm.includes(q) ||
+          districtNorm.includes(q) ||
           typeNorm.includes(q) ||
           facadeNorm.includes(q) ||
           oriNorm.includes(q) ||
@@ -218,7 +287,7 @@ export default function App() {
     });
 
     return result;
-  }, [data, filter, sortField, sortOrder]);
+  }, [activeDataset, filter, sortField, sortOrder]);
 
   // Handle Sort Toggle
   const handleSort = (field: SortField) => {
@@ -237,38 +306,104 @@ export default function App() {
     return filteredAndSortedItems.slice(start, start + pageSize);
   }, [filteredAndSortedItems, currentPage, pageSize]);
 
+  // IF ON HOME MODE: render clean 2-button choice landing page
+  if (currentMode === 'home') {
+    return (
+      <ModeSelectionScreen
+        onSelectMode={(mode) => {
+          setCurrentMode(mode);
+          setCurrentPage(1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-['Vazirmatn',sans-serif]">
-      {/* Top Navigation */}
+      {/* Top Navigation Bar with Mode Switcher & Home Button */}
       <Navbar
-        onFileUpload={handleFileUpload}
-        onDownloadSample={handleDownloadSample}
+        currentMode={currentMode}
+        onSwitchMode={(m) => {
+          setCurrentMode(m);
+          setCurrentPage(1);
+        }}
+        onGoHome={() => setCurrentMode('home')}
         onResetData={handleResetData}
         activeView={activeView}
         onToggleView={setActiveView}
         usePersianDigits={usePersianDigits}
         onTogglePersianDigits={() => setUsePersianDigits((prev) => !prev)}
-        totalItems={data.length}
+        totalItems={activeDataset.length}
         filteredCount={filteredAndSortedItems.length}
         isFilterOpenMobile={isMobileFilterOpen}
         onToggleFilterMobile={() => setIsMobileFilterOpen((prev) => !prev)}
-        fileName={currentFileName}
+        onRefreshDivar={currentMode === 'divar' ? fetchLiveDivar : undefined}
+        isRefreshingDivar={isLoadingDivar}
+        onExportExcel={handleExportFiltered}
+        onUploadNewExcel={
+          currentMode === 'excel' ? () => setShowExcelDropzone((prev) => !prev) : undefined
+        }
+        excelFileName={excelFileName}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Upload Dropzone */}
-        <UploadDropzone
-          onFileUpload={handleFileUpload}
-          onDownloadSample={handleDownloadSample}
-          currentFileName={currentFileName}
-          totalRecords={data.length}
-        />
+        {/* Mode-Specific Header Banner */}
+        {currentMode === 'divar' ? (
+          <DivarSyncBanner
+            metadata={divarMeta}
+            totalItems={divarData.length}
+            filteredItemsCount={filteredAndSortedItems.length}
+            isLoading={isLoadingDivar}
+            onRefresh={fetchLiveDivar}
+            onExportExcel={handleExportFiltered}
+            usePersianDigits={usePersianDigits}
+            lastSyncedAt={lastSyncedAt}
+          />
+        ) : (
+          <>
+            <ExcelBanner
+              fileName={excelFileName}
+              totalItems={excelData.length}
+              filteredItemsCount={filteredAndSortedItems.length}
+              onUploadClick={() => setShowExcelDropzone((prev) => !prev)}
+              onLoadSampleClick={handleLoadSampleExcel}
+              onExportExcel={handleExportFiltered}
+              usePersianDigits={usePersianDigits}
+            />
+
+            {/* Expandable Excel File Upload Dropzone */}
+            {showExcelDropzone && (
+              <div className="relative mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-700">
+                    بارگذاری یا جایگزینی فایل اکسل:
+                  </span>
+                  <button
+                    onClick={() => setShowExcelDropzone(false)}
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                    <span>بستن باکس آپلود</span>
+                  </button>
+                </div>
+                <UploadDropzone
+                  onDataLoaded={handleExcelDataLoaded}
+                  onLoadSampleData={handleLoadSampleExcel}
+                  currentFileName={excelFileName}
+                  totalLoadedItems={excelData.length}
+                  usePersianDigits={usePersianDigits}
+                />
+              </div>
+            )}
+          </>
+        )}
 
         {/* Stats Overview */}
         <StatsOverview
           items={filteredAndSortedItems}
-          totalUploaded={data.length}
+          totalUploaded={activeDataset.length}
           usePersianDigits={usePersianDigits}
           selectedTypes={filter.propertyTypes}
           onSelectPropertyType={(type) => {
@@ -281,7 +416,7 @@ export default function App() {
           }}
         />
 
-        {/* Content Layout: Left/Right Sidebar (Filter) + Main Content (Table / Cards) */}
+        {/* Content Layout: Sidebar Filter + Main Content (Table / Cards) */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
           {/* Desktop Filter Sidebar */}
           <div className="hidden lg:block lg:col-span-1 sticky top-20 max-h-[calc(100vh-6rem)]">
@@ -297,7 +432,7 @@ export default function App() {
               }}
               usePersianDigits={usePersianDigits}
               totalFiltered={filteredAndSortedItems.length}
-              totalAvailable={data.length}
+              totalAvailable={activeDataset.length}
               availablePropertyTypes={availablePropertyTypes}
               availableDocumentTypes={availableDocumentTypes}
               availableFacades={availableFacades}
@@ -359,7 +494,7 @@ export default function App() {
               }}
               usePersianDigits={usePersianDigits}
               totalFiltered={filteredAndSortedItems.length}
-              totalAvailable={data.length}
+              totalAvailable={activeDataset.length}
               availablePropertyTypes={availablePropertyTypes}
               availableDocumentTypes={availableDocumentTypes}
               availableFacades={availableFacades}
@@ -396,7 +531,7 @@ export default function App() {
             <span>{toastMessage.text}</span>
             <button
               onClick={() => setToastMessage(null)}
-              className="mr-2 p-1 text-white/70 hover:text-white"
+              className="mr-2 p-1 text-white/70 hover:text-white cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>

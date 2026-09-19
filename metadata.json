@@ -1,6 +1,6 @@
 {
   "name": "Excel Real Estate Explorer",
-  "description": "Interactive Excel data viewer and filter tool for property listings with search, advanced filters, and responsive design.",
+  "description": "Comprehensive real estate platform for Najafabad with two dedicated modes: Excel file upload/analysis and live Divar.ir (24-hour) property listings with advanced filters.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
