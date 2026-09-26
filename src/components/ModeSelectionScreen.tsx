@@ -9,6 +9,9 @@ import {
   MapPin,
   Clock,
   Layers,
+  BellRing,
+  Images,
+  Edit3,
 } from 'lucide-react';
 
 interface ModeSelectionScreenProps {
@@ -18,25 +21,25 @@ interface ModeSelectionScreenProps {
 export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSelectMode }) => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-4 py-12">
-      {/* Background Subtle Accents */}
+      {/* Header Accent */}
       <div className="w-full max-w-4xl mx-auto text-center space-y-4 mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/80 text-slate-700 text-xs font-semibold border border-slate-300/60">
           <MapPin className="w-3.5 h-3.5 text-red-600" />
-          <span>شهرستان نجف‌آباد • سامانه املاک</span>
+          <span>شهرستان نجف‌آباد • سامانه هوشمند املاک</span>
         </div>
 
         <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-          سامانه هوشمند تحلیل و بررسی املاک
+          سامانه جامع تحلیل و رصد املاک نجف‌آباد
         </h1>
 
         <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto leading-relaxed">
-          برای آغاز کار، لطفاً منبع دریافت داده‌های املاک را انتخاب نمایید:
+          لطفاً برای ورود، یکی از دو بخش زیر را انتخاب نمایید:
         </p>
       </div>
 
-      {/* Two Prominent Buttons / Cards Side by Side */}
+      {/* Two Prominent Cards Side by Side */}
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-        {/* Option 1: Excel Version */}
+        {/* Option 1: داشبورد من (Excel Version) */}
         <div
           onClick={() => onSelectMode('excel')}
           className="group relative bg-white rounded-3xl border-2 border-slate-200/80 hover:border-emerald-500 hover:shadow-xl transition-all duration-300 p-6 sm:p-8 flex flex-col justify-between cursor-pointer text-right overflow-hidden hover:-translate-y-1"
@@ -50,31 +53,35 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSele
                 <FileSpreadsheet className="w-7 h-7" />
               </div>
               <span className="text-2xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-                فایل محلی / اکسل
+                مدیریت و اکسل
               </span>
             </div>
 
-            <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">
-              ورود و تحلیل فایل اکسل
+            <h2 className="text-2xl font-black text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">
+              داشبورد من
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6">
-              بارگذاری و پردازش فایل‌های اکسل (<code className="text-emerald-700 font-mono">.xlsx</code> و <code className="text-emerald-700 font-mono">.xls</code>) املاک، دسته‌بندی ستون‌ها، فیلترهای پیشرفته قیمت و متراژ، و محاسبه هوشمند میانگین‌ها.
+              بخش شخصی شما برای بارگذاری، مدیریت و تحلیل فایل‌های اکسل املاک با قابلیت افزودن، ویرایش و حذف کامل ردیف‌ها و دانلود مجدد اکسل بروز شده.
             </p>
 
             {/* Feature checklist */}
-            <div className="space-y-2 mb-6 text-xs text-slate-600">
+            <div className="space-y-2.5 mb-6 text-xs text-slate-600">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>پشتیبانی از فایل‌های اکسل شخصی یا سازمانی</span>
+                <span>پشتیبانی کامل از خرید و فروش و رهن و اجاره</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>امکان افزودن، ویرایش و حذف موارد در فایل اکسل</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>دسترسی به دیتاست آماده ۱۰۰ ملک نجف‌آباد</span>
+                <span>استخراج خروجی اکسل بروز شده با تمام تغییرات</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>استخراج خروجی اکسل فیلترشده با فرمت استاندارد</span>
+                <span>دیتاست نمونه ۱۰۰ ملک مسکونی نجف‌آباد</span>
               </div>
             </div>
           </div>
@@ -84,12 +91,12 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSele
             type="button"
             className="w-full mt-4 flex items-center justify-center gap-2 bg-emerald-600 group-hover:bg-emerald-700 text-white font-bold text-sm py-3.5 px-5 rounded-2xl shadow-xs group-hover:shadow-md transition-all"
           >
-            <span>ورود به نسخه اکسل</span>
+            <span>ورود به داشبورد من</span>
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           </button>
         </div>
 
-        {/* Option 2: Divar.ir Version */}
+        {/* Option 2: پنل دیوار (Divar Version) */}
         <div
           onClick={() => onSelectMode('divar')}
           className="group relative bg-white rounded-3xl border-2 border-slate-200/80 hover:border-red-500 hover:shadow-xl transition-all duration-300 p-6 sm:p-8 flex flex-col justify-between cursor-pointer text-right overflow-hidden hover:-translate-y-1"
@@ -104,31 +111,35 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSele
               </div>
               <span className="text-2xs font-bold text-red-700 bg-red-50 border border-red-200 px-3 py-1 rounded-full flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                آنلاین • ۲۴ ساعت اخیر
+                رصد زنده • ۱ ساعت تا ۱ ماه
               </span>
             </div>
 
-            <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-red-700 transition-colors">
-              آگهی‌های ۲۴ ساعت گذشته دیوار
+            <h2 className="text-2xl font-black text-slate-900 mb-2 group-hover:text-red-700 transition-colors">
+              پنل دیوار
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6">
-              دریافت مستقیم و زنده آگهی‌های املاک مسکونی نجف‌آباد از سایت دیوار (<code className="text-red-700 font-mono">divar.ir</code>) در ۲۴ ساعت گذشته با تصاویر، جزئیات متراژ، قیمت و محله.
+              رصد هوشمند، فیلتر زمانی و دریافت مستقیم آگهی‌های املاک نجف‌آباد از سایت دیوار همراه با مشاهده تمام تصاویر و سیستم گوش‌به‌زنگ اعلان ملک دلخواه.
             </p>
 
             {/* Feature checklist */}
-            <div className="space-y-2 mb-6 text-xs text-slate-600">
+            <div className="space-y-2.5 mb-6 text-xs text-slate-600">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-red-600 shrink-0" />
-                <span>رصد لحظه‌ای و دریافت خودکار از API دیوار</span>
+                <Clock className="w-4 h-4 text-red-600 shrink-0" />
+                <span>فیلتر زمانی گسترده: از ۱ ساعت تا ۱ ماه گذشته</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Images className="w-4 h-4 text-red-600 shrink-0" />
+                <span>مشاهده کلیه تصاویر و گالری کامل هر ملک</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-red-600 shrink-0" />
-                <span>مشاهده تصاویر باکیفیت و برچسب زمان آگهی</span>
+                <span>پشتیبانی کامل از خرید و فروش و رهن و اجاره</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-red-600 shrink-0" />
-                <span>فیلتر بر اساس محله‌های نجف‌آباد (فردوسی، ویلاشهر و...)</span>
+                <BellRing className="w-4 h-4 text-red-600 shrink-0" />
+                <span>گوش‌به‌زنگ و اعلان خودکار برای ملک با مشخصات دلخواه</span>
               </div>
             </div>
           </div>
@@ -138,7 +149,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSele
             type="button"
             className="w-full mt-4 flex items-center justify-center gap-2 bg-red-600 group-hover:bg-red-700 text-white font-bold text-sm py-3.5 px-5 rounded-2xl shadow-xs group-hover:shadow-md transition-all"
           >
-            <span>ورود به نسخه دیوار (divar.ir)</span>
+            <span>ورود به پنل دیوار</span>
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           </button>
         </div>
@@ -146,7 +157,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSele
 
       {/* Bottom Hint */}
       <div className="mt-8 text-center text-xs text-slate-400">
-        نکته: در هر زمان می‌توانید با استفاده از منوی بالای صفحه بین نسخه اکسل و نسخه دیوار جابجا شوید.
+        نکته: در هر زمان می‌توانید با استفاده از منوی بالای صفحه بین <strong>«داشبورد من»</strong> و <strong>«پنل دیوار»</strong> جابجا شوید.
       </div>
     </div>
   );

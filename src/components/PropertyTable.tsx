@@ -11,6 +11,11 @@ import {
   ExternalLink,
   MapPin,
   Clock,
+  Images,
+  Edit,
+  Trash2,
+  PlusCircle,
+  Tag,
 } from 'lucide-react';
 import { RealEstateItem, SortField, SortOrder } from '../types';
 import { formatPrice, formatPriceShort, toPersianDigits } from '../utils/formatters';
@@ -24,6 +29,10 @@ interface PropertyTableProps {
   usePersianDigits: boolean;
   onExportExcel: () => void;
   filteredCount: number;
+  isExcelMode?: boolean;
+  onAddNewProperty?: () => void;
+  onEditItem?: (item: RealEstateItem) => void;
+  onDeleteItem?: (item: RealEstateItem) => void;
 }
 
 export const PropertyTable: React.FC<PropertyTableProps> = ({
@@ -35,6 +44,10 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
   usePersianDigits,
   onExportExcel,
   filteredCount,
+  isExcelMode = false,
+  onAddNewProperty,
+  onEditItem,
+  onDeleteItem,
 }) => {
   const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
@@ -86,14 +99,6 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
     }
   };
 
-  const getDocBadge = (doc: string) => {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-        {doc}
-      </span>
-    );
-  };
-
   const renderBooleanBadge = (has: boolean) => {
     return has ? (
       <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs" title="دارد">
@@ -107,25 +112,38 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col">
       {/* Table Action Bar */}
-      <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+      <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs sm:text-sm font-bold text-slate-800">
-            جدول آگهی‌های ۲۴ ساعت گذشته دیوار (نجف‌آباد)
+            {isExcelMode ? 'جدول املاک داشبورد من' : 'جدول آگهی‌های پنل دیوار (نجف‌آباد)'}
           </span>
           <span className="text-xs text-slate-500 font-normal">
             ({fmt(filteredCount)} مورد یافت شده)
           </span>
         </div>
 
-        <button
-          onClick={onExportExcel}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5" />
-          <span>خروجی اکسل ({fmt(filteredCount)})</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* If Excel Mode: Add New Property Button */}
+          {isExcelMode && onAddNewProperty && (
+            <button
+              onClick={onAddNewProperty}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow transition-all cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>+ افزودن ملک جدید</span>
+            </button>
+          )}
+
+          <button
+            onClick={onExportExcel}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>خروجی اکسل ({fmt(filteredCount)})</span>
+          </button>
+        </div>
       </div>
 
       {/* Scrollable Table Container */}
@@ -144,11 +162,15 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
               </th>
 
               <th className="py-3 px-2 text-center w-14">
-                <span>تصویر</span>
+                <span>تصاویر</span>
               </th>
 
-              <th className="py-3 px-3 min-w-[240px]">
-                <span>عنوان آگهی و محله نجف‌آباد</span>
+              <th className="py-3 px-3 min-w-[220px]">
+                <span>عنوان ملک و محله</span>
+              </th>
+
+              <th className="py-3 px-2 text-center whitespace-nowrap">
+                <span>معامله</span>
               </th>
 
               <th
@@ -201,10 +223,6 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                 </div>
               </th>
 
-              <th className="py-3 px-3 text-center">
-                <span>جهت</span>
-              </th>
-
               <th className="py-3 px-2 text-center w-10">
                 <span title="پارکینگ">پارکینگ</span>
               </th>
@@ -219,27 +237,23 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
 
               <th
                 onClick={() => onSort('price')}
-                className="py-3 px-3 cursor-pointer group hover:bg-slate-200/70 transition-colors text-left min-w-[130px]"
+                className="py-3 px-3 cursor-pointer group hover:bg-slate-200/70 transition-colors text-left min-w-[150px]"
               >
                 <div className="flex items-center justify-end gap-1">
-                  <span>قیمت کل (تومان)</span>
+                  <span>قیمت کل / رهن و اجاره</span>
                   {getSortIcon('price')}
                 </div>
               </th>
 
-              <th
-                onClick={() => onSort('pricePerMeter')}
-                className="py-3 px-3 cursor-pointer group hover:bg-slate-200/70 transition-colors text-left min-w-[110px]"
-              >
-                <div className="flex items-center justify-end gap-1">
-                  <span>قیمت هر متر</span>
-                  {getSortIcon('pricePerMeter')}
-                </div>
-              </th>
-
-              <th className="py-3 px-3 text-center w-24">
-                <span>دیوار / جزئیات</span>
-              </th>
+              {isExcelMode ? (
+                <th className="py-3 px-3 text-center w-24">
+                  <span>عملیات (ویرایش/حذف)</span>
+                </th>
+              ) : (
+                <th className="py-3 px-3 text-center w-20">
+                  <span>مشاهده</span>
+                </th>
+              )}
             </tr>
           </thead>
 
@@ -260,6 +274,9 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
               </tr>
             ) : (
               items.map((item) => {
+                const isRent = item.transactionType === 'رهن و اجاره' || Boolean(item.deposit || item.rent);
+                const photoCount = item.images ? item.images.length : item.imageUrl ? 1 : 0;
+
                 return (
                   <tr
                     key={item.id}
@@ -271,21 +288,31 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                       {fmt(item.rowNumber)}
                     </td>
 
-                    {/* Thumbnail Image */}
+                    {/* Thumbnail Image with photo count badge */}
                     <td className="py-2.5 px-2 text-center">
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt=""
-                          referrerPolicy="no-referrer"
-                          className="w-10 h-10 rounded-lg object-cover mx-auto border border-slate-200 shadow-2xs"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
-                          <Building2 className="w-4 h-4" />
-                        </div>
-                      )}
+                      <div className="relative inline-block">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt=""
+                            referrerPolicy="no-referrer"
+                            className="w-10 h-10 rounded-lg object-cover mx-auto border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+                            <Building2 className="w-4 h-4" />
+                          </div>
+                        )}
+                        {photoCount > 1 && (
+                          <span
+                            className="absolute -bottom-1 -left-1 px-1 py-0.2 bg-black/75 text-white rounded text-[9px] font-bold shadow-xs"
+                            title={`${fmt(photoCount)} تصویر`}
+                          >
+                            {fmt(photoCount)}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Title / District */}
@@ -307,6 +334,19 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                           </span>
                         )}
                       </div>
+                    </td>
+
+                    {/* Transaction Type */}
+                    <td className="py-2.5 px-2 text-center whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-bold ${
+                          isRent
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}
+                      >
+                        {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
+                      </span>
                     </td>
 
                     {/* Property type */}
@@ -334,11 +374,6 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                       {item.age === 0 ? 'نوساز' : `${fmt(item.age)} سال`}
                     </td>
 
-                    {/* Orientation */}
-                    <td className="py-2.5 px-3 text-center text-slate-600 whitespace-nowrap">
-                      {item.orientation}
-                    </td>
-
                     {/* Parking */}
                     <td className="py-2.5 px-2 text-center whitespace-nowrap">
                       {renderBooleanBadge(item.hasParking)}
@@ -354,65 +389,65 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                       {renderBooleanBadge(item.hasStorage)}
                     </td>
 
-                    {/* Price */}
+                    {/* Pricing */}
                     <td className="py-2.5 px-3 text-left whitespace-nowrap">
-                      {item.price > 0 ? (
-                        <>
-                          <div className="font-bold text-slate-900">
-                            {formatPrice(item.price, usePersianDigits)}
+                      {isRent ? (
+                        <div className="text-right">
+                          <div className="font-bold text-blue-900 text-xs">
+                            {item.deposit && item.deposit > 0 ? `رهن: ${formatPriceShort(item.deposit, usePersianDigits)}` : 'ودیعه: توافقی'}
                           </div>
-                          <div className="text-[10px] text-slate-500">
-                            {formatPriceShort(item.price, usePersianDigits)}
+                          <div className="text-2xs text-blue-700 font-semibold">
+                            {item.rent && item.rent > 0 ? `اجاره: ${formatPriceShort(item.rent, usePersianDigits)}` : 'رهن کامل'}
                           </div>
-                        </>
+                        </div>
                       ) : (
-                        <div className="text-xs font-bold text-amber-700">
-                          {item.priceText || 'توافقی'}
+                        <div className="text-right">
+                          <div className="font-black text-emerald-900 text-xs">
+                            {item.price > 0 ? `${formatPrice(item.price, usePersianDigits)} تومان` : item.priceText || 'توافقی'}
+                          </div>
+                          {item.price > 0 && (
+                            <div className="text-2xs text-slate-400">
+                              متری {fmt(item.pricePerMeter ? formatPrice(item.pricePerMeter, usePersianDigits) : Math.round(item.price / (item.area || 1)))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </td>
 
-                    {/* Price per meter */}
-                    <td className="py-2.5 px-3 text-left whitespace-nowrap">
-                      {item.pricePerMeter ? (
-                        <>
-                          <div className="font-semibold text-indigo-700">
-                            {formatPrice(item.pricePerMeter, usePersianDigits)}
-                          </div>
-                          <div className="text-[10px] text-slate-400">تومان/متر</div>
-                        </>
-                      ) : (
-                        <span className="text-slate-400 text-2xs">-</span>
-                      )}
-                    </td>
-
-                    {/* View & Divar Link Actions */}
+                    {/* Actions: Edit & Delete (Excel) or View Details (Divar) */}
                     <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                      <div className="flex items-center justify-center gap-1.5">
-                        {item.divarUrl && (
-                          <a
-                            href={item.divarUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="p-1.5 text-red-600 hover:text-white hover:bg-red-600 rounded-lg transition-colors"
-                            title="مشاهده مستقیم در دیوار"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-
+                      {isExcelMode ? (
+                        <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          {onEditItem && (
+                            <button
+                              type="button"
+                              onClick={() => onEditItem(item)}
+                              className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                              title="ویرایش ملک"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {onDeleteItem && (
+                            <button
+                              type="button"
+                              onClick={() => onDeleteItem(item)}
+                              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                              title="حذف ملک"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectItem(item);
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
-                          title="مشاهده جزئیات کامل"
+                          type="button"
+                          className="inline-flex items-center gap-1 text-slate-500 hover:text-indigo-600 text-2xs font-semibold py-1 px-2 rounded-md hover:bg-slate-100 transition-colors"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>مشاهده</span>
                         </button>
-                      </div>
+                      )}
                     </td>
                   </tr>
                 );

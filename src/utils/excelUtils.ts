@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { RealEstateItem } from '../types';
+import { RealEstateItem, TransactionType } from '../types';
 import { parseBooleanStatus, parseNumberFromString, normalizePersianText } from './formatters';
 
 export interface ExcelParseResult {
@@ -42,7 +42,7 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
       };
     }
 
-    // Find header row: look for row that contains known keywords like "آدرس", "قیمت", "نوع", "address", "price"
+    // Find header row: look for row that contains known keywords
     let headerRowIndex = 0;
     for (let i = 0; i < Math.min(10, rawData.length); i++) {
       const row = rawData[i];
@@ -54,6 +54,9 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
           norm.includes('قیمت') ||
           norm.includes('نوع') ||
           norm.includes('ردیف') ||
+          norm.includes('معامله') ||
+          norm.includes('رهن') ||
+          norm.includes('اجاره') ||
           norm.includes('price') ||
           norm.includes('address')
         ) {
@@ -72,6 +75,8 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
     headers.forEach((h, idx) => {
       const norm = normalizePersianText(h);
       if (norm.includes('ردیف') || norm === 'id' || norm === 'row') colIndex.rowNumber = idx;
+      else if (norm.includes('معامله') || norm === 'transaction' || norm.includes('نوع قرارداد'))
+        colIndex.transactionType = idx;
       else if (norm.includes('ادرس') || norm.includes('نشانی') || norm === 'address') colIndex.address = idx;
       else if (norm.includes('نوع ملک') || norm === 'نوع' || norm === 'property type' || norm === 'type')
         colIndex.propertyType = idx;
@@ -91,8 +96,14 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         colIndex.elevator = idx;
       else if (norm.includes('انباری') || norm === 'storage') colIndex.storage = idx;
       else if (norm.includes('سند') || norm === 'document' || norm === 'deed') colIndex.documentType = idx;
-      else if (norm.includes('قیمت') || norm.includes('مبلغ') || norm === 'price' || norm === 'cost')
+      else if (norm.includes('قیمت') || norm.includes('مبلغ کل') || norm === 'price' || norm === 'cost')
         colIndex.price = idx;
+      else if (norm.includes('رهن') || norm.includes('ودیعه') || norm === 'deposit')
+        colIndex.deposit = idx;
+      else if (norm.includes('اجاره') || norm === 'rent')
+        colIndex.rent = idx;
+      else if (norm.includes('محله') || norm.includes('منطقه') || norm === 'district')
+        colIndex.district = idx;
     });
 
     const items: RealEstateItem[] = [];
@@ -107,12 +118,24 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         return i !== undefined ? row[i] : undefined;
       };
 
-      const addressVal = getVal('address') || (row.find((c) => typeof c === 'string' && c.length > 10) ?? `ملک شماره ${idx + 1}`);
+      const addressVal = getVal('address') || (row.find((c) => typeof c === 'string' && c.length > 8) ?? `ملک شماره ${idx + 1}`);
       const priceVal = parseNumberFromString(getVal('price'));
+      const depositVal = parseNumberFromString(getVal('deposit'));
+      const rentVal = parseNumberFromString(getVal('rent'));
       const areaVal = parseNumberFromString(getVal('area')) || 100;
       const rowNumVal = parseNumberFromString(getVal('rowNumber')) || idx + 1;
 
-      // Extract raw dictionary for any custom columns
+      let transType: TransactionType = 'خرید و فروش';
+      const rawTrans = getVal('transactionType');
+      if (rawTrans) {
+        const normTrans = normalizePersianText(String(rawTrans));
+        if (normTrans.includes('اجاره') || normTrans.includes('رهن')) {
+          transType = 'رهن و اجاره';
+        }
+      } else if (depositVal > 0 || rentVal > 0) {
+        transType = 'رهن و اجاره';
+      }
+
       const rawRow: Record<string, any> = {};
       headers.forEach((h, hIdx) => {
         if (h && row[hIdx] !== undefined) {
@@ -124,20 +147,31 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         id: idx + 1,
         rowNumber: rowNumVal,
         address: String(addressVal || '').trim(),
+        district: String(getVal('district') || '').trim() || undefined,
         propertyType: String(getVal('propertyType') || 'آپارتمان').trim(),
+        transactionType: transType,
         area: areaVal,
         rooms: parseNumberFromString(getVal('rooms')) || 1,
         floor: parseNumberFromString(getVal('floor')) || 0,
         totalFloors: parseNumberFromString(getVal('totalFloors')) || 1,
         age: parseNumberFromString(getVal('age')) || 0,
-        orientation: String(getVal('orientation') || 'نامشخص').trim(),
-        facade: String(getVal('facade') || 'نامشخص').trim(),
+        orientation: String(getVal('orientation') || 'شمالی').trim(),
+        facade: String(getVal('facade') || 'سنگ').trim(),
         hasParking: parseBooleanStatus(getVal('parking')),
         hasElevator: parseBooleanStatus(getVal('elevator')),
         hasStorage: parseBooleanStatus(getVal('storage')),
         documentType: String(getVal('documentType') || 'تک برگ').trim(),
         price: priceVal,
-        pricePerMeter: areaVal > 0 ? Math.round(priceVal / areaVal) : 0,
+        pricePerMeter: areaVal > 0 && priceVal > 0 ? Math.round(priceVal / areaVal) : 0,
+        deposit: depositVal,
+        rent: rentVal,
+        depositText: depositVal > 0 ? `${depositVal.toLocaleString('fa-IR')} تومان` : undefined,
+        rentText: rentVal > 0 ? `${rentVal.toLocaleString('fa-IR')} تومان` : undefined,
+        priceText:
+          transType === 'خرید و فروش'
+            ? `${priceVal.toLocaleString('fa-IR')} تومان`
+            : `ودیعه: ${(depositVal / 1000000).toLocaleString('fa-IR')} م • اجاره: ${(rentVal / 1000000).toLocaleString('fa-IR')} م`,
+        source: 'excel',
         rawRow,
       });
     });
@@ -162,12 +196,18 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
   }
 };
 
-export const exportToExcel = (items: RealEstateItem[], fileName = 'لیست_املاک.xlsx') => {
-  const exportData = items.map((item) => ({
-    ردیف: item.rowNumber,
-    آدرس: item.address,
+export const exportToExcel = (items: RealEstateItem[], fileName = 'املاک_داشبورد_من.xlsx') => {
+  const exportData = items.map((item, idx) => ({
+    ردیف: item.rowNumber || idx + 1,
+    'نوع معامله': item.transactionType || (item.deposit || item.rent ? 'رهن و اجاره' : 'خرید و فروش'),
+    'عنوان / آدرس': item.title || item.address,
     'نوع ملک': item.propertyType,
     'متراژ (متر مربع)': item.area,
+    'قیمت کل (تومان)': item.price || 0,
+    'قیمت هر متر (تومان)': item.pricePerMeter || (item.area > 0 && item.price ? Math.round(item.price / item.area) : 0),
+    'ودیعه / رهن (تومان)': item.deposit || 0,
+    'اجاره ماهیانه (تومان)': item.rent || 0,
+    محله: item.district || '',
     'تعداد اتاق': item.rooms,
     طبقه: item.floor === 0 ? 'همکف' : item.floor,
     'تعداد کل طبقات': item.totalFloors,
@@ -178,8 +218,7 @@ export const exportToExcel = (items: RealEstateItem[], fileName = 'لیست_ام
     آسانسور: item.hasElevator ? 'دارد' : 'ندارد',
     انباری: item.hasStorage ? 'دارد' : 'ندارد',
     'نوع سند': item.documentType,
-    'قیمت (تومان)': item.price,
-    'قیمت هر متر (تومان)': item.pricePerMeter || Math.round(item.price / (item.area || 1)),
+    آدرس: item.address,
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(exportData);

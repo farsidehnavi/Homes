@@ -11,6 +11,8 @@ import {
   Home,
   Upload,
   ArrowRight,
+  BellRing,
+  PlusCircle,
 } from 'lucide-react';
 import { toPersianDigits } from '../utils/formatters';
 
@@ -31,6 +33,10 @@ interface NavbarProps {
   isRefreshingDivar?: boolean;
   onExportExcel?: () => void;
   onUploadNewExcel?: () => void;
+  onAddNewProperty?: () => void;
+  onOpenAlertsModal?: () => void;
+  activeAlertsCount?: number;
+  matchedAlertsCount?: number;
   excelFileName?: string;
 }
 
@@ -51,6 +57,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   isRefreshingDivar = false,
   onExportExcel,
   onUploadNewExcel,
+  onAddNewProperty,
+  onOpenAlertsModal,
+  activeAlertsCount = 0,
+  matchedAlertsCount = 0,
   excelFileName,
 }) => {
   const fmt = (n: number) => (usePersianDigits ? toPersianDigits(n) : n);
@@ -91,9 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
-                    {currentMode === 'excel'
-                      ? 'املاک نجف‌آباد (تحلیل فایل اکسل)'
-                      : 'املاک نجف‌آباد (دیوار ۲۴ ساعت اخیر)'}
+                    {currentMode === 'excel' ? 'داشبورد من' : 'پنل دیوار'}
                   </h1>
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded text-2xs font-black ${
@@ -102,15 +110,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                         : 'bg-red-50 text-red-700 border border-red-200'
                     }`}
                   >
-                    {currentMode === 'excel' ? 'Excel Mode' : 'divar.ir'}
+                    {currentMode === 'excel' ? 'مدیریت اکسل' : 'divar.ir'}
                   </span>
                 </div>
                 <p className="text-2xs text-slate-400 hidden lg:block">
                   {currentMode === 'excel'
                     ? excelFileName
-                      ? `فایل در حال نمایش: ${excelFileName}`
-                      : 'بارگذاری، فیلتر و تحلیل آماری املاک از فایل اکسل'
-                    : 'رصد لحظه‌ای و فیلتر آگهی‌های ۲۴ ساعت گذشته دیوار نجف‌آباد'}
+                      ? `فایل اکسل: ${excelFileName}`
+                      : 'مدیریت، ویرایش و تحلیل هوشمند املاک'
+                    : 'رصد زنده و فیلتر زمانی آگهی‌های دیوار نجف‌آباد'}
                 </p>
               </div>
             </div>
@@ -121,45 +129,76 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="switch-to-excel-mode-btn"
               onClick={() => onSwitchMode('excel')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 currentMode === 'excel'
                   ? 'bg-white text-emerald-800 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-              <span>نسخه اکسل</span>
+              <span>داشبورد من</span>
             </button>
 
             <button
               id="switch-to-divar-mode-btn"
               onClick={() => onSwitchMode('divar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 currentMode === 'divar'
                   ? 'bg-white text-red-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Building2 className="w-3.5 h-3.5 text-red-600" />
-              <span>نسخه دیوار (divar.ir)</span>
+              <span>پنل دیوار</span>
             </button>
           </div>
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Divar Mode: Alerts (گوش‌به‌زنگ) Button */}
+            {currentMode === 'divar' && onOpenAlertsModal && (
+              <button
+                type="button"
+                onClick={onOpenAlertsModal}
+                className="relative flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer"
+                title="تنظیم گوش‌به‌زنگ و هشدارهای هوشمند ملک"
+              >
+                <BellRing className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                <span className="hidden sm:inline">گوش‌به‌زنگ</span>
+                {matchedAlertsCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center font-bold">
+                    {fmt(matchedAlertsCount)}
+                  </span>
+                )}
+              </button>
+            )}
+
             {/* Divar Mode: Refresh Button */}
             {currentMode === 'divar' && onRefreshDivar && (
               <button
                 id="refresh-divar-navbar-btn"
                 onClick={onRefreshDivar}
                 disabled={isRefreshingDivar}
-                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer disabled:opacity-50"
-                title="دریافت آخرین آگهی‌های ۲۴ ساعت گذشته از دیوار"
+                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer disabled:opacity-50"
+                title="دریافت آخرین آگهی‌های دیوار"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingDivar ? 'animate-spin' : ''}`} />
                 <span className="hidden sm:inline">
-                  {isRefreshingDivar ? 'در حال بروزرسانی...' : 'بروزرسانی دیوار'}
+                  {isRefreshingDivar ? 'در حال دریافت...' : 'بروزرسانی'}
                 </span>
+              </button>
+            )}
+
+            {/* Excel Mode: Add New Property Button */}
+            {currentMode === 'excel' && onAddNewProperty && (
+              <button
+                type="button"
+                onClick={onAddNewProperty}
+                className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
+                title="افزودن ملک جدید به اکسل"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">افزودن ملک</span>
               </button>
             )}
 
@@ -168,11 +207,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="upload-new-excel-navbar-btn"
                 onClick={onUploadNewExcel}
-                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xs hover:shadow transition-all cursor-pointer"
-                title="بارگذاری فایل اکسل جدید"
+                className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-xl transition-all cursor-pointer"
+                title="بارگذاری یا جایگزینی فایل اکسل"
               >
-                <Upload className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">آپلود اکسل جدید</span>
+                <Upload className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden md:inline">آپلود اکسل</span>
               </button>
             )}
 
@@ -181,8 +220,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="export-excel-navbar-btn"
                 onClick={onExportExcel}
-                className="hidden md:flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
-                title="دانلود خروجی اکسل"
+                className="hidden md:flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold px-2.5 py-1.5 rounded-xl transition-colors cursor-pointer"
+                title="دانلود خروجی اکسل بروز شده"
               >
                 <Download className="w-3.5 h-3.5 text-emerald-600" />
                 <span>خروجی اکسل</span>
@@ -193,7 +232,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               id="mobile-filter-toggle-btn"
               onClick={onToggleFilterMobile}
-              className={`lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors border ${
+              className={`lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors border ${
                 isFilterOpenMobile
                   ? 'bg-indigo-600 text-white border-indigo-600'
                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
@@ -207,12 +246,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* View Switcher: Table vs Cards */}
-            <div className="bg-slate-100 p-0.5 rounded-lg border border-slate-200 flex items-center">
+            <div className="bg-slate-100 p-0.5 rounded-xl border border-slate-200 flex items-center">
               <button
                 id="view-table-btn"
                 onClick={() => onToggleView('table')}
                 title="نمای جدولی"
-                className={`p-1.5 sm:px-2 sm:py-1 rounded-md text-xs font-medium flex items-center gap-1 transition-all ${
+                className={`p-1.5 sm:px-2 sm:py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-all ${
                   activeView === 'table'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -225,7 +264,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 id="view-cards-btn"
                 onClick={() => onToggleView('cards')}
                 title="نمای کارتی"
-                className={`p-1.5 sm:px-2 sm:py-1 rounded-md text-xs font-medium flex items-center gap-1 transition-all ${
+                className={`p-1.5 sm:px-2 sm:py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-all ${
                   activeView === 'cards'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -241,7 +280,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               id="toggle-digits-btn"
               onClick={onTogglePersianDigits}
               title="تغییر نمایش اعداد (فارسی / انگلیسی)"
-              className="px-2 py-1 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors hidden sm:inline-block"
+              className="px-2 py-1 text-xs font-medium border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors hidden sm:inline-block cursor-pointer"
             >
               {usePersianDigits ? '۱۲۳' : '123'}
             </button>
@@ -251,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               id="reset-data-btn"
               onClick={onResetData}
               title="بازنشانی فیلترها"
-              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -262,25 +301,25 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="sm:hidden flex items-center justify-around py-2 border-t border-slate-100 text-xs">
           <button
             onClick={() => onSwitchMode('excel')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold ${
               currentMode === 'excel'
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 : 'text-slate-600'
             }`}
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>نسخه اکسل</span>
+            <span>داشبورد من</span>
           </button>
           <button
             onClick={() => onSwitchMode('divar')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold ${
               currentMode === 'divar'
                 ? 'bg-red-50 text-red-700 border border-red-200'
                 : 'text-slate-600'
             }`}
           >
             <Building2 className="w-3.5 h-3.5" />
-            <span>نسخه دیوار</span>
+            <span>پنل دیوار</span>
           </button>
         </div>
       </div>

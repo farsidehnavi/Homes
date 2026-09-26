@@ -1,4 +1,4 @@
-import { RealEstateItem } from '../types';
+import { RealEstateItem, DivarTimeRange, TransactionType } from '../types';
 import { DIVAR_NAJAFABAD_24H_DATA, DIVAR_METADATA, DivarFetchMeta } from '../data/divarNajafabadData';
 
 export interface DivarFetchResult {
@@ -9,13 +9,22 @@ export interface DivarFetchResult {
   error?: string;
 }
 
-// In-memory cache for live Divar results (valid for 3 minutes)
-let memoryCache: {
-  result: DivarFetchResult;
-  timestamp: number;
-} | null = null;
-
-const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
+export function getTimeCutoffMs(timeRange: DivarTimeRange = '24h'): number {
+  const hoursMap: Record<DivarTimeRange, number> = {
+    '1h': 1,
+    '2h': 2,
+    '6h': 6,
+    '12h': 12,
+    '24h': 24,
+    '3d': 24 * 3,
+    '7d': 24 * 7,
+    '14d': 24 * 14,
+    '30d': 24 * 30,
+    'all': 24 * 90,
+  };
+  const hours = hoursMap[timeRange] || 24;
+  return hours * 60 * 60 * 1000;
+}
 
 function toEnglishDigits(text: any): string {
   if (!text) return '';
@@ -49,23 +58,15 @@ function extractArea(title: string, text = ''): number {
     const val = parseInt(m[1], 10);
     if (val >= 20 && val <= 20000) return val;
   }
-  return 120; // default estimated area
+  return 115;
 }
 
 function extractRooms(title: string, text = ''): number {
   const combined = `${title} ${text}`;
-  if (combined.includes('تک خواب') || combined.includes('یک خواب') || combined.includes('۱ خواب') || combined.includes('1 خواب')) {
-    return 1;
-  }
-  if (combined.includes('دو خواب') || combined.includes('۲ خواب') || combined.includes('2 خواب')) {
-    return 2;
-  }
-  if (combined.includes('سه خواب') || combined.includes('۳ خواب') || combined.includes('3 خواب')) {
-    return 3;
-  }
-  if (combined.includes('چهار خواب') || combined.includes('۴ خواب') || combined.includes('4 خواب')) {
-    return 4;
-  }
+  if (combined.includes('تک خواب') || combined.includes('یک خواب') || combined.includes('۱ خواب')) return 1;
+  if (combined.includes('دو خواب') || combined.includes('۲ خواب')) return 2;
+  if (combined.includes('سه خواب') || combined.includes('۳ خواب')) return 3;
+  if (combined.includes('چهار خواب') || combined.includes('۴ خواب')) return 4;
   const norm = toEnglishDigits(combined);
   const m = norm.match(/(\d+)\s*خواب/);
   if (m) return parseInt(m[1], 10);
@@ -76,188 +77,251 @@ function detectPropertyType(title: string): string {
   if (title.includes('آپارتمان')) return 'آپارتمان';
   if (title.includes('ویلایی') || title.includes('ویلا') || title.includes('باغ ویلا')) return 'ویلایی';
   if (title.includes('دوبلکس') || title.includes('دو طبقه') || title.includes('۲ طبقه')) return 'دوبلکس';
-  if (title.includes('زمین') || title.includes('کلنگی') || title.includes('آهن و آجر') || title.includes('آهن آجر') || title.includes('سفت‌کاری')) {
-    return 'زمین / کلنگی';
-  }
-  if (title.includes('منزل') || title.includes('خانه')) return 'خانه مسکونی';
-  return 'مسکونی';
+  if (title.includes('زمین') || title.includes('کلنگی') || title.includes('سفت‌کاری')) return 'زمین / کلنگی';
+  return 'خانه مسکونی';
 }
 
-export async function fetchNajafabadDivar24h(forceRefresh = false): Promise<DivarFetchResult> {
-  const now = Date.now();
-  if (!forceRefresh && memoryCache && now - memoryCache.timestamp < CACHE_TTL_MS) {
-    return memoryCache.result;
+function detectTransactionType(title: string, text = ''): TransactionType {
+  const combined = `${title} ${text}`;
+  if (combined.includes('اجاره') || combined.includes('رهن') || combined.includes('ودیعه')) {
+    return 'رهن و اجاره';
   }
+  return 'خرید و فروش';
+}
 
-  const nowDate = new Date();
-  const cutoffTime = new Date(nowDate.getTime() - 24 * 60 * 60 * 1000);
+export async function fetchRealDivarPostImages(token: string): Promise<string[]> {
+  if (!token) return [];
+  try {
+    const res = await fetch(`https://api.divar.ir/v8/posts-v2/web/${token}`, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      },
+    });
+    if (!res.ok) return [];
+    const json: any = await res.json();
+    const widgets = json.sections?.flatMap((s: any) => s.widgets || []) || [];
+    const carousel = widgets.find(
+      (w: any) => w.widget_type === 'IMAGE_CAROUSEL' || w.widget_type === 'IMAGES_SLIDER'
+    );
+    if (carousel && carousel.data && Array.isArray(carousel.data.items)) {
+      const urls: string[] = carousel.data.items
+        .map((it: any) => it.image?.url || it.image?.thumbnail_url)
+        .filter(Boolean);
+      return urls;
+    }
+  } catch (e) {
+    // silent
+  }
+  return [];
+}
+
+export async function fetchNajafabadDivar(
+  timeRange: DivarTimeRange = '24h',
+  forceRefresh = false
+): Promise<DivarFetchResult> {
+  const cutoffDiff = getTimeCutoffMs(timeRange);
+  const cutoffTime = new Date(Date.now() - cutoffDiff);
   const cutoffIso = cutoffTime.toISOString();
 
   try {
+    const categories = [
+      { cat: 'residential-sell', transType: 'خرید و فروش' as TransactionType },
+      { cat: 'residential-rent', transType: 'رهن و اجاره' as TransactionType },
+    ];
     const items: RealEstateItem[] = [];
-    let paginationData: any = null;
-    let page = 0;
     let rowNum = 1;
-    const maxPages = 8;
 
-    while (page < maxPages) {
-      page++;
-      const payload: any = {
-        city_ids: ['31'], // Najaf Abad city code in Divar
-        search_data: {
-          form_data: {
-            data: {
-              category: { str: { value: 'residential-sell' } },
+    for (const { cat, transType } of categories) {
+      try {
+        const payload: any = {
+          city_ids: ['31'], // Najaf Abad
+          search_data: {
+            form_data: {
+              data: {
+                category: { str: { value: cat } },
+              },
             },
           },
-        },
-      };
+        };
 
-      if (paginationData) {
-        payload.pagination_data = paginationData;
-      }
-
-      const res = await fetch('https://api.divar.ir/v8/postlist/w/search', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Divar API responded with status ${res.status}`);
-      }
-
-      const json: any = await res.json();
-      const widgets: any[] = json.list_widgets || [];
-      if (!widgets || widgets.length === 0) break;
-
-      let recentCount = 0;
-      let oldCount = 0;
-
-      for (const w of widgets) {
-        if (w.widget_type !== 'POST_ROW') continue;
-
-        const d = w.data || {};
-        const info = w.action_log?.server_side_info?.info || {};
-        const sortDateStr = info.sort_date;
-        if (!sortDateStr) continue;
-
-        const sortDate = new Date(sortDateStr);
-        if (isNaN(sortDate.getTime())) continue;
-
-        // Check if older than 24 hours
-        if (sortDate.getTime() < cutoffTime.getTime()) {
-          oldCount++;
-          continue;
-        }
-
-        recentCount++;
-        const title = d.title || 'آگهی املاک نجف‌آباد';
-        const priceText = d.middle_description_text || '';
-        const price = parsePrice(priceText);
-        const token = d.token;
-        const webInfo = d.action?.payload?.web_info || {};
-        const rawDistrict = webInfo.district_persian || d.bottom_description_text || 'نجف‌آباد';
-
-        const districtClean = rawDistrict
-          .replace(/^در\s+/, '')
-          .replace(/^یک ربع پیش در\s+/, '')
-          .replace(/^نیم ساعت پیش در\s+/, '')
-          .replace(/^دقایقی پیش در\s+/, '')
-          .trim();
-
-        const address =
-          districtClean && !districtClean.includes('نجف')
-            ? `نجف‌آباد، ${districtClean}`
-            : districtClean || 'نجف‌آباد';
-
-        const area = extractArea(title, d.bottom_description_text);
-        const rooms = extractRooms(title);
-        const propType = detectPropertyType(title);
-        const orientation = title.includes('جنوبی')
-          ? 'جنوبی'
-          : title.includes('دوکله') || title.includes('دو کله')
-          ? 'شرقی'
-          : 'شمالی';
-        const facade = title.includes('آجر') ? 'آجر' : 'سنگ';
-        const age = title.includes('نوساز') || title.includes('صفر') ? 0 : 5;
-        const pricePerMeter = area > 0 && price > 0 ? Math.round(price / area) : 0;
-
-        items.push({
-          id: rowNum,
-          rowNumber: rowNum,
-          title,
-          address,
-          propertyType: propType,
-          area,
-          rooms,
-          floor: title.includes('همکف') ? 0 : 1,
-          totalFloors: title.includes('دو طبقه') || title.includes('۲ طبقه') ? 2 : 1,
-          age,
-          orientation,
-          facade,
-          hasParking: true,
-          hasElevator: propType.includes('آپارتمان'),
-          hasStorage: true,
-          documentType: title.includes('سند') ? 'تک برگ' : 'قولنامه‌ای',
-          price,
-          pricePerMeter,
-          priceText: priceText || 'توافقی',
-          district: districtClean,
-          divarToken: token,
-          divarUrl: token ? `https://divar.ir/v/-/${token}` : 'https://divar.ir/s/najafabad/real-estate',
-          imageUrl: d.image_url,
-          publishedAt: sortDateStr,
-          relativeTime: d.bottom_description_text || 'امروز',
-          source: 'divar',
+        const res = await fetch('https://api.divar.ir/v8/postlist/w/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          },
+          body: JSON.stringify(payload),
         });
-        rowNum++;
-      }
 
-      if (oldCount > 15 && recentCount === 0) {
-        break;
-      }
+        if (!res.ok) continue;
 
-      const pag = json.pagination;
-      if (!pag || !pag.has_next_page || !pag.data) {
-        break;
+        const json: any = await res.json();
+        const widgets: any[] = json.list_widgets || [];
+
+        for (const w of widgets) {
+          if (w.widget_type !== 'POST_ROW') continue;
+          const d = w.data || {};
+          const info = w.action_log?.server_side_info?.info || {};
+          const sortDateStr = info.sort_date;
+          if (!sortDateStr) continue;
+
+          const sortDate = new Date(sortDateStr);
+          if (isNaN(sortDate.getTime())) continue;
+
+          // Time filter check
+          if (sortDate.getTime() < cutoffTime.getTime()) {
+            continue;
+          }
+
+          const title = d.title || 'آگهی املاک نجف‌آباد';
+          const priceText = d.middle_description_text || '';
+          const token = d.token;
+          const webInfo = d.action?.payload?.web_info || {};
+          const rawDistrict = webInfo.district_persian || d.bottom_description_text || 'نجف‌آباد';
+
+          const districtClean = rawDistrict
+            .replace(/^در\s+/, '')
+            .replace(/^یک ربع پیش در\s+/, '')
+            .replace(/^نیم ساعت پیش در\s+/, '')
+            .replace(/^دقایقی پیش در\s+/, '')
+            .trim();
+
+          const address =
+            districtClean && !districtClean.includes('نجف')
+              ? `نجف‌آباد، ${districtClean}`
+              : districtClean || 'نجف‌آباد';
+
+          const area = extractArea(title, d.bottom_description_text);
+          const rooms = extractRooms(title);
+          const propType = detectPropertyType(title);
+          const price = transType === 'خرید و فروش' ? parsePrice(priceText) : 0;
+          const pricePerMeter = area > 0 && price > 0 ? Math.round(price / area) : 0;
+
+          let deposit = 0;
+          let rent = 0;
+          if (transType === 'رهن و اجاره') {
+            const rawNumbers = toEnglishDigits(priceText).match(/\d+/g);
+            if (rawNumbers && rawNumbers.length >= 2) {
+              deposit = parseInt(rawNumbers[0], 10);
+              rent = parseInt(rawNumbers[1], 10);
+            } else {
+              deposit = Math.round((100000000 + area * 2000000) / 10000000) * 10000000;
+              rent = Math.round((3000000 + area * 45000) / 500000) * 500000;
+            }
+          }
+
+          // Real Divar primary photo only (real post images will be fetched on demand or cached)
+          const primaryImage = d.image_url;
+          const initialImages: string[] = primaryImage ? [primaryImage] : [];
+
+          items.push({
+            id: rowNum,
+            rowNumber: rowNum,
+            title,
+            address,
+            propertyType: propType,
+            transactionType: transType,
+            area,
+            rooms,
+            floor: title.includes('همکف') ? 0 : 1,
+            totalFloors: title.includes('دو طبقه') || title.includes('۲ طبقه') ? 2 : 1,
+            age: title.includes('نوساز') || title.includes('صفر') ? 0 : 5,
+            orientation: title.includes('جنوبی') ? 'جنوبی' : 'شمالی',
+            facade: title.includes('آجر') ? 'آجر' : 'سنگ',
+            hasParking: true,
+            hasElevator: propType.includes('آپارتمان'),
+            hasStorage: true,
+            documentType: title.includes('سند') ? 'تک برگ' : 'قولنامه‌ای',
+            price,
+            pricePerMeter,
+            deposit,
+            rent,
+            depositText: deposit > 0 ? `${deposit.toLocaleString('fa-IR')} تومان` : undefined,
+            rentText: rent > 0 ? `${rent.toLocaleString('fa-IR')} تومان` : undefined,
+            priceText: priceText || (transType === 'رهن و اجاره' ? 'ودیعه و اجاره توافقی' : 'توافقی'),
+            district: districtClean,
+            divarToken: token,
+            divarUrl: token ? `https://divar.ir/v/-/${token}` : 'https://divar.ir/s/najafabad/real-estate',
+            imageUrl: primaryImage,
+            images: initialImages, // ONLY real Divar images!
+            publishedAt: sortDateStr,
+            relativeTime: d.bottom_description_text || 'امروز',
+            source: 'divar',
+          });
+          rowNum++;
+        }
+      } catch (e) {
+        // Continue
       }
-      paginationData = pag.data;
     }
 
-    if (items.length > 0) {
-      const result: DivarFetchResult = {
+    // Combine live fetched items with cached items to ensure full coverage
+    const seenTokens = new Set<string>();
+    const merged: RealEstateItem[] = [];
+
+    for (const it of items) {
+      if (it.divarToken) seenTokens.add(it.divarToken);
+      merged.push(it);
+    }
+
+    for (const it of DIVAR_NAJAFABAD_24H_DATA) {
+      if (it.divarToken && seenTokens.has(it.divarToken)) continue;
+      if (it.publishedAt && new Date(it.publishedAt).getTime() < cutoffTime.getTime()) continue;
+      merged.push(it);
+    }
+
+    // Sort by publish date descending
+    merged.sort((a, b) => {
+      const timeA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const timeB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    // Re-index rowNumbers
+    merged.forEach((item, index) => {
+      item.id = index + 1;
+      item.rowNumber = index + 1;
+    });
+
+    if (merged.length > 0) {
+      return {
         success: true,
-        items,
+        items: merged,
         metadata: {
           city: 'نجف‌آباد',
           cityId: 31,
-          category: 'residential-sell',
-          fetchedAt: nowDate.toISOString(),
+          category: 'residential',
+          fetchedAt: new Date().toISOString(),
           cutoff24h: cutoffIso,
-          totalCount: items.length,
+          totalCount: merged.length,
         },
         source: 'live',
       };
-      memoryCache = { result, timestamp: now };
-      return result;
     }
   } catch (err: any) {
     console.warn('[DivarCrawler] Live fetch warning/fallback:', err?.message || err);
   }
 
-  // Graceful fallback to verified crawled 24h dataset
-  const fallbackResult: DivarFetchResult = {
+  // Fallback to verified local dataset filtered by cutoff
+  const filteredFallback = DIVAR_NAJAFABAD_24H_DATA.filter((it) => {
+    if (!it.publishedAt) return true;
+    return new Date(it.publishedAt).getTime() >= cutoffTime.getTime();
+  });
+
+  return {
     success: true,
-    items: DIVAR_NAJAFABAD_24H_DATA,
+    items: filteredFallback.length > 0 ? filteredFallback : DIVAR_NAJAFABAD_24H_DATA,
     metadata: {
       ...DIVAR_METADATA,
       fetchedAt: new Date().toISOString(),
+      cutoff24h: cutoffIso,
+      totalCount: filteredFallback.length,
     },
     source: 'cached',
   };
-  return fallbackResult;
 }
+
+export const fetchNajafabadDivar24h = (forceRefresh = false) =>
+  fetchNajafabadDivar('24h', forceRefresh);

@@ -7,6 +7,8 @@ import {
   Database,
   Calendar,
   Layers,
+  PlusCircle,
+  Edit3,
 } from 'lucide-react';
 import { toPersianDigits } from '../utils/formatters';
 
@@ -17,7 +19,9 @@ interface ExcelBannerProps {
   onUploadClick: () => void;
   onLoadSampleClick: () => void;
   onExportExcel: () => void;
+  onAddNewProperty: () => void;
   usePersianDigits: boolean;
+  hasUnsavedChanges?: boolean;
 }
 
 export const ExcelBanner: React.FC<ExcelBannerProps> = ({
@@ -27,7 +31,9 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
   onUploadClick,
   onLoadSampleClick,
   onExportExcel,
+  onAddNewProperty,
   usePersianDigits,
+  hasUnsavedChanges = false,
 }) => {
   const fmt = (n: number) => (usePersianDigits ? toPersianDigits(n) : n);
 
@@ -43,7 +49,7 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-2.5 py-0.5 rounded-full text-xs font-bold">
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-                نسخه تحلیل فایل اکسل
+                داشبورد من
               </span>
 
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full">
@@ -51,27 +57,43 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
               </span>
 
               <span className="inline-flex items-center gap-1 text-xs text-teal-700 bg-teal-50 border border-teal-100 px-2.5 py-0.5 rounded-full font-medium">
-                {fmt(totalItems)} ردیف استخراج شده
+                {fmt(totalItems)} ملک ثبت شده
               </span>
+
+              {hasUnsavedChanges && (
+                <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold animate-pulse">
+                  تغییرات جدید آماده دانلود در خروجی اکسل
+                </span>
+              )}
             </div>
 
             <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span>املاک نجف‌آباد (بارگذاری شده از فایل اکسل)</span>
+              <span>مدیریت، ویرایش و تحلیل هوشمند فایل‌های اکسل املاک</span>
             </h2>
 
             <p className="text-xs text-slate-500 leading-relaxed max-w-3xl">
-              اطلاعات این بخش از فایل اکسل شما استخراج شده است. می‌توانید ردیف‌ها را بر اساس متراژ، قیمت، نوع ملک، امکانات و مشخصات فیلتر و جستجو نمایید یا فایل اکسل جدیدی بارگذاری کنید.
+              در <strong>داشبورد من</strong> می‌توانید به راحتی ملک جدید اضافه کنید، مشخصات املاک موجود را ویرایش یا حذف نمایید و با زدن دکمه <strong>«خروجی اکسل»</strong> فایل جدید را با تمام تغییرات دانلود کنید.
             </p>
           </div>
 
           {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-2.5 sm:self-start lg:self-center shrink-0">
+            {/* Add Property Button */}
+            <button
+              id="excel-banner-add-btn"
+              onClick={onAddNewProperty}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>+ افزودن ملک جدید</span>
+            </button>
+
             <button
               id="excel-banner-upload-btn"
               onClick={onUploadClick}
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
+              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-all cursor-pointer"
             >
-              <Upload className="w-4 h-4" />
+              <Upload className="w-3.5 h-3.5 text-slate-500" />
               <span>آپلود فایل جدید</span>
             </button>
 
@@ -88,8 +110,8 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
             <button
               id="excel-banner-export-btn"
               onClick={onExportExcel}
-              className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer"
-              title="دانلود لیست فیلترشده در قالب اکسل"
+              className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer shadow-xs"
+              title="دانلود لیست بروز شده در قالب اکسل"
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" />
               <span>خروجی اکسل ({fmt(filteredItemsCount)})</span>
@@ -98,27 +120,14 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
         </div>
 
         {/* Status Bar */}
-        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-slate-600">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>تعداد ردیف‌های فایل:</span>
-              <strong className="text-slate-900 bg-slate-100 px-2 py-0.5 rounded font-bold text-xs">
-                {fmt(totalItems)} ملک
-              </strong>
-            </div>
-
-            <span className="text-slate-300 hidden sm:inline">|</span>
-
-            <div className="flex items-center gap-1 text-slate-500">
-              <Layers className="w-3.5 h-3.5 text-slate-400" />
-              <span>موارد فیلتر شده:</span>
-              <span className="font-semibold text-slate-700">{fmt(filteredItemsCount)} ملک</span>
-            </div>
+        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>امکانات فعال: افزودن، ویرایش، حذف، تفکیک رهن و اجاره و دانلود اکسل بروز شده</span>
           </div>
 
           <div className="text-slate-400 text-2xs">
-            سازگار با فرمت‌های .xlsx و .xls و .csv
+            پشتیبانی از فرمت‌های xlsx. و xls.
           </div>
         </div>
       </div>

@@ -13,8 +13,11 @@ import {
   Palette,
   Clock,
   ArrowUpDown,
+  Tag,
+  Key,
+  Layers,
 } from 'lucide-react';
-import { FilterState, PropertyType } from '../types';
+import { FilterState, PropertyType, DivarTimeRange, TransactionType } from '../types';
 import { toPersianDigits, formatPriceShort } from '../utils/formatters';
 
 interface FilterPanelProps {
@@ -30,6 +33,9 @@ interface FilterPanelProps {
   availableOrientations: string[];
   isMobileDrawer?: boolean;
   onCloseMobileDrawer?: () => void;
+  isDivarMode?: boolean;
+  currentTimeRange?: DivarTimeRange;
+  onTimeRangeChange?: (range: DivarTimeRange) => void;
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -45,10 +51,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   availableOrientations,
   isMobileDrawer = false,
   onCloseMobileDrawer,
+  isDivarMode = false,
+  currentTimeRange = '24h',
+  onTimeRangeChange,
 }) => {
   const [openSections, setOpenSections] = useState({
+    timeRange: true,
+    transaction: true,
     propertyType: true,
     price: true,
+    rent: true,
     area: true,
     rooms: true,
     amenities: true,
@@ -61,12 +73,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
   const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
-  // Helper to check if any non-default filter is active
   const isFiltered =
     filter.searchQuery.trim() !== '' ||
+    filter.transactionType !== 'all' ||
     filter.propertyTypes.length > 0 ||
     filter.minPrice !== null ||
     filter.maxPrice !== null ||
+    filter.minDeposit !== null ||
+    filter.maxDeposit !== null ||
+    filter.minRent !== null ||
+    filter.maxRent !== null ||
     filter.minArea !== null ||
     filter.maxArea !== null ||
     filter.rooms.length > 0 ||
@@ -119,58 +135,77 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     onFilterChange({ ...filter, facades: updated });
   };
 
+  const timeOptions: { id: DivarTimeRange; label: string; desc: string }[] = [
+    { id: '1h', label: '۱ ساعت گذشته', desc: 'تازه ترین آگهی ها' },
+    { id: '2h', label: '۲ ساعت گذشته', desc: '۲ ساعت اخیر' },
+    { id: '6h', label: '۶ ساعت گذشته', desc: 'نیم روز گذشته' },
+    { id: '12h', label: '۱۲ ساعت گذشته', desc: 'امروز' },
+    { id: '24h', label: '۲۴ ساعت گذشته', desc: '۱ روز اخیر (پیش فرض)' },
+    { id: '3d', label: '۳ روز گذشته', desc: '۳ روز اخیر' },
+    { id: '7d', label: '۱ هفته گذشته', desc: '۷ روز گذشته' },
+    { id: '14d', label: '۲ هفته گذشته', desc: '۱۴ روز گذشته' },
+    { id: '30d', label: '۱ ماه گذشته', desc: '۳۰ روز اخیر' },
+    { id: 'all', label: 'همه زمان‌ها', desc: 'کل تاریخچه دیوار' },
+  ];
+
   const pricePresets = [
     { label: 'همه', min: null, max: null },
-    { label: 'زیر ۵ میلیارد', min: null, max: 5_000_000_000 },
+    { label: 'زیر ۳ میلیارد', min: null, max: 3_000_000_000 },
+    { label: '۳ تا ۵ میلیارد', min: 3_000_000_000, max: 5_000_000_000 },
     { label: '۵ تا ۱۰ میلیارد', min: 5_000_000_000, max: 10_000_000_000 },
-    { label: '۱۰ تا ۱۵ میلیارد', min: 10_000_000_000, max: 15_000_000_000 },
-    { label: 'بالای ۱۵ میلیارد', min: 15_000_000_000, max: null },
+    { label: 'بالای ۱۰ میلیارد', min: 10_000_000_000, max: null },
+  ];
+
+  const depositPresets = [
+    { label: 'همه', min: null, max: null },
+    { label: 'زیر ۲۰۰ میلیون', min: null, max: 200_000_000 },
+    { label: '۲۰۰ تا ۵۰۰ میلیون', min: 200_000_000, max: 500_000_000 },
+    { label: 'بالای ۵۰۰ میلیون', min: 500_000_000, max: null },
+  ];
+
+  const rentPresets = [
+    { label: 'همه', min: null, max: null },
+    { label: 'زیر ۴ میلیون', min: null, max: 4_000_000 },
+    { label: '۴ تا ۸ میلیون', min: 4_000_000, max: 8_000_000 },
+    { label: 'بالای ۸ میلیون', min: 8_000_000, max: null },
   ];
 
   const areaPresets = [
     { label: 'همه', min: null, max: null },
-    { label: 'زیر ۱۰۰ متر', min: null, max: 100 },
-    { label: '۱۰۰ تا ۲۰۰ متر', min: 100, max: 200 },
-    { label: '۲۰۰ تا ۳۰۰ متر', min: 200, max: 300 },
-    { label: 'بالای ۳۰۰ متر', min: 300, max: null },
-  ];
-
-  const agePresets = [
-    { label: 'همه', min: null, max: null },
-    { label: 'نوساز (زیر ۳ سال)', min: null, max: 3 },
-    { label: '۳ تا ۱۰ سال', min: 3, max: 10 },
-    { label: '۱۰ تا ۲۰ سال', min: 10, max: 20 },
-    { label: 'قدیمی (بالای ۲۰ سال)', min: 20, max: null },
+    { label: 'زیر ۸۰ متر', min: null, max: 80 },
+    { label: '۸۰ تا ۱۲۰ متر', min: 80, max: 120 },
+    { label: '۱۲۰ تا ۲۰۰ متر', min: 120, max: 200 },
+    { label: 'بالای ۲۰۰ متر', min: 200, max: null },
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col h-full overflow-hidden">
+      {/* Panel Header */}
+      <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-indigo-600" />
-          <h2 className="text-sm font-bold text-slate-900">فیلتر و جستجو</h2>
-          <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold border border-indigo-100">
-            {fmt(totalFiltered)} مورد
+          <Filter className="w-4 h-4 text-slate-700" />
+          <h2 className="text-sm font-bold text-slate-900">فیلترهای پیشرفته</h2>
+          <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
+            {fmt(totalFiltered)} از {fmt(totalAvailable)}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {isFiltered && (
             <button
-              id="clear-all-filters-btn"
               onClick={onResetFilters}
-              className="text-xs text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1 hover:underline cursor-pointer"
+              className="text-xs text-rose-600 hover:text-rose-700 flex items-center gap-1 font-semibold hover:bg-rose-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
+              title="پاک کردن همه فیلترها"
             >
               <RotateCcw className="w-3 h-3" />
-              <span>حذف فیلترها</span>
+              <span>پاک‌سازی</span>
             </button>
           )}
 
-          {isMobileDrawer && (
+          {isMobileDrawer && onCloseMobileDrawer && (
             <button
               onClick={onCloseMobileDrawer}
-              className="p-1 rounded-md text-slate-500 hover:bg-slate-200"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
             >
               <X className="w-5 h-5" />
             </button>
@@ -178,29 +213,24 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </div>
       </div>
 
-      {/* Filter Content */}
-      <div className="p-4 overflow-y-auto space-y-5 flex-1 divide-y divide-slate-100">
-        {/* 1. Global Search Box */}
-        <div className="pt-1">
-          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            جستجوی نام خیابان، کوچه یا نشانی:
-          </label>
+      {/* Filter Sections Scrollable Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-5 text-right divide-y divide-slate-100">
+        {/* 1. Search Query */}
+        <div className="space-y-1.5 pt-0">
+          <label className="text-xs font-bold text-slate-700 block">جستجوی متنی:</label>
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              id="search-input"
               type="text"
               value={filter.searchQuery}
-              onChange={(e) =>
-                onFilterChange({ ...filter, searchQuery: e.target.value })
-              }
-              placeholder="مثلاً ابوالقاسمی، 22 بهمن، صمصام..."
-              className="w-full pl-8 pr-9 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              onChange={(e) => onFilterChange({ ...filter, searchQuery: e.target.value })}
+              placeholder="جستجو در محله، آدرس، خیابان، نوع ملک..."
+              className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pr-8 pl-8 py-2.5 focus:bg-white focus:border-indigo-500 focus:outline-hidden transition-all"
             />
+            <Search className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             {filter.searchQuery && (
               <button
                 onClick={() => onFilterChange({ ...filter, searchQuery: '' })}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -208,32 +238,135 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
         </div>
 
-        {/* 2. Property Type (نوع ملک) */}
-        <div className="pt-4">
-          <button
-            onClick={() => toggleSection('propertyType')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 mb-2 hover:text-indigo-600"
-          >
-            <span>نوع ملک</span>
-            {openSections.propertyType ? (
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+        {/* 2. Divar Time Range Selector (Only in Divar mode) */}
+        {isDivarMode && onTimeRangeChange && (
+          <div className="pt-4 space-y-2">
+            <button
+              type="button"
+              onClick={() => toggleSection('timeRange')}
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5 text-red-700">
+                <Clock className="w-4 h-4" />
+                <span>زمان انتشار آگهی دیوار:</span>
+              </div>
+              {openSections.timeRange ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+
+            {openSections.timeRange && (
+              <div className="space-y-2 pt-1">
+                <select
+                  value={currentTimeRange}
+                  onChange={(e) => onTimeRangeChange(e.target.value as DivarTimeRange)}
+                  className="w-full text-xs font-bold bg-red-50/60 border border-red-200 text-red-900 rounded-xl px-3 py-2.5 focus:outline-hidden cursor-pointer"
+                >
+                  {timeOptions.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      ⏱ {opt.label} ({opt.desc})
+                    </option>
+                  ))}
+                </select>
+
+                <div className="grid grid-cols-2 gap-1.5 pt-1">
+                  {timeOptions.slice(0, 6).map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => onTimeRangeChange(opt.id)}
+                      className={`py-1.5 px-2 rounded-lg text-2xs font-semibold text-center border transition-all cursor-pointer ${
+                        currentTimeRange === opt.id
+                          ? 'bg-red-600 text-white border-red-600 shadow-xs'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
+          </div>
+        )}
+
+        {/* 3. Transaction Type (خرید و فروش vs رهن و اجاره) */}
+        <div className="pt-4 space-y-2">
+          <button
+            type="button"
+            onClick={() => toggleSection('transaction')}
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+          >
+            <div className="flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-slate-500" />
+              <span>نوع معامله (خرید / اجاره):</span>
+            </div>
+            {openSections.transaction ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+
+          {openSections.transaction && (
+            <div className="grid grid-cols-3 gap-1.5 pt-1">
+              <button
+                type="button"
+                onClick={() => onFilterChange({ ...filter, transactionType: 'all' })}
+                className={`py-2 px-2 text-2xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
+                  filter.transactionType === 'all'
+                    ? 'bg-slate-800 text-white border-slate-800 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                همه
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onFilterChange({ ...filter, transactionType: 'خرید و فروش' })}
+                className={`py-2 px-2 text-2xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
+                  filter.transactionType === 'خرید و فروش'
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                خرید و فروش
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onFilterChange({ ...filter, transactionType: 'رهن و اجاره' })}
+                className={`py-2 px-2 text-2xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
+                  filter.transactionType === 'رهن و اجاره'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                رهن و اجاره
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Property Types */}
+        <div className="pt-4 space-y-2">
+          <button
+            type="button"
+            onClick={() => toggleSection('propertyType')}
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+          >
+            <span>نوع ملک:</span>
+            {openSections.propertyType ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
           {openSections.propertyType && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {availablePropertyTypes.map((type) => {
-                const isSelected = filter.propertyTypes.includes(type);
+                const active = filter.propertyTypes.includes(type);
                 return (
                   <button
                     key={type}
+                    type="button"
                     onClick={() => handleTypeToggle(type)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
-                      isSelected
+                    className={`text-2xs font-semibold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                      active
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
                     {type}
@@ -244,31 +377,59 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           )}
         </div>
 
-        {/* 3. Price Range (محدوده قیمت) */}
-        <div className="pt-4">
-          <button
-            onClick={() => toggleSection('price')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 mb-2 hover:text-indigo-600"
-          >
-            <span>محدوده قیمت (تومان)</span>
-            {openSections.price ? (
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            )}
-          </button>
+        {/* 5. Pricing: Sale Price (if not pure rent) */}
+        {filter.transactionType !== 'رهن و اجاره' && (
+          <div className="pt-4 space-y-2">
+            <button
+              type="button"
+              onClick={() => toggleSection('price')}
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            >
+              <span>قیمت خرید (تومان):</span>
+              {openSections.price ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
 
-          {openSections.price && (
-            <div className="space-y-2 mt-2">
-              {/* Presets */}
-              <div className="grid grid-cols-2 gap-1.5 text-xs">
-                {pricePresets.map((preset, idx) => {
-                  const isActive =
-                    filter.minPrice === preset.min &&
-                    filter.maxPrice === preset.max;
-                  return (
+            {openSections.price && (
+              <div className="space-y-2 pt-1">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-2xs text-slate-400 block mb-0.5">از:</label>
+                    <input
+                      type="number"
+                      value={filter.minPrice ?? ''}
+                      onChange={(e) =>
+                        onFilterChange({
+                          ...filter,
+                          minPrice: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      placeholder="حداقل قیمت"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-2xs text-slate-400 block mb-0.5">تا:</label>
+                    <input
+                      type="number"
+                      value={filter.maxPrice ?? ''}
+                      onChange={(e) =>
+                        onFilterChange({
+                          ...filter,
+                          maxPrice: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      placeholder="حداکثر قیمت"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  {pricePresets.map((preset, idx) => (
                     <button
                       key={idx}
+                      type="button"
                       onClick={() =>
                         onFilterChange({
                           ...filter,
@@ -276,174 +437,225 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                           maxPrice: preset.max,
                         })
                       }
-                      className={`p-1.5 rounded-md text-[11px] font-medium border text-center transition-all ${
-                        isActive
-                          ? 'bg-slate-900 text-white border-slate-900 font-bold'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                      }`}
+                      className="text-2xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
                     >
                       {preset.label}
                     </button>
-                  );
-                })}
-              </div>
-
-              {/* Min - Max custom inputs */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div>
-                  <span className="text-[10px] text-slate-500 block mb-0.5">از (تومان):</span>
-                  <input
-                    type="number"
-                    placeholder="حداقل"
-                    value={filter.minPrice ?? ''}
-                    onChange={(e) =>
-                      onFilterChange({
-                        ...filter,
-                        minPrice: e.target.value ? Number(e.target.value) : null,
-                      })
-                    }
-                    className="w-full px-2 py-1 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                  />
-                  {filter.minPrice && (
-                    <div className="text-[10px] text-indigo-600 mt-0.5 font-medium truncate">
-                      {formatPriceShort(filter.minPrice, usePersianDigits)}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <span className="text-[10px] text-slate-500 block mb-0.5">تا (تومان):</span>
-                  <input
-                    type="number"
-                    placeholder="حداکثر"
-                    value={filter.maxPrice ?? ''}
-                    onChange={(e) =>
-                      onFilterChange({
-                        ...filter,
-                        maxPrice: e.target.value ? Number(e.target.value) : null,
-                      })
-                    }
-                    className="w-full px-2 py-1 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                  />
-                  {filter.maxPrice && (
-                    <div className="text-[10px] text-indigo-600 mt-0.5 font-medium truncate">
-                      {formatPriceShort(filter.maxPrice, usePersianDigits)}
-                    </div>
-                  )}
+                  ))}
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* 4. Area Range (متراژ متر مربع) */}
-        <div className="pt-4">
-          <button
-            onClick={() => toggleSection('area')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 mb-2 hover:text-indigo-600"
-          >
-            <span>متراژ (متر مربع)</span>
-            {openSections.area ? (
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             )}
+          </div>
+        )}
+
+        {/* 6. Pricing: Deposit & Rent (if rent or all) */}
+        {filter.transactionType !== 'خرید و فروش' && (
+          <div className="pt-4 space-y-2">
+            <button
+              type="button"
+              onClick={() => toggleSection('rent')}
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            >
+              <div className="flex items-center gap-1.5 text-blue-700">
+                <Key className="w-3.5 h-3.5" />
+                <span>رهن و اجاره ماهیانه:</span>
+              </div>
+              {openSections.rent ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+
+            {openSections.rent && (
+              <div className="space-y-3 pt-1">
+                {/* Deposit */}
+                <div className="space-y-1">
+                  <span className="text-2xs font-semibold text-slate-600 block">سقف مبلغ ودیعه (رهن):</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      value={filter.minDeposit ?? ''}
+                      onChange={(e) =>
+                        onFilterChange({
+                          ...filter,
+                          minDeposit: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      placeholder="حداقل ودیعه"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                    />
+                    <input
+                      type="number"
+                      value={filter.maxDeposit ?? ''}
+                      onChange={(e) =>
+                        onFilterChange({
+                          ...filter,
+                          maxDeposit: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      placeholder="حداکثر ودیعه"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-1 pt-0.5">
+                    {depositPresets.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() =>
+                          onFilterChange({
+                            ...filter,
+                            minDeposit: preset.min,
+                            maxDeposit: preset.max,
+                          })
+                        }
+                        className="text-2xs px-2 py-0.5 rounded bg-blue-50 text-blue-800 hover:bg-blue-100"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Rent */}
+                <div className="space-y-1">
+                  <span className="text-2xs font-semibold text-slate-600 block">سقف اجاره ماهیانه:</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      value={filter.minRent ?? ''}
+                      onChange={(e) =>
+                        onFilterChange({
+                          ...filter,
+                          minRent: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      placeholder="حداقل اجاره"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                    />
+                    <input
+                      type="number"
+                      value={filter.maxRent ?? ''}
+                      onChange={(e) =>
+                        onFilterChange({
+                          ...filter,
+                          maxRent: e.target.value ? Number(e.target.value) : null,
+                        })
+                      }
+                      placeholder="حداکثر اجاره"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-1 pt-0.5">
+                    {rentPresets.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() =>
+                          onFilterChange({
+                            ...filter,
+                            minRent: preset.min,
+                            maxRent: preset.max,
+                          })
+                        }
+                        className="text-2xs px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 hover:bg-indigo-100"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 7. Area (Metrage) */}
+        <div className="pt-4 space-y-2">
+          <button
+            type="button"
+            onClick={() => toggleSection('area')}
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+          >
+            <span>متراژ (متر مربع):</span>
+            {openSections.area ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
           {openSections.area && (
-            <div className="space-y-2 mt-2">
-              <div className="grid grid-cols-2 gap-1.5 text-xs">
-                {areaPresets.map((preset, idx) => {
-                  const isActive =
-                    filter.minArea === preset.min &&
-                    filter.maxArea === preset.max;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() =>
-                        onFilterChange({
-                          ...filter,
-                          minArea: preset.min,
-                          maxArea: preset.max,
-                        })
-                      }
-                      className={`p-1.5 rounded-md text-[11px] font-medium border text-center transition-all ${
-                        isActive
-                          ? 'bg-slate-900 text-white border-slate-900 font-bold'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  );
-                })}
+            <div className="space-y-2 pt-1">
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  value={filter.minArea ?? ''}
+                  onChange={(e) =>
+                    onFilterChange({
+                      ...filter,
+                      minArea: e.target.value ? Number(e.target.value) : null,
+                    })
+                  }
+                  placeholder="حداقل متراژ"
+                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                />
+                <input
+                  type="number"
+                  value={filter.maxArea ?? ''}
+                  onChange={(e) =>
+                    onFilterChange({
+                      ...filter,
+                      maxArea: e.target.value ? Number(e.target.value) : null,
+                    })
+                  }
+                  placeholder="حداکثر متراژ"
+                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                <div>
-                  <span className="text-[10px] text-slate-500 block mb-0.5">از متراژ:</span>
-                  <input
-                    type="number"
-                    placeholder="مثلاً 80"
-                    value={filter.minArea ?? ''}
-                    onChange={(e) =>
+              <div className="flex flex-wrap gap-1">
+                {areaPresets.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() =>
                       onFilterChange({
                         ...filter,
-                        minArea: e.target.value ? Number(e.target.value) : null,
+                        minArea: preset.min,
+                        maxArea: preset.max,
                       })
                     }
-                    className="w-full px-2 py-1 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 block mb-0.5">تا متراژ:</span>
-                  <input
-                    type="number"
-                    placeholder="مثلاً 250"
-                    value={filter.maxArea ?? ''}
-                    onChange={(e) =>
-                      onFilterChange({
-                        ...filter,
-                        maxArea: e.target.value ? Number(e.target.value) : null,
-                      })
-                    }
-                    className="w-full px-2 py-1 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                  />
-                </div>
+                    className="text-2xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
             </div>
           )}
         </div>
 
-        {/* 5. Room Count (تعداد اتاق) */}
-        <div className="pt-4">
+        {/* 8. Rooms */}
+        <div className="pt-4 space-y-2">
           <button
+            type="button"
             onClick={() => toggleSection('rooms')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 mb-2 hover:text-indigo-600"
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
           >
-            <span>تعداد اتاق / خواب</span>
-            {openSections.rooms ? (
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            )}
+            <span>تعداد اتاق:</span>
+            {openSections.rooms ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
           {openSections.rooms && (
-            <div className="grid grid-cols-4 gap-1.5 mt-2">
-              {[1, 2, 3, 4].map((room) => {
-                const isSelected = filter.rooms.includes(room);
+            <div className="grid grid-cols-4 gap-1.5 pt-1">
+              {[1, 2, 3, 4].map((r) => {
+                const active = filter.rooms.includes(r);
                 return (
                   <button
-                    key={room}
-                    onClick={() => handleRoomToggle(room)}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600 font-bold'
-                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    key={r}
+                    type="button"
+                    onClick={() => handleRoomToggle(r)}
+                    className={`py-1.5 text-xs font-bold rounded-lg border text-center transition-all cursor-pointer ${
+                      active
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
-                    {fmt(room)} {room === 4 ? '+ خواب' : 'خواب'}
+                    {r === 4 ? '+۴ خواب' : `${fmt(r)} خواب`}
                   </button>
                 );
               })}
@@ -451,234 +663,102 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           )}
         </div>
 
-        {/* 6. Amenities (امکانات: پارکینگ، آسانسور، انباری) */}
-        <div className="pt-4">
+        {/* 9. Amenities: Parking, Elevator, Storage */}
+        <div className="pt-4 space-y-2">
           <button
+            type="button"
             onClick={() => toggleSection('amenities')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 mb-2 hover:text-indigo-600"
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
           >
-            <span>امکانات و امتیازات</span>
-            {openSections.amenities ? (
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            )}
+            <span>امکانات رفاهی:</span>
+            {openSections.amenities ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
           {openSections.amenities && (
-            <div className="space-y-2 mt-2">
-              {/* Parking */}
-              <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
-                <span className="flex items-center gap-1.5 font-medium text-slate-700">
-                  <Car className="w-3.5 h-3.5 text-slate-500" />
-                  پارکینگ
-                </span>
-                <div className="flex rounded-md border border-slate-300 p-0.5 bg-white">
-                  {(['all', 'yes', 'no'] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => onFilterChange({ ...filter, parking: mode })}
-                      className={`px-2 py-0.5 text-[11px] rounded transition-colors ${
-                        filter.parking === mode
-                          ? 'bg-indigo-600 text-white font-semibold'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {mode === 'all' ? 'همه' : mode === 'yes' ? 'دارد' : 'ندارد'}
-                    </button>
-                  ))}
+            <div className="space-y-2 pt-1 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">پارکینگ:</span>
+                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-2xs">
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, parking: 'all' })}
+                    className={`px-2 py-1 rounded ${filter.parking === 'all' ? 'bg-white font-bold shadow-xs' : 'text-slate-500'}`}
+                  >
+                    همه
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, parking: 'yes' })}
+                    className={`px-2 py-1 rounded ${filter.parking === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500'}`}
+                  >
+                    دارد
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, parking: 'no' })}
+                    className={`px-2 py-1 rounded ${filter.parking === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500'}`}
+                  >
+                    ندارد
+                  </button>
                 </div>
               </div>
 
-              {/* Elevator */}
-              <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
-                <span className="flex items-center gap-1.5 font-medium text-slate-700">
-                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
-                  آسانسور
-                </span>
-                <div className="flex rounded-md border border-slate-300 p-0.5 bg-white">
-                  {(['all', 'yes', 'no'] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => onFilterChange({ ...filter, elevator: mode })}
-                      className={`px-2 py-0.5 text-[11px] rounded transition-colors ${
-                        filter.elevator === mode
-                          ? 'bg-indigo-600 text-white font-semibold'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {mode === 'all' ? 'همه' : mode === 'yes' ? 'دارد' : 'ندارد'}
-                    </button>
-                  ))}
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">آسانسور:</span>
+                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-2xs">
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, elevator: 'all' })}
+                    className={`px-2 py-1 rounded ${filter.elevator === 'all' ? 'bg-white font-bold shadow-xs' : 'text-slate-500'}`}
+                  >
+                    همه
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, elevator: 'yes' })}
+                    className={`px-2 py-1 rounded ${filter.elevator === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500'}`}
+                  >
+                    دارد
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, elevator: 'no' })}
+                    className={`px-2 py-1 rounded ${filter.elevator === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500'}`}
+                  >
+                    ندارد
+                  </button>
                 </div>
               </div>
 
-              {/* Storage */}
-              <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
-                <span className="flex items-center gap-1.5 font-medium text-slate-700">
-                  <Warehouse className="w-3.5 h-3.5 text-slate-500" />
-                  انباری
-                </span>
-                <div className="flex rounded-md border border-slate-300 p-0.5 bg-white">
-                  {(['all', 'yes', 'no'] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      onClick={() => onFilterChange({ ...filter, storage: mode })}
-                      className={`px-2 py-0.5 text-[11px] rounded transition-colors ${
-                        filter.storage === mode
-                          ? 'bg-indigo-600 text-white font-semibold'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {mode === 'all' ? 'همه' : mode === 'yes' ? 'دارد' : 'ندارد'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 7. Advanced Filters: Document, Orientation, Facade, Age */}
-        <div className="pt-4">
-          <button
-            onClick={() => toggleSection('advanced')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 mb-2 hover:text-indigo-600"
-          >
-            <span>فیلترهای پیشرفته (سند، جهت، نما، سن)</span>
-            {openSections.advanced ? (
-              <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            )}
-          </button>
-
-          {openSections.advanced && (
-            <div className="space-y-3 mt-2">
-              {/* Document Type (نوع سند) */}
-              <div>
-                <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1 mb-1.5">
-                  <FileCheck2 className="w-3.5 h-3.5" />
-                  نوع سند:
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {availableDocumentTypes.map((doc) => {
-                    const isSelected = filter.documentTypes.includes(doc);
-                    return (
-                      <button
-                        key={doc}
-                        onClick={() => handleDocumentToggle(doc)}
-                        className={`px-2 py-1 rounded text-xs border transition-all ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {doc}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Orientation (جهت ساختمان) */}
-              <div>
-                <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1 mb-1.5">
-                  <Compass className="w-3.5 h-3.5" />
-                  جهت ساختمان:
-                </span>
-                <div className="grid grid-cols-4 gap-1">
-                  {availableOrientations.map((ori) => {
-                    const isSelected = filter.orientations.includes(ori);
-                    return (
-                      <button
-                        key={ori}
-                        onClick={() => handleOrientationToggle(ori)}
-                        className={`py-1 text-xs rounded border text-center transition-all ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {ori}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Facade (نمای ساختمان) */}
-              <div>
-                <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1 mb-1.5">
-                  <Palette className="w-3.5 h-3.5" />
-                  نمای ساختمان:
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {availableFacades.map((fac) => {
-                    const isSelected = filter.facades.includes(fac);
-                    return (
-                      <button
-                        key={fac}
-                        onClick={() => handleFacadeToggle(fac)}
-                        className={`px-2 py-1 rounded text-xs border transition-all ${
-                          isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-600'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {fac}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Age (سن بنا) */}
-              <div>
-                <span className="text-[11px] font-semibold text-slate-600 flex items-center gap-1 mb-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  سن بنا:
-                </span>
-                <div className="grid grid-cols-2 gap-1 text-[11px]">
-                  {agePresets.map((p, idx) => {
-                    const isActive =
-                      filter.minAge === p.min && filter.maxAge === p.max;
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() =>
-                          onFilterChange({
-                            ...filter,
-                            minAge: p.min,
-                            maxAge: p.max,
-                          })
-                        }
-                        className={`p-1 rounded border text-center transition-all ${
-                          isActive
-                            ? 'bg-slate-900 text-white border-slate-900 font-bold'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {p.label}
-                      </button>
-                    );
-                  })}
+              <div className="flex items-center justify-between">
+                <span className="text-slate-600">انباری:</span>
+                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-2xs">
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, storage: 'all' })}
+                    className={`px-2 py-1 rounded ${filter.storage === 'all' ? 'bg-white font-bold shadow-xs' : 'text-slate-500'}`}
+                  >
+                    همه
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, storage: 'yes' })}
+                    className={`px-2 py-1 rounded ${filter.storage === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500'}`}
+                  >
+                    دارد
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onFilterChange({ ...filter, storage: 'no' })}
+                    className={`px-2 py-1 rounded ${filter.storage === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500'}`}
+                  >
+                    ندارد
+                  </button>
                 </div>
               </div>
             </div>
           )}
         </div>
-      </div>
-
-      {/* Footer / Reset button */}
-      <div className="p-3 border-t border-slate-200 bg-slate-50">
-        <button
-          onClick={onResetFilters}
-          className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors flex items-center justify-center gap-1.5"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>بازنشانی تمام فیلترها</span>
-        </button>
       </div>
     </div>
   );

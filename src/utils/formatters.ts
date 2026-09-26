@@ -39,6 +39,29 @@ export const formatPriceShort = (price: number, usePersianDigits = true): string
   return `${formatPrice(price, usePersianDigits)} تومان`;
 };
 
+export const formatDepositRent = (
+  deposit?: number,
+  rent?: number,
+  usePersianDigits = true,
+  short = true
+): string => {
+  const depStr =
+    deposit !== undefined && deposit !== null && deposit > 0
+      ? short
+        ? `ودیعه: ${formatPriceShort(deposit, usePersianDigits)}`
+        : `ودیعه: ${formatPrice(deposit, usePersianDigits)} تومان`
+      : 'ودیعه: رایگان / توافقی';
+
+  const rentStr =
+    rent !== undefined && rent !== null && rent > 0
+      ? short
+        ? `اجاره: ${formatPriceShort(rent, usePersianDigits)}`
+        : `اجاره: ${formatPrice(rent, usePersianDigits)} تومان`
+      : 'اجاره: رایگان / رهن کامل';
+
+  return `${depStr} • ${rentStr}`;
+};
+
 export const parseNumberFromString = (val: any): number => {
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
   if (!val) return 0;
@@ -78,4 +101,3 @@ export const formatRelativeTimePersian = (date: Date): string => {
   const diffDays = Math.floor(diffHours / 24);
   return `${toPersianDigits(diffDays)} روز پیش`;
 };
-

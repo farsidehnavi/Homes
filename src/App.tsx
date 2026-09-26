@@ -1,5 +1,12 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { RealEstateItem, FilterState, SortField, SortOrder } from './types';
+import {
+  RealEstateItem,
+  FilterState,
+  SortField,
+  SortOrder,
+  DivarTimeRange,
+  DivarAlert,
+} from './types';
 import {
   DIVAR_NAJAFABAD_24H_DATA,
   DIVAR_METADATA,
@@ -16,16 +23,25 @@ import { FilterPanel } from './components/FilterPanel';
 import { PropertyTable } from './components/PropertyTable';
 import { PropertyCardList } from './components/PropertyCardList';
 import { PropertyDetailModal } from './components/PropertyDetailModal';
+import { PropertyFormModal } from './components/PropertyFormModal';
+import { DivarAlertsModal, matchItemWithAlert } from './components/DivarAlertsModal';
 import { Pagination } from './components/Pagination';
 import { exportToExcel } from './utils/excelUtils';
-import { normalizePersianText } from './utils/formatters';
-import { CheckCircle2, AlertCircle, X, ChevronUp } from 'lucide-react';
+import { normalizePersianText, toPersianDigits } from './utils/formatters';
+import { getTimeCutoffMs } from './utils/divarCrawler';
+import { playNotificationChime } from './utils/audioAlert';
+import { CheckCircle2, AlertCircle, X, ChevronUp, BellRing } from 'lucide-react';
 
 const INITIAL_FILTER: FilterState = {
   searchQuery: '',
+  transactionType: 'all',
   propertyTypes: [],
   minPrice: null,
   maxPrice: null,
+  minDeposit: null,
+  maxDeposit: null,
+  minRent: null,
+  maxRent: null,
   minArea: null,
   maxArea: null,
   rooms: [],
@@ -41,20 +57,48 @@ const INITIAL_FILTER: FilterState = {
   maxFloor: null,
 };
 
+const DEFAULT_ALERTS: DivarAlert[] = [];
+
 export default function App() {
-  // Navigation Mode: 'home' (the 2-button landing page), 'excel', or 'divar'
+  // Navigation Mode: 'home' (the 2-button landing page), 'excel' (داشبورد من), or 'divar' (پنل دیوار)
   const [currentMode, setCurrentMode] = useState<'home' | 'excel' | 'divar'>('home');
 
-  // Excel dataset state
+  // Excel dataset state (داشبورد من)
   const [excelData, setExcelData] = useState<RealEstateItem[]>(INITIAL_REAL_ESTATE_DATA);
-  const [excelFileName, setExcelFileName] = useState<string>('داده‌های_پیش‌فرض_املاک_نجف‌آباد.xlsx');
+  const [excelFileName, setExcelFileName] = useState<string>('داده‌های_املاک_نجف‌آباد.xlsx');
   const [showExcelDropzone, setShowExcelDropzone] = useState<boolean>(false);
+  const [hasExcelModifications, setHasExcelModifications] = useState<boolean>(false);
 
-  // Divar dataset state
+  // Property Form Modal for Excel CRUD
+  const [isPropertyFormOpen, setIsPropertyFormOpen] = useState<boolean>(false);
+  const [propertyToEdit, setPropertyToEdit] = useState<RealEstateItem | null>(null);
+
+  // Divar dataset state (پنل دیوار)
   const [divarData, setDivarData] = useState<RealEstateItem[]>(DIVAR_NAJAFABAD_24H_DATA);
   const [divarMeta, setDivarMeta] = useState<DivarFetchMeta | null>(DIVAR_METADATA);
   const [isLoadingDivar, setIsLoadingDivar] = useState<boolean>(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(new Date());
+  const [divarTimeRange, setDivarTimeRange] = useState<DivarTimeRange>('24h');
+
+  // Divar Alerts (گوش‌به‌زنگ)
+  const [isAlertsModalOpen, setIsAlertsModalOpen] = useState<boolean>(false);
+  const [divarAlerts, setDivarAlerts] = useState<DivarAlert[]>(() => {
+    try {
+      const saved = localStorage.getItem('najafabad_divar_alerts');
+      return saved ? JSON.parse(saved) : DEFAULT_ALERTS;
+    } catch {
+      return DEFAULT_ALERTS;
+    }
+  });
+
+  // Save alerts to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('najafabad_divar_alerts', JSON.stringify(divarAlerts));
+    } catch (e) {
+      console.warn(e);
+    }
+  }, [divarAlerts]);
 
   // Shared UI & Filter state
   const [filter, setFilter] = useState<FilterState>(INITIAL_FILTER);
@@ -66,7 +110,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' | 'alert' } | null>(null);
 
   // Auto-switch to cards view on mobile screens
   useEffect(() => {
@@ -75,18 +119,18 @@ export default function App() {
     }
   }, []);
 
-  const showToast = useCallback((text: string, type: 'success' | 'error' = 'success') => {
+  const showToast = useCallback((text: string, type: 'success' | 'error' | 'alert' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => {
       setToastMessage(null);
-    }, 4000);
+    }, 4500);
   }, []);
 
-  // Fetch live Divar data from server route
-  const fetchLiveDivar = useCallback(async () => {
+  // Fetch live Divar data from server route with timeRange
+  const fetchLiveDivar = useCallback(async (timeRange = divarTimeRange) => {
     setIsLoadingDivar(true);
     try {
-      const res = await fetch('/api/divar/najafabad-24h');
+      const res = await fetch(`/api/divar/najafabad-24h?timeRange=${timeRange}&refresh=true`);
       if (!res.ok) {
         throw new Error(`خطای سرور: ${res.status}`);
       }
@@ -98,7 +142,7 @@ export default function App() {
         }
         setLastSyncedAt(new Date());
         showToast(
-          `آگهی‌های ۲۴ ساعت گذشته دیوار نجف‌آباد با موفقیت همگام‌سازی شد (${json.items.length} آگهی).`,
+          `آگهی‌های دیوار نجف‌آباد (${json.items.length} مورد) با موفقیت همگام‌سازی شد.`,
           'success'
         );
       } else {
@@ -106,22 +150,30 @@ export default function App() {
       }
     } catch (err: any) {
       showToast(
-        'خطا در ارتباط با دیوار؛ استفاده از آخرین نسخه ذخیره‌شده ۲۴ ساعت اخیر.',
-        'error'
+        'استفاده از آخرین نسخه ذخیره‌شده آگهی‌های دیوار نجف‌آباد.',
+        'alert'
       );
     } finally {
       setIsLoadingDivar(false);
     }
-  }, [showToast]);
+  }, [divarTimeRange, showToast]);
+
+  // Handle Divar Time Range Change (1 hour to 1 month)
+  const handleDivarTimeRangeChange = (newRange: DivarTimeRange) => {
+    setDivarTimeRange(newRange);
+    setCurrentPage(1);
+    fetchLiveDivar(newRange);
+  };
 
   // Handle new Excel file loaded from dropzone
   const handleExcelDataLoaded = (items: RealEstateItem[], fileName: string) => {
     setExcelData(items);
     setExcelFileName(fileName);
     setShowExcelDropzone(false);
+    setHasExcelModifications(false);
     setFilter(INITIAL_FILTER);
     setCurrentPage(1);
-    showToast(`فایل «${fileName}» با ${items.length} ملک با موفقیت بارگذاری شد.`, 'success');
+    showToast(`فایل «${fileName}» با ${items.length} ملک با موفقیت در داشبورد من بارگذاری شد.`, 'success');
   };
 
   // Reload default sample Excel data
@@ -129,9 +181,87 @@ export default function App() {
     setExcelData(INITIAL_REAL_ESTATE_DATA);
     setExcelFileName('داده‌های_پیش‌فرض_املاک_نجف‌آباد.xlsx');
     setShowExcelDropzone(false);
+    setHasExcelModifications(false);
     setFilter(INITIAL_FILTER);
     setCurrentPage(1);
-    showToast('دیتاست نمونه ۱۰۰ ملک نجف‌آباد بارگذاری گردید.', 'success');
+    showToast('دیتاست ۱۰۰ ملک نمونه نجف‌آباد بارگذاری گردید.', 'success');
+  };
+
+  // CRUD Operations in Excel Version (داشبورد من)
+  const handleOpenAddPropertyModal = () => {
+    setPropertyToEdit(null);
+    setIsPropertyFormOpen(true);
+  };
+
+  const handleOpenEditPropertyModal = (item: RealEstateItem) => {
+    setPropertyToEdit(item);
+    setIsPropertyFormOpen(true);
+  };
+
+  const handleSaveProperty = (itemData: Partial<RealEstateItem>) => {
+    if (propertyToEdit) {
+      // Edit existing
+      setExcelData((prev) =>
+        prev.map((item) =>
+          item.id === propertyToEdit.id
+            ? { ...item, ...itemData, id: item.id, rowNumber: item.rowNumber }
+            : item
+        )
+      );
+      setHasExcelModifications(true);
+      showToast(`ملک ردیف ${propertyToEdit.rowNumber} با موفقیت ویرایش شد. خروجی اکسل بروز گردید.`, 'success');
+    } else {
+      // Add new
+      const nextId = excelData.length > 0 ? Math.max(...excelData.map((i) => i.id)) + 1 : 1;
+      const nextRow = excelData.length + 1;
+      const newItem: RealEstateItem = {
+        id: nextId,
+        rowNumber: nextRow,
+        address: itemData.address || 'نجف‌آباد',
+        propertyType: itemData.propertyType || 'آپارتمان',
+        transactionType: itemData.transactionType || 'خرید و فروش',
+        area: itemData.area || 100,
+        rooms: itemData.rooms || 2,
+        floor: itemData.floor ?? 1,
+        totalFloors: itemData.totalFloors || 4,
+        age: itemData.age ?? 0,
+        orientation: itemData.orientation || 'شمالی',
+        facade: itemData.facade || 'سنگ',
+        hasParking: Boolean(itemData.hasParking),
+        hasElevator: Boolean(itemData.hasElevator),
+        hasStorage: Boolean(itemData.hasStorage),
+        documentType: itemData.documentType || 'تک برگ',
+        price: itemData.price || 0,
+        pricePerMeter: itemData.pricePerMeter || 0,
+        deposit: itemData.deposit || 0,
+        rent: itemData.rent || 0,
+        depositText: itemData.depositText,
+        rentText: itemData.rentText,
+        title: itemData.title,
+        district: itemData.district,
+        priceText: itemData.priceText,
+        source: 'excel',
+      };
+      setExcelData((prev) => [newItem, ...prev]);
+      setHasExcelModifications(true);
+      showToast('ملک جدید به داشبورد من اضافه شد و در خروجی اکسل لحاظ گردید.', 'success');
+    }
+    setIsPropertyFormOpen(false);
+    setPropertyToEdit(null);
+  };
+
+  const handleDeleteProperty = (itemToDelete: RealEstateItem) => {
+    const confirmed = window.confirm(
+      `آیا از حذف ملک ردیف ${itemToDelete.rowNumber} (${itemToDelete.title || itemToDelete.address}) اطمینان دارید؟`
+    );
+    if (!confirmed) return;
+
+    setExcelData((prev) => {
+      const filtered = prev.filter((i) => i.id !== itemToDelete.id);
+      return filtered.map((item, idx) => ({ ...item, rowNumber: idx + 1 }));
+    });
+    setHasExcelModifications(true);
+    showToast(`ملک ردیف ${itemToDelete.rowNumber} از لیست و فایل اکسل حذف گردید.`, 'success');
   };
 
   // Reset filters and data
@@ -148,20 +278,50 @@ export default function App() {
     return currentMode === 'excel' ? excelData : divarData;
   }, [currentMode, excelData, divarData]);
 
-  // Export currently filtered items to Excel
+  // Export currently filtered items to Excel (Reflecting all Add / Edit / Delete changes!)
   const handleExportFiltered = () => {
-    const fileName =
+    const baseName =
       currentMode === 'excel'
-        ? `خروجی_${excelFileName.replace(/\.[^/.]+$/, '')}.xlsx`
-        : 'املاک_دیوار_نجف_آباد_۲۴ساعت.xlsx';
-    exportToExcel(filteredAndSortedItems, fileName);
+        ? `خروجی_داشبورد_من_${excelFileName.replace(/\.[^/.]+$/, '')}.xlsx`
+        : `املاک_پنل_دیوار_نجف_آباد_${divarTimeRange}.xlsx`;
+    exportToExcel(filteredAndSortedItems, baseName);
     showToast(
-      `فایل اکسل شامل ${filteredAndSortedItems.length} مورد با موفقیت دانلود شد.`,
+      `فایل اکسل شامل ${filteredAndSortedItems.length} ملک (با تمام تغییرات و ویرایش‌ها) دانلود شد.`,
       'success'
     );
   };
 
-  // Unique values for dynamic filter options based on active dataset
+  // Calculate matched items count for Divar Alerts
+  const matchedAlertItems = useMemo(() => {
+    if (currentMode !== 'divar') return [];
+    return divarData.filter((item) =>
+      divarAlerts.some((alert) => matchItemWithAlert(item, alert))
+    );
+  }, [currentMode, divarData, divarAlerts]);
+
+  // Alert management handlers
+  const handleAddAlert = (alertData: Omit<DivarAlert, 'id' | 'createdAt'>) => {
+    const newAlert: DivarAlert = {
+      ...alertData,
+      id: `alert-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setDivarAlerts((prev) => [newAlert, ...prev]);
+    showToast(`هشدار «${newAlert.title}» با موفقیت فعال شد.`, 'success');
+  };
+
+  const handleToggleAlert = (id: string) => {
+    setDivarAlerts((prev) =>
+      prev.map((al) => (al.id === id ? { ...al, enabled: !al.enabled } : al))
+    );
+  };
+
+  const handleDeleteAlert = (id: string) => {
+    setDivarAlerts((prev) => prev.filter((al) => al.id !== id));
+    showToast('هشدار مورد نظر حذف شد.', 'success');
+  };
+
+  // Dynamic filter options based on active dataset
   const availablePropertyTypes = useMemo(() => {
     const types = Array.from(new Set(activeDataset.map((i) => i.propertyType))).filter(Boolean);
     return types.length > 0 ? types : ['آپارتمان', 'دوبلکس', 'ویلایی', 'خانه مسکونی', 'زمین / کلنگی'];
@@ -179,14 +339,33 @@ export default function App() {
 
   const availableOrientations = useMemo(() => {
     const oris = Array.from(new Set(activeDataset.map((i) => i.orientation))).filter(Boolean);
-    return oris.length > 0 ? oris : ['شمالی', 'جنوبی', 'شرقی', 'غربی'];
+    return oris.length > 0 ? oris : ['شمالی', 'جنوبی', 'شرقی', 'غربی', 'دو کله'];
   }, [activeDataset]);
 
   // Filtering & Sorting
   const filteredAndSortedItems = useMemo(() => {
     let result = [...activeDataset];
 
-    // 1. Search Query
+    // 0. Time Range Cutoff (in Divar Mode)
+    if (currentMode === 'divar' && divarTimeRange !== 'all') {
+      const cutoffDiffMs = getTimeCutoffMs(divarTimeRange);
+      const cutoffTime = Date.now() - cutoffDiffMs;
+      result = result.filter((item) => {
+        if (!item.publishedAt) return true;
+        const itemTime = new Date(item.publishedAt).getTime();
+        return isNaN(itemTime) || itemTime >= cutoffTime;
+      });
+    }
+
+    // 1. Transaction Type (خرید و فروش vs رهن و اجاره)
+    if (filter.transactionType && filter.transactionType !== 'all') {
+      result = result.filter((item) => {
+        const itemType = item.transactionType || (item.deposit || item.rent ? 'رهن و اجاره' : 'خرید و فروش');
+        return itemType === filter.transactionType;
+      });
+    }
+
+    // 2. Search Query
     if (filter.searchQuery.trim()) {
       const q = normalizePersianText(filter.searchQuery);
       result = result.filter((item) => {
@@ -194,6 +373,7 @@ export default function App() {
         const addressNorm = normalizePersianText(item.address);
         const districtNorm = item.district ? normalizePersianText(item.district) : '';
         const typeNorm = normalizePersianText(item.propertyType);
+        const transNorm = item.transactionType ? normalizePersianText(item.transactionType) : '';
         const facadeNorm = normalizePersianText(item.facade);
         const oriNorm = normalizePersianText(item.orientation);
         const docNorm = normalizePersianText(item.documentType);
@@ -204,6 +384,7 @@ export default function App() {
           addressNorm.includes(q) ||
           districtNorm.includes(q) ||
           typeNorm.includes(q) ||
+          transNorm.includes(q) ||
           facadeNorm.includes(q) ||
           oriNorm.includes(q) ||
           docNorm.includes(q) ||
@@ -212,12 +393,12 @@ export default function App() {
       });
     }
 
-    // 2. Property Types
+    // 3. Property Types
     if (filter.propertyTypes.length > 0) {
       result = result.filter((item) => filter.propertyTypes.includes(item.propertyType));
     }
 
-    // 3. Price
+    // 4. Sale Price
     if (filter.minPrice !== null) {
       result = result.filter((item) => item.price >= (filter.minPrice || 0));
     }
@@ -225,7 +406,23 @@ export default function App() {
       result = result.filter((item) => item.price <= (filter.maxPrice || Infinity));
     }
 
-    // 4. Area
+    // 5. Deposit (رهن / ودیعه)
+    if (filter.minDeposit !== null) {
+      result = result.filter((item) => (item.deposit || 0) >= (filter.minDeposit || 0));
+    }
+    if (filter.maxDeposit !== null) {
+      result = result.filter((item) => (item.deposit || 0) <= (filter.maxDeposit || Infinity));
+    }
+
+    // 6. Monthly Rent (اجاره ماهیانه)
+    if (filter.minRent !== null) {
+      result = result.filter((item) => (item.rent || 0) >= (filter.minRent || 0));
+    }
+    if (filter.maxRent !== null) {
+      result = result.filter((item) => (item.rent || 0) <= (filter.maxRent || Infinity));
+    }
+
+    // 7. Area
     if (filter.minArea !== null) {
       result = result.filter((item) => item.area >= (filter.minArea || 0));
     }
@@ -233,29 +430,29 @@ export default function App() {
       result = result.filter((item) => item.area <= (filter.maxArea || Infinity));
     }
 
-    // 5. Rooms
+    // 8. Rooms
     if (filter.rooms.length > 0) {
       result = result.filter((item) => {
         return filter.rooms.some((r) => (r === 4 ? item.rooms >= 4 : item.rooms === r));
       });
     }
 
-    // 6. Document Types
+    // 9. Document Types
     if (filter.documentTypes.length > 0) {
       result = result.filter((item) => filter.documentTypes.includes(item.documentType));
     }
 
-    // 7. Orientations
+    // 10. Orientations
     if (filter.orientations.length > 0) {
       result = result.filter((item) => filter.orientations.includes(item.orientation));
     }
 
-    // 8. Facades
+    // 11. Facades
     if (filter.facades.length > 0) {
       result = result.filter((item) => filter.facades.includes(item.facade));
     }
 
-    // 9. Amenities
+    // 12. Amenities
     if (filter.parking === 'yes') result = result.filter((item) => item.hasParking);
     if (filter.parking === 'no') result = result.filter((item) => !item.hasParking);
 
@@ -265,7 +462,7 @@ export default function App() {
     if (filter.storage === 'yes') result = result.filter((item) => item.hasStorage);
     if (filter.storage === 'no') result = result.filter((item) => !item.hasStorage);
 
-    // 10. Building Age
+    // 13. Building Age
     if (filter.minAge !== null) {
       result = result.filter((item) => item.age >= (filter.minAge || 0));
     }
@@ -287,7 +484,7 @@ export default function App() {
     });
 
     return result;
-  }, [activeDataset, filter, sortField, sortOrder]);
+  }, [activeDataset, currentMode, divarTimeRange, filter, sortField, sortOrder]);
 
   // Handle Sort Toggle
   const handleSort = (field: SortField) => {
@@ -338,12 +535,16 @@ export default function App() {
         filteredCount={filteredAndSortedItems.length}
         isFilterOpenMobile={isMobileFilterOpen}
         onToggleFilterMobile={() => setIsMobileFilterOpen((prev) => !prev)}
-        onRefreshDivar={currentMode === 'divar' ? fetchLiveDivar : undefined}
+        onRefreshDivar={currentMode === 'divar' ? () => fetchLiveDivar(divarTimeRange) : undefined}
         isRefreshingDivar={isLoadingDivar}
         onExportExcel={handleExportFiltered}
         onUploadNewExcel={
           currentMode === 'excel' ? () => setShowExcelDropzone((prev) => !prev) : undefined
         }
+        onAddNewProperty={currentMode === 'excel' ? handleOpenAddPropertyModal : undefined}
+        onOpenAlertsModal={currentMode === 'divar' ? () => setIsAlertsModalOpen(true) : undefined}
+        activeAlertsCount={divarAlerts.filter((a) => a.enabled).length}
+        matchedAlertsCount={matchedAlertItems.length}
         excelFileName={excelFileName}
       />
 
@@ -356,10 +557,14 @@ export default function App() {
             totalItems={divarData.length}
             filteredItemsCount={filteredAndSortedItems.length}
             isLoading={isLoadingDivar}
-            onRefresh={fetchLiveDivar}
+            onRefresh={() => fetchLiveDivar(divarTimeRange)}
             onExportExcel={handleExportFiltered}
             usePersianDigits={usePersianDigits}
             lastSyncedAt={lastSyncedAt}
+            currentTimeRange={divarTimeRange}
+            onTimeRangeChange={handleDivarTimeRangeChange}
+            onOpenAlertsModal={() => setIsAlertsModalOpen(true)}
+            matchedAlertsCount={matchedAlertItems.length}
           />
         ) : (
           <>
@@ -370,7 +575,9 @@ export default function App() {
               onUploadClick={() => setShowExcelDropzone((prev) => !prev)}
               onLoadSampleClick={handleLoadSampleExcel}
               onExportExcel={handleExportFiltered}
+              onAddNewProperty={handleOpenAddPropertyModal}
               usePersianDigits={usePersianDigits}
+              hasUnsavedChanges={hasExcelModifications}
             />
 
             {/* Expandable Excel File Upload Dropzone */}
@@ -414,6 +621,11 @@ export default function App() {
             setFilter({ ...filter, propertyTypes: updated });
             setCurrentPage(1);
           }}
+          selectedTransactionType={filter.transactionType}
+          onSelectTransactionType={(t) => {
+            setFilter({ ...filter, transactionType: t });
+            setCurrentPage(1);
+          }}
         />
 
         {/* Content Layout: Sidebar Filter + Main Content (Table / Cards) */}
@@ -437,6 +649,9 @@ export default function App() {
               availableDocumentTypes={availableDocumentTypes}
               availableFacades={availableFacades}
               availableOrientations={availableOrientations}
+              isDivarMode={currentMode === 'divar'}
+              currentTimeRange={divarTimeRange}
+              onTimeRangeChange={handleDivarTimeRangeChange}
             />
           </div>
 
@@ -452,12 +667,19 @@ export default function App() {
                 usePersianDigits={usePersianDigits}
                 onExportExcel={handleExportFiltered}
                 filteredCount={filteredAndSortedItems.length}
+                isExcelMode={currentMode === 'excel'}
+                onAddNewProperty={handleOpenAddPropertyModal}
+                onEditItem={handleOpenEditPropertyModal}
+                onDeleteItem={handleDeleteProperty}
               />
             ) : (
               <PropertyCardList
                 items={paginatedItems}
                 onSelectItem={setSelectedItem}
                 usePersianDigits={usePersianDigits}
+                isExcelMode={currentMode === 'excel'}
+                onEditItem={handleOpenEditPropertyModal}
+                onDeleteItem={handleDeleteProperty}
               />
             )}
 
@@ -501,15 +723,43 @@ export default function App() {
               availableOrientations={availableOrientations}
               isMobileDrawer={true}
               onCloseMobileDrawer={() => setIsMobileFilterOpen(false)}
+              isDivarMode={currentMode === 'divar'}
+              currentTimeRange={divarTimeRange}
+              onTimeRangeChange={handleDivarTimeRangeChange}
             />
           </div>
         </div>
       )}
 
-      {/* Property Detail Modal */}
+      {/* Property Detail Modal (Multi-image Gallery) */}
       <PropertyDetailModal
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
+        usePersianDigits={usePersianDigits}
+      />
+
+      {/* Property Form Modal for Excel CRUD (Add/Edit) */}
+      <PropertyFormModal
+        isOpen={isPropertyFormOpen}
+        itemToEdit={propertyToEdit}
+        onClose={() => {
+          setIsPropertyFormOpen(false);
+          setPropertyToEdit(null);
+        }}
+        onSave={handleSaveProperty}
+        usePersianDigits={usePersianDigits}
+      />
+
+      {/* Divar Alerts (گوش‌به‌زنگ) Modal */}
+      <DivarAlertsModal
+        isOpen={isAlertsModalOpen}
+        onClose={() => setIsAlertsModalOpen(false)}
+        alerts={divarAlerts}
+        onAddAlert={handleAddAlert}
+        onToggleAlert={handleToggleAlert}
+        onDeleteAlert={handleDeleteAlert}
+        divarItems={divarData}
+        onSelectProperty={(item) => setSelectedItem(item)}
         usePersianDigits={usePersianDigits}
       />
 
@@ -517,16 +767,20 @@ export default function App() {
       {toastMessage && (
         <div className="fixed bottom-5 left-5 z-50 animate-in slide-in-from-bottom-5">
           <div
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold ${
+            className={`flex items-center gap-2 px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold ${
               toastMessage.type === 'success'
-                ? 'bg-emerald-800 text-white border-emerald-700'
-                : 'bg-rose-800 text-white border-rose-700'
+                ? 'bg-emerald-900 text-white border-emerald-700'
+                : toastMessage.type === 'alert'
+                ? 'bg-amber-900 text-white border-amber-700'
+                : 'bg-rose-900 text-white border-rose-700'
             }`}
           >
             {toastMessage.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            ) : toastMessage.type === 'alert' ? (
+              <BellRing className="w-4 h-4 text-amber-300 shrink-0 animate-bounce" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-rose-300" />
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
             )}
             <span>{toastMessage.text}</span>
             <button
