@@ -54,18 +54,25 @@ export const Pagination: React.FC<PaginationProps> = ({
       </div>
 
       {/* Page controls */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-center">
         {/* Next/Prev button in RTL: Right arrow goes to previous page, Left arrow goes to next page */}
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          className="p-2 sm:p-1.5 rounded-xl sm:rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1 text-xs"
           title="صفحه قبل"
         >
           <ChevronRight className="w-4 h-4" />
+          <span className="sm:hidden font-semibold">قبلی</span>
         </button>
 
-        <div className="flex items-center gap-1">
+        {/* Mobile current page indicator */}
+        <div className="sm:hidden text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+          صفحه {fmt(currentPage)} از {fmt(totalPages)}
+        </div>
+
+        {/* Desktop numeric page buttons */}
+        <div className="hidden sm:flex items-center gap-1">
           {getPageNumbers().map((p, idx) => {
             if (p === '...') {
               return (
@@ -79,7 +86,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               <button
                 key={p}
                 onClick={() => onPageChange(Number(p))}
-                className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all ${
+                className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   isCurrent
                     ? 'bg-indigo-600 text-white shadow-xs'
                     : 'text-slate-700 hover:bg-slate-100'
@@ -94,9 +101,10 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          className="p-2 sm:p-1.5 rounded-xl sm:rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1 text-xs"
           title="صفحه بعد"
         >
+          <span className="sm:hidden font-semibold">بعدی</span>
           <ChevronLeft className="w-4 h-4" />
         </button>
       </div>

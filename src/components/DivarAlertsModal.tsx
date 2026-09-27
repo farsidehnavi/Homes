@@ -203,15 +203,15 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden text-right"
+        className="bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full h-[95vh] sm:h-auto sm:max-h-[92vh] flex flex-col overflow-hidden text-right"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-red-50/50 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-red-50/50 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-xs">
               <BellRing className="w-5 h-5 animate-bounce" />
@@ -240,7 +240,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
         </div>
 
         {/* Action / Banner Strip */}
-        <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="px-4 sm:px-6 py-3 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-slate-600">
             <span className="text-slate-400">مجوز نوتیفیکیشن مرورگر:</span>
             {browserNotificationStatus === 'granted' ? (
@@ -262,20 +262,20 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
             <button
               type="button"
               onClick={handleTestAlert}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 testTriggered
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-105'
                   : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
               }`}
             >
               <Volume2 className="w-3.5 h-3.5 text-indigo-600" />
-              <span>{testTriggered ? 'زنگ هشدار نواخته شد!' : 'تست صدای زنگ و اعلان'}</span>
+              <span>{testTriggered ? 'زنگ نواخته شد!' : 'تست صدا و اعلان'}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setShowCreateForm(!showCreateForm)}
-              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{showCreateForm ? 'بستن فرم' : 'ثبت هشدار جدید'}</span>
@@ -284,7 +284,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 pb-20 sm:pb-6">
           {/* Create Alert Form (Collapsible or if empty) */}
           {showCreateForm && (
             <form
@@ -305,7 +305,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="مثلاً: خانه مسکونی ۱۱۵ متری در خیابان شریعتی"
+                    placeholder="مثلاً: آپارتمان دو خوابه در خیابان شریعتی"
                     className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 focus:border-red-500 focus:outline-hidden"
                   />
                 </div>
@@ -342,13 +342,13 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-2xs font-semibold text-slate-700">متراژ دقیق مدنظر (متر مربع):</label>
+                  <label className="text-2xs font-semibold text-slate-700">متراژ مدنظر (متر مربع):</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       value={targetArea}
                       onChange={(e) => setTargetArea(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="115"
+                      placeholder="متراژ مدنظر"
                       className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-center font-bold"
                     />
                     <span className="text-2xs text-slate-400 whitespace-nowrap">متر (±{fmt(areaTolerance)})</span>
@@ -569,14 +569,14 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs">
-          <span className="text-2xs text-slate-400">
-            هشدارها به طور خودکار در مرورگر ذخیره شده و با هر بازدید فعال خواهند بود.
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs shrink-0">
+          <span className="text-2xs text-slate-400 hidden xs:inline">
+            هشدارها به طور خودکار ذخیره می‌شوند.
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+            className="w-full xs:w-auto px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer text-center"
           >
             بستن
           </button>

@@ -20,6 +20,9 @@ import {
   Images,
   Tag,
   Loader2,
+  Edit,
+  Camera,
+  Upload,
 } from 'lucide-react';
 import { RealEstateItem } from '../types';
 import { formatPrice, formatPriceShort, toPersianDigits, formatDepositRent } from '../utils/formatters';
@@ -28,12 +31,16 @@ interface PropertyDetailModalProps {
   item: RealEstateItem | null;
   onClose: () => void;
   usePersianDigits: boolean;
+  isExcelMode?: boolean;
+  onEditItem?: (item: RealEstateItem) => void;
 }
 
 export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   item,
   onClose,
   usePersianDigits,
+  isExcelMode = false,
+  onEditItem,
 }) => {
   const [copied, setCopied] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -108,18 +115,18 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[92vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full h-[94vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Real Divar Image Interactive Gallery */}
         {allImages.length > 0 ? (
           <div className="relative w-full bg-slate-950 flex flex-col shrink-0">
             {/* Main Active Image Viewport */}
-            <div className="relative w-full h-64 sm:h-80 overflow-hidden bg-slate-900 group">
+            <div className="relative w-full h-56 sm:h-80 overflow-hidden bg-slate-900 group">
               <img
                 src={allImages[activeImageIndex]}
                 alt={`${item.title || item.address} - تصویر واقعی دیوار ${activeImageIndex + 1}`}
@@ -183,7 +190,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Real Divar Image Counter Badge */}
+              {/* Image Counter Badge */}
               <div className="absolute top-4 left-16 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold border border-white/20 flex items-center gap-1.5">
                 {isLoadingImages ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-red-400" />
@@ -191,7 +198,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   <Images className="w-3.5 h-3.5 text-red-400" />
                 )}
                 <span>
-                  عکس {fmt(activeImageIndex + 1)} از {fmt(allImages.length)} (تصاویر واقعی دیوار)
+                  عکس {fmt(activeImageIndex + 1)} از {fmt(allImages.length)} {isExcelMode || item.source === 'excel' ? '(تصاویر ثبت شده داشبورد من)' : '(تصاویر واقعی دیوار)'}
                 </span>
               </div>
 
@@ -217,12 +224,12 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Thumbnail Ribbon of real Divar photos */}
+            {/* Thumbnail Ribbon of photos */}
             {allImages.length > 1 && (
               <div className="flex items-center gap-2 p-2.5 bg-slate-900/95 overflow-x-auto border-t border-slate-800">
                 <span className="text-2xs text-slate-400 shrink-0 px-1 font-semibold flex items-center gap-1">
                   <Images className="w-3 h-3 text-red-400" />
-                  تمام {fmt(allImages.length)} عکس دیوار:
+                  {isExcelMode || item.source === 'excel' ? `تمام ${fmt(allImages.length)} تصویر این ملک:` : `تمام ${fmt(allImages.length)} عکس دیوار:`}
                 </span>
                 {allImages.map((img, idx) => (
                   <button
@@ -237,7 +244,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   >
                     <img
                       src={img}
-                      alt={`تصویر دیوار ${idx + 1}`}
+                      alt={`تصویر ملک ${idx + 1}`}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover"
                     />
@@ -250,8 +257,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             )}
           </div>
         ) : (
-          /* Header when no photos were provided on Divar */
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          /* Header when no photos are available */
+          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">
@@ -269,13 +276,34 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 </span>
               </div>
               <h3 className="text-lg font-bold text-slate-900">{item.title || item.address}</h3>
+              <p className="text-2xs text-slate-500 mt-1 flex items-center gap-1.5">
+                <Camera className="w-3.5 h-3.5 text-slate-400" />
+                <span>این ملک در حال حاضر تصویری ندارد.</span>
+              </p>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            
+            <div className="flex items-center gap-2 shrink-0">
+              {isExcelMode && onEditItem && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onEditItem(item);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>+ افزودن عکس به این ملک</span>
+                </button>
+              )}
+
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -479,7 +507,23 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-end">
+        <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+          <div>
+            {isExcelMode && onEditItem && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onEditItem(item);
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>ویرایش مشخصات و تصاویر این ملک</span>
+              </button>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={onClose}

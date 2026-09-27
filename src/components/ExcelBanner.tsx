@@ -60,6 +60,10 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
                 {fmt(totalItems)} ملک ثبت شده
               </span>
 
+              <span className="inline-flex items-center gap-1 text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full font-medium">
+                پشتیبانی کامل از تصاویر و عکس ملک
+              </span>
+
               {hasUnsavedChanges && (
                 <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold animate-pulse">
                   تغییرات جدید آماده دانلود در خروجی اکسل
@@ -68,21 +72,21 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
             </div>
 
             <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span>مدیریت، ویرایش و تحلیل هوشمند فایل‌های اکسل املاک</span>
+              <span>مدیریت، ویرایش، تصاویر و تحلیل هوشمند فایل‌های اکسل املاک</span>
             </h2>
 
             <p className="text-xs text-slate-500 leading-relaxed max-w-3xl">
-              در <strong>داشبورد من</strong> می‌توانید به راحتی ملک جدید اضافه کنید، مشخصات املاک موجود را ویرایش یا حذف نمایید و با زدن دکمه <strong>«خروجی اکسل»</strong> فایل جدید را با تمام تغییرات دانلود کنید.
+              در <strong>داشبورد من</strong> می‌توانید به راحتی ملک جدید به همراه تصاویر اضافه کنید، مشخصات و عکس‌های املاک موجود را ویرایش یا حذف نمایید و با زدن دکمه <strong>«خروجی اکسل»</strong> فایل جدید را با تمام تغییرات و تصاویر ذخیره و دانلود کنید.
             </p>
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:self-start lg:self-center shrink-0">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
             {/* Add Property Button */}
             <button
               id="excel-banner-add-btn"
               onClick={onAddNewProperty}
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
+              className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
               <span>+ افزودن ملک جدید</span>
@@ -91,30 +95,30 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
             <button
               id="excel-banner-upload-btn"
               onClick={onUploadClick}
-              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2.5 rounded-xl transition-all cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5 text-slate-500" />
-              <span>آپلود فایل جدید</span>
-            </button>
-
-            <button
-              id="excel-banner-sample-btn"
-              onClick={onLoadSampleClick}
-              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer"
-              title="بارگذاری مجدد ۱۰۰ رکورد نمونه نجف‌آباد"
-            >
-              <Database className="w-3.5 h-3.5 text-slate-500" />
-              <span>دیتاست نمونه</span>
+              <span>آپلود اکسل</span>
             </button>
 
             <button
               id="excel-banner-export-btn"
               onClick={onExportExcel}
-              className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer shadow-xs"
+              className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold px-3 py-2.5 rounded-xl transition-colors cursor-pointer shadow-xs"
               title="دانلود لیست بروز شده در قالب اکسل"
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" />
-              <span>خروجی اکسل ({fmt(filteredItemsCount)})</span>
+              <span>خروجی ({fmt(filteredItemsCount)})</span>
+            </button>
+
+            <button
+              id="excel-banner-sample-btn"
+              onClick={onLoadSampleClick}
+              className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer border border-slate-200"
+              title="بارگذاری مجدد ۱۰۰ رکورد نمونه نجف‌آباد"
+            >
+              <Database className="w-3.5 h-3.5 text-slate-400" />
+              <span>بازنشانی به دیتای نمونه</span>
             </button>
           </div>
         </div>

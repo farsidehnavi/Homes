@@ -298,29 +298,33 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Mobile Switcher Row on Small Screens */}
-        <div className="sm:hidden flex items-center justify-around py-2 border-t border-slate-100 text-xs">
-          <button
-            onClick={() => onSwitchMode('excel')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold ${
-              currentMode === 'excel'
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                : 'text-slate-600'
-            }`}
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>داشبورد من</span>
-          </button>
-          <button
-            onClick={() => onSwitchMode('divar')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold ${
-              currentMode === 'divar'
-                ? 'bg-red-50 text-red-700 border border-red-200'
-                : 'text-slate-600'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5" />
-            <span>پنل دیوار</span>
-          </button>
+        <div className="sm:hidden py-2 px-1 border-t border-slate-100">
+          <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl gap-1 text-xs">
+            <button
+              id="mobile-switch-to-excel-btn"
+              onClick={() => onSwitchMode('excel')}
+              className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-bold transition-all cursor-pointer ${
+                currentMode === 'excel'
+                  ? 'bg-white text-emerald-800 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <span>داشبورد من</span>
+            </button>
+            <button
+              id="mobile-switch-to-divar-btn"
+              onClick={() => onSwitchMode('divar')}
+              className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-bold transition-all cursor-pointer ${
+                currentMode === 'divar'
+                  ? 'bg-white text-red-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Building2 className="w-4 h-4 text-red-600" />
+              <span>پنل دیوار</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>

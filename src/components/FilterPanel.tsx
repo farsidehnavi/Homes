@@ -760,6 +760,29 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* Mobile Drawer Footer Actions */}
+      {isMobileDrawer && (
+        <div className="p-3 border-t border-slate-200 bg-slate-50/95 backdrop-blur-xs flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onCloseMobileDrawer}
+            className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs font-bold text-center shadow-xs transition-all cursor-pointer"
+          >
+            مشاهده {fmt(totalFiltered)} ملک منطبق
+          </button>
+          {isFiltered && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="py-3 px-3.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              title="پاک‌سازی همه فیلترها"
+            >
+              پاک‌سازی
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

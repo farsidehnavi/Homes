@@ -20,44 +20,44 @@ interface ModeSelectionScreenProps {
 
 export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSelectMode }) => {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-4 py-12">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center px-3 sm:px-4 py-6 sm:py-12">
       {/* Header Accent */}
-      <div className="w-full max-w-4xl mx-auto text-center space-y-4 mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/80 text-slate-700 text-xs font-semibold border border-slate-300/60">
+      <div className="w-full max-w-4xl mx-auto text-center space-y-3 sm:space-y-4 mb-6 sm:mb-10">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-200/80 text-slate-700 text-xs font-semibold border border-slate-300/60">
           <MapPin className="w-3.5 h-3.5 text-red-600" />
           <span>شهرستان نجف‌آباد • سامانه هوشمند املاک</span>
         </div>
 
-        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-xl sm:text-4xl font-black text-slate-900 tracking-tight leading-snug">
           سامانه جامع تحلیل و رصد املاک نجف‌آباد
         </h1>
 
-        <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto leading-relaxed">
+        <p className="text-xs sm:text-base text-slate-600 max-w-xl mx-auto leading-relaxed">
           لطفاً برای ورود، یکی از دو بخش زیر را انتخاب نمایید:
         </p>
       </div>
 
       {/* Two Prominent Cards Side by Side */}
-      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+      <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-stretch">
         {/* Option 1: داشبورد من (Excel Version) */}
         <div
           onClick={() => onSelectMode('excel')}
-          className="group relative bg-white rounded-3xl border-2 border-slate-200/80 hover:border-emerald-500 hover:shadow-xl transition-all duration-300 p-6 sm:p-8 flex flex-col justify-between cursor-pointer text-right overflow-hidden hover:-translate-y-1"
+          className="group relative bg-white rounded-2xl sm:rounded-3xl border-2 border-slate-200/80 hover:border-emerald-500 hover:shadow-xl transition-all duration-300 p-5 sm:p-8 flex flex-col justify-between cursor-pointer text-right overflow-hidden hover:-translate-y-1"
         >
           {/* Top accent line */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
 
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xs group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                <FileSpreadsheet className="w-7 h-7" />
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-xs group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                <FileSpreadsheet className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <span className="text-2xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
                 مدیریت و اکسل
               </span>
             </div>
 
-            <h2 className="text-2xl font-black text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-2 group-hover:text-emerald-700 transition-colors">
               داشبورد من
             </h2>
 
@@ -99,15 +99,15 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSele
         {/* Option 2: پنل دیوار (Divar Version) */}
         <div
           onClick={() => onSelectMode('divar')}
-          className="group relative bg-white rounded-3xl border-2 border-slate-200/80 hover:border-red-500 hover:shadow-xl transition-all duration-300 p-6 sm:p-8 flex flex-col justify-between cursor-pointer text-right overflow-hidden hover:-translate-y-1"
+          className="group relative bg-white rounded-2xl sm:rounded-3xl border-2 border-slate-200/80 hover:border-red-500 hover:shadow-xl transition-all duration-300 p-5 sm:p-8 flex flex-col justify-between cursor-pointer text-right overflow-hidden hover:-translate-y-1"
         >
           {/* Top accent line */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shadow-xs group-hover:bg-red-600 group-hover:text-white transition-colors">
-                <Building2 className="w-7 h-7" />
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shadow-xs group-hover:bg-red-600 group-hover:text-white transition-colors">
+                <Building2 className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <span className="text-2xs font-bold text-red-700 bg-red-50 border border-red-200 px-3 py-1 rounded-full flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
@@ -115,7 +115,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({ onSele
               </span>
             </div>
 
-            <h2 className="text-2xl font-black text-slate-900 mb-2 group-hover:text-red-700 transition-colors">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-2 group-hover:text-red-700 transition-colors">
               پنل دیوار
             </h2>
 

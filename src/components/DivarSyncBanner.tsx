@@ -109,12 +109,12 @@ export const DivarSyncBanner: React.FC<DivarSyncBannerProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:self-start lg:self-center shrink-0">
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
             {/* Divar Alert Button */}
             <button
               id="open-divar-alerts-btn"
               onClick={onOpenAlertsModal}
-              className="relative flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
+              className="relative flex items-center justify-center gap-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
             >
               <BellRing className="w-4 h-4 text-amber-600 animate-bounce" />
               <span>گوش‌به‌زنگ (اعلان ملک)</span>
@@ -129,18 +129,18 @@ export const DivarSyncBanner: React.FC<DivarSyncBannerProps> = ({
               id="refresh-divar-btn"
               onClick={onRefresh}
               disabled={isLoading}
-              className={`flex items-center gap-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs hover:shadow transition-all cursor-pointer ${
                 isLoading ? 'opacity-75 cursor-not-allowed' : ''
               }`}
             >
               <RotateCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>{isLoading ? 'در حال دریافت از دیوار...' : 'بروزرسانی دیوار'}</span>
+              <span>{isLoading ? 'در حال دریافت...' : 'بروزرسانی دیوار'}</span>
             </button>
 
             <button
               id="export-divar-excel-btn"
               onClick={onExportExcel}
-              className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer"
               title="دانلود لیست فیلترشده در قالب اکسل"
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" />
@@ -151,10 +151,10 @@ export const DivarSyncBanner: React.FC<DivarSyncBannerProps> = ({
 
         {/* Time Selector Pills: From 1 hour to 1 month */}
         <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-            <span className="text-2xs font-bold text-slate-700 whitespace-nowrap flex items-center gap-1">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 sm:pb-0 touch-pan-x w-full">
+            <span className="text-2xs font-bold text-slate-700 whitespace-nowrap flex items-center gap-1 shrink-0">
               <Clock className="w-3.5 h-3.5 text-red-600" />
-              انتخاب زمان آگهی‌ها:
+              زمان آگهی:
             </span>
             <div className="flex items-center gap-1.5 flex-nowrap">
               {timeOptions.map((opt) => (
@@ -162,7 +162,7 @@ export const DivarSyncBanner: React.FC<DivarSyncBannerProps> = ({
                   key={opt.id}
                   type="button"
                   onClick={() => onTimeRangeChange(opt.id)}
-                  className={`px-2.5 py-1 rounded-lg text-2xs font-bold whitespace-nowrap border transition-all cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-lg text-2xs font-bold whitespace-nowrap border transition-all cursor-pointer shrink-0 ${
                     currentTimeRange === opt.id
                       ? 'bg-red-600 text-white border-red-600 shadow-xs'
                       : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'

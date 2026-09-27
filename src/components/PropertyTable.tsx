@@ -16,6 +16,7 @@ import {
   Trash2,
   PlusCircle,
   Tag,
+  Camera,
 } from 'lucide-react';
 import { RealEstateItem, SortField, SortOrder } from '../types';
 import { formatPrice, formatPriceShort, toPersianDigits } from '../utils/formatters';
@@ -299,6 +300,20 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                             className="w-10 h-10 rounded-lg object-cover mx-auto border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform"
                             loading="lazy"
                           />
+                        ) : isExcelMode ? (
+                          <div
+                            onClick={(e) => {
+                              if (onEditItem) {
+                                e.stopPropagation();
+                                onEditItem(item);
+                              }
+                            }}
+                            className="w-10 h-10 rounded-lg bg-slate-50 hover:bg-emerald-50 border border-dashed border-slate-300 hover:border-emerald-500 flex flex-col items-center justify-center text-slate-400 hover:text-emerald-700 mx-auto transition-colors cursor-pointer"
+                            title="کلیک برای افزودن عکس به این ملک"
+                          >
+                            <Camera className="w-3.5 h-3.5" />
+                            <span className="text-[8px] font-bold mt-0.5 leading-none">+ عکس</span>
+                          </div>
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
                             <Building2 className="w-4 h-4" />

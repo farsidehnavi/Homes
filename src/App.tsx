@@ -30,7 +30,20 @@ import { exportToExcel } from './utils/excelUtils';
 import { normalizePersianText, toPersianDigits } from './utils/formatters';
 import { getTimeCutoffMs } from './utils/divarCrawler';
 import { playNotificationChime } from './utils/audioAlert';
-import { CheckCircle2, AlertCircle, X, ChevronUp, BellRing } from 'lucide-react';
+import {
+  CheckCircle2,
+  AlertCircle,
+  X,
+  ChevronUp,
+  BellRing,
+  SlidersHorizontal,
+  LayoutGrid,
+  Table as TableIcon,
+  PlusCircle,
+  Download,
+  RefreshCw,
+  ArrowUp,
+} from 'lucide-react';
 
 const INITIAL_FILTER: FilterState = {
   searchQuery: '',
@@ -549,7 +562,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 lg:pb-8">
         {/* Mode-Specific Header Banner */}
         {currentMode === 'divar' ? (
           <DivarSyncBanner
@@ -696,14 +709,115 @@ export default function App() {
         </div>
       </main>
 
+      {/* Mobile Sticky Floating Action Bar on small screens */}
+      <div className="lg:hidden fixed bottom-3 inset-x-3 z-30 max-w-md mx-auto animate-in slide-in-from-bottom-3 duration-200">
+        <div className="bg-slate-900/95 text-white backdrop-blur-md px-3 py-2 rounded-2xl shadow-2xl border border-slate-800 flex items-center justify-between gap-1.5 text-xs">
+          {/* Filter button with counter */}
+          <button
+            id="mobile-bottom-bar-filter-btn"
+            onClick={() => setIsMobileFilterOpen(true)}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold px-3 py-2 rounded-xl transition-all cursor-pointer shadow-xs"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>فیلترها</span>
+            {filteredAndSortedItems.length !== activeDataset.length && (
+              <span className="w-4 h-4 rounded-full bg-white text-indigo-700 text-[10px] flex items-center justify-center font-bold">
+                {usePersianDigits ? toPersianDigits(filteredAndSortedItems.length) : filteredAndSortedItems.length}
+              </span>
+            )}
+          </button>
+
+          {/* Mode-specific quick actions */}
+          {currentMode === 'divar' ? (
+            <div className="flex items-center gap-1">
+              <button
+                id="mobile-bottom-bar-alert-btn"
+                onClick={() => setIsAlertsModalOpen(true)}
+                className="relative flex items-center gap-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-2.5 py-2 rounded-xl font-bold cursor-pointer transition-all"
+                title="گوش‌به‌زنگ دیوار"
+              >
+                <BellRing className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden xs:inline">گوش‌به‌زنگ</span>
+                {matchedAlertItems.length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center font-bold">
+                    {usePersianDigits ? toPersianDigits(matchedAlertItems.length) : matchedAlertItems.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                id="mobile-bottom-bar-refresh-btn"
+                onClick={() => fetchLiveDivar(divarTimeRange)}
+                disabled={isLoadingDivar}
+                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl transition-all cursor-pointer"
+                title="بروزرسانی دیوار"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDivar ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <button
+                id="mobile-bottom-bar-add-btn"
+                onClick={handleOpenAddPropertyModal}
+                className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3 py-2 rounded-xl font-bold transition-all cursor-pointer shadow-xs"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>+ ملک جدید</span>
+              </button>
+
+              <button
+                id="mobile-bottom-bar-export-btn"
+                onClick={handleExportFiltered}
+                className="p-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-xl transition-all cursor-pointer"
+                title="دانلود فایل اکسل"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* View toggle (Cards vs Table) */}
+          <div className="flex items-center bg-slate-800 p-0.5 rounded-xl border border-slate-700">
+            <button
+              onClick={() => setActiveView('cards')}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                activeView === 'cards' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400'
+              }`}
+              title="نمای کارتی"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setActiveView('table')}
+              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                activeView === 'table' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-400'
+              }`}
+              title="نمای جدولی"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Scroll to Top button */}
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="p-2 text-slate-400 hover:text-white rounded-xl transition-colors cursor-pointer"
+            title="بازگشت به بالای صفحه"
+          >
+            <ArrowUp className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
       {/* Mobile Filter Drawer / Modal */}
       {isMobileFilterOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={() => setIsMobileFilterOpen(false)}
           />
-          <div className="relative w-5/6 max-w-sm bg-white h-full shadow-2xl z-10 flex flex-col">
+          <div className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl z-10 flex flex-col animate-in slide-in-from-right duration-250">
             <FilterPanel
               filter={filter}
               onFilterChange={(newF) => {
@@ -736,6 +850,8 @@ export default function App() {
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
         usePersianDigits={usePersianDigits}
+        isExcelMode={currentMode === 'excel'}
+        onEditItem={handleOpenEditPropertyModal}
       />
 
       {/* Property Form Modal for Excel CRUD (Add/Edit) */}

@@ -121,53 +121,53 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({
       </div>
 
       {/* Transaction Type quick toggles & Property type pills */}
-      <div className="pt-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Transaction Type Filter Tabs */}
         {onSelectTransactionType && (
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold border border-slate-200">
+          <div className="w-full sm:w-auto grid grid-cols-3 sm:flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold border border-slate-200">
             <button
               type="button"
               onClick={() => onSelectTransactionType('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`flex items-center justify-center py-2 px-1.5 sm:px-3 rounded-lg transition-all cursor-pointer text-center ${
                 selectedTransactionType === 'all'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              همه ({fmtNum(items.length)})
+              <span>همه ({fmtNum(items.length)})</span>
             </button>
 
             <button
               type="button"
               onClick={() => onSelectTransactionType('خرید و فروش')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-2 px-1.5 sm:px-3 rounded-lg transition-all cursor-pointer text-center ${
                 selectedTransactionType === 'خرید و فروش'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-emerald-700'
               }`}
             >
-              <Tag className="w-3 h-3" />
-              <span>خرید و فروش ({fmtNum(saleItems.length)})</span>
+              <Tag className="w-3 h-3 shrink-0" />
+              <span>فروش ({fmtNum(saleItems.length)})</span>
             </button>
 
             <button
               type="button"
               onClick={() => onSelectTransactionType('رهن و اجاره')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1 py-2 px-1.5 sm:px-3 rounded-lg transition-all cursor-pointer text-center ${
                 selectedTransactionType === 'رهن و اجاره'
                   ? 'bg-blue-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-blue-700'
               }`}
             >
-              <Key className="w-3 h-3" />
-              <span>رهن و اجاره ({fmtNum(rentItems.length)})</span>
+              <Key className="w-3 h-3 shrink-0" />
+              <span>اجاره ({fmtNum(rentItems.length)})</span>
             </button>
           </div>
         )}
 
         {/* Property Type Filter Chips */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-2xs text-slate-400 font-semibold ml-1">دسته‌بندی‌ها:</span>
+        <div className="w-full sm:w-auto flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 touch-pan-x">
+          <span className="text-2xs text-slate-400 font-semibold ml-1 shrink-0">دسته‌ها:</span>
           {presentTypes.map((type) => {
             const Icon = getIconForType(type);
             const isSelected = selectedTypes.includes(type);
@@ -176,7 +176,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({
                 key={type}
                 type="button"
                 onClick={() => onSelectPropertyType && onSelectPropertyType(type)}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-2xs font-semibold border transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-2xs font-semibold border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   isSelected
                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                     : `${getColorForType(type)} hover:opacity-80`

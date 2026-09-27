@@ -16,6 +16,8 @@ import {
   Edit,
   Trash2,
   Images,
+  Camera,
+  Upload,
 } from 'lucide-react';
 import { RealEstateItem } from '../types';
 import { formatPrice, formatPriceShort, toPersianDigits } from '../utils/formatters';
@@ -180,6 +182,37 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
                     </span>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-2xs font-bold text-white shadow-xs ${
+                        isRent ? 'bg-blue-600' : 'bg-emerald-600'
+                      }`}
+                    >
+                      {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
+                    </span>
+                  </div>
+                </div>
+              ) : isExcelMode ? (
+                <div
+                  onClick={(e) => {
+                    if (onEditItem) {
+                      e.stopPropagation();
+                      onEditItem(item);
+                    }
+                  }}
+                  className="relative w-full h-36 bg-slate-100/90 hover:bg-emerald-50/60 flex flex-col items-center justify-center gap-1.5 border-b border-slate-200/80 text-slate-400 group/holder transition-colors cursor-pointer"
+                  title="کلیک برای افزودن عکس به این ملک"
+                >
+                  <Camera className="w-6 h-6 text-slate-300 group-hover/holder:text-emerald-600 transition-colors" />
+                  <span className="text-[11px] font-semibold text-slate-400 group-hover/holder:text-emerald-700 transition-colors flex items-center gap-1">
+                    <Upload className="w-3 h-3" />
+                    <span>+ افزودن عکس به این ملک</span>
+                  </span>
+
+                  {/* Badges on top */}
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded-full text-2xs font-bold bg-white/90 text-slate-600 shadow-2xs border border-slate-200">
+                      ردیف {fmt(item.rowNumber)}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-2xs font-bold text-white shadow-2xs ${
                         isRent ? 'bg-blue-600' : 'bg-emerald-600'
                       }`}
                     >

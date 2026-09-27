@@ -103,8 +103,8 @@ export interface DivarAlert {
   enabled: boolean;
   transactionType?: 'all' | 'خرید و فروش' | 'رهن و اجاره';
   propertyType?: string; // e.g. 'خانه مسکونی', 'ویلایی', 'آپارتمان', 'all'
-  targetArea?: number | null; // e.g. 115
-  areaTolerance?: number; // e.g. 10 => 105 to 125
+  targetArea?: number | null; // e.g. 120
+  areaTolerance?: number; // e.g. 10 => 110 to 130
   minArea?: number | null;
   maxArea?: number | null;
   streetOrNeighborhood?: string; // e.g. 'شریعتی', 'ویلاشهر'

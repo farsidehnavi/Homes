@@ -57,6 +57,9 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
           norm.includes('معامله') ||
           norm.includes('رهن') ||
           norm.includes('اجاره') ||
+          norm.includes('عکس') ||
+          norm.includes('تصویر') ||
+          norm.includes('image') ||
           norm.includes('price') ||
           norm.includes('address')
         ) {
@@ -104,6 +107,35 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         colIndex.rent = idx;
       else if (norm.includes('محله') || norm.includes('منطقه') || norm === 'district')
         colIndex.district = idx;
+      else if (
+        norm.includes('عکس') ||
+        norm.includes('تصویر') ||
+        norm.includes('تصاویر') ||
+        norm === 'image' ||
+        norm === 'images' ||
+        norm === 'photo' ||
+        norm === 'photos' ||
+        norm.includes('imageurl') ||
+        norm.includes('img')
+      ) {
+        if (colIndex.images === undefined) colIndex.images = idx;
+      }
+    });
+
+    // Also collect all image column indices if multiple exist
+    const allImageColIndices: number[] = [];
+    headers.forEach((h, idx) => {
+      const norm = normalizePersianText(h);
+      if (
+        norm.includes('عکس') ||
+        norm.includes('تصویر') ||
+        norm.includes('تصاویر') ||
+        norm.includes('image') ||
+        norm.includes('photo') ||
+        norm.includes('img')
+      ) {
+        allImageColIndices.push(idx);
+      }
     });
 
     const items: RealEstateItem[] = [];
@@ -124,6 +156,50 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
       const rentVal = parseNumberFromString(getVal('rent'));
       const areaVal = parseNumberFromString(getVal('area')) || 100;
       const rowNumVal = parseNumberFromString(getVal('rowNumber')) || idx + 1;
+
+      // Extract image(s) if provided in excel across all image columns
+      let parsedImages: string[] = [];
+      const imageSources: string[] = [];
+
+      allImageColIndices.forEach((cIdx) => {
+        if (row[cIdx]) imageSources.push(String(row[cIdx]).trim());
+      });
+
+      if (imageSources.length === 0 && colIndex.images !== undefined && row[colIndex.images]) {
+        imageSources.push(String(row[colIndex.images]).trim());
+      }
+
+      imageSources.forEach((rawStr) => {
+        if (!rawStr) return;
+        if (rawStr.startsWith('[') && rawStr.endsWith(']')) {
+          try {
+            const arr = JSON.parse(rawStr);
+            if (Array.isArray(arr)) {
+              arr.forEach((it) => {
+                if (typeof it === 'string' && it.trim()) parsedImages.push(it.trim());
+              });
+            }
+          } catch {
+            parsedImages.push(rawStr);
+          }
+        } else {
+          // Split on whitespace, Latin comma, Persian comma (،), semicolon, pipe, newline
+          const parts = rawStr.split(/[\s,،;|\n\r]+/).filter(Boolean);
+          parts.forEach((p) => {
+            if (p.startsWith('http://') || p.startsWith('https://') || p.startsWith('data:image/')) {
+              parsedImages.push(p);
+            } else if (p.length > 5 && (p.includes('.jpg') || p.includes('.png') || p.includes('.webp') || p.includes('.jpeg'))) {
+              parsedImages.push(p);
+            }
+          });
+          if (parts.length === 1 && parsedImages.length === 0 && rawStr.length > 4) {
+            parsedImages.push(rawStr);
+          }
+        }
+      });
+
+      // Deduplicate images
+      parsedImages = Array.from(new Set(parsedImages));
 
       let transType: TransactionType = 'خرید و فروش';
       const rawTrans = getVal('transactionType');
@@ -171,6 +247,8 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
           transType === 'خرید و فروش'
             ? `${priceVal.toLocaleString('fa-IR')} تومان`
             : `ودیعه: ${(depositVal / 1000000).toLocaleString('fa-IR')} م • اجاره: ${(rentVal / 1000000).toLocaleString('fa-IR')} م`,
+        imageUrl: parsedImages.length > 0 ? parsedImages[0] : undefined,
+        images: parsedImages.length > 0 ? parsedImages : undefined,
         source: 'excel',
         rawRow,
       });
@@ -219,6 +297,7 @@ export const exportToExcel = (items: RealEstateItem[], fileName = 'املاک_د
     انباری: item.hasStorage ? 'دارد' : 'ندارد',
     'نوع سند': item.documentType,
     آدرس: item.address,
+    'تصاویر / عکس ملک': item.images && item.images.length > 0 ? item.images.join(' , ') : item.imageUrl || '',
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(exportData);
