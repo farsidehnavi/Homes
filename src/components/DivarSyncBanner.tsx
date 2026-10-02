@@ -51,17 +51,17 @@ export const DivarSyncBanner: React.FC<DivarSyncBannerProps> = ({
     ? formatRelativeTimePersian(new Date(metadata.fetchedAt))
     : 'به‌روزرسانی شده';
 
-  const timeOptions: { id: DivarTimeRange; label: string }[] = [
-    { id: '1h', label: '۱ ساعت گذشته' },
-    { id: '2h', label: '۲ ساعت گذشته' },
-    { id: '6h', label: '۶ ساعت گذشته' },
-    { id: '12h', label: '۱۲ ساعت گذشته' },
-    { id: '24h', label: '۲۴ ساعت گذشته' },
-    { id: '3d', label: '۳ روز گذشته' },
-    { id: '7d', label: '۱ هفته گذشته' },
-    { id: '14d', label: '۲ هفته گذشته' },
-    { id: '30d', label: '۱ ماه گذشته' },
-    { id: 'all', label: 'همه زمان‌ها' },
+  const timeOptions: { id: DivarTimeRange; label: string; shortLabel: string }[] = [
+    { id: '1h', label: '۱ ساعت گذشته', shortLabel: '۱ ساعت' },
+    { id: '2h', label: '۲ ساعت گذشته', shortLabel: '۲ ساعت' },
+    { id: '6h', label: '۶ ساعت گذشته', shortLabel: '۶ ساعت' },
+    { id: '12h', label: '۱۲ ساعت گذشته', shortLabel: '۱۲ ساعت' },
+    { id: '24h', label: '۲۴ ساعت گذشته', shortLabel: '۲۴ ساعت' },
+    { id: '3d', label: '۳ روز گذشته', shortLabel: '۳ روز' },
+    { id: '7d', label: '۱ هفته گذشته', shortLabel: '۱ هفته' },
+    { id: '14d', label: '۲ هفته گذشته', shortLabel: '۲ هفته' },
+    { id: '30d', label: '۱ ماه گذشته', shortLabel: '۱ ماه' },
+    { id: 'all', label: 'همه زمان‌ها', shortLabel: 'همه' },
   ];
 
   return (
@@ -149,26 +149,29 @@ export const DivarSyncBanner: React.FC<DivarSyncBannerProps> = ({
           </div>
         </div>
 
-        {/* Time Selector Pills: From 1 hour to 1 month */}
+        {/* Time Selector Pills: Exactly 2 rows on mobile view */}
         <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 sm:pb-0 touch-pan-x w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
             <span className="text-2xs font-bold text-slate-700 whitespace-nowrap flex items-center gap-1 shrink-0">
               <Clock className="w-3.5 h-3.5 text-red-600" />
               زمان آگهی:
             </span>
-            <div className="flex items-center gap-1.5 flex-nowrap">
+            {/* Exactly two rows of 5 buttons on mobile, flex row on tablet/desktop */}
+            <div className="grid grid-cols-5 gap-1.5 w-full sm:flex sm:flex-wrap">
               {timeOptions.map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
                   onClick={() => onTimeRangeChange(opt.id)}
-                  className={`px-2.5 py-1.5 rounded-lg text-2xs font-bold whitespace-nowrap border transition-all cursor-pointer shrink-0 ${
+                  className={`py-1.5 px-1 sm:px-2.5 rounded-lg text-2xs font-bold text-center border transition-all cursor-pointer ${
                     currentTimeRange === opt.id
                       ? 'bg-red-600 text-white border-red-600 shadow-xs'
                       : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
                   }`}
+                  title={opt.label}
                 >
-                  {opt.label}
+                  <span className="hidden sm:inline whitespace-nowrap">{opt.label}</span>
+                  <span className="sm:hidden text-[11px] whitespace-nowrap">{opt.shortLabel}</span>
                 </button>
               ))}
             </div>

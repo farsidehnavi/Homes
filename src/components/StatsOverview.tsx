@@ -165,8 +165,8 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({
           </div>
         )}
 
-        {/* Property Type Filter Chips */}
-        <div className="w-full sm:w-auto flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 touch-pan-x">
+        {/* Property Type Filter Chips: Wrap into rows on mobile */}
+        <div className="w-full sm:w-auto flex flex-wrap items-center gap-1.5 pt-1 sm:pt-0">
           <span className="text-2xs text-slate-400 font-semibold ml-1 shrink-0">دسته‌ها:</span>
           {presentTypes.map((type) => {
             const Icon = getIconForType(type);

@@ -40,6 +40,8 @@ import {
   LayoutGrid,
   Table as TableIcon,
   PlusCircle,
+  Plus,
+  Upload,
   Download,
   RefreshCw,
   ArrowUp,
@@ -530,7 +532,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-['Vazirmatn',sans-serif]">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-['Vazirmatn',sans-serif] overflow-x-hidden w-full max-w-full">
       {/* Top Navigation Bar with Mode Switcher & Home Button */}
       <Navbar
         currentMode={currentMode}
@@ -559,6 +561,11 @@ export default function App() {
         activeAlertsCount={divarAlerts.filter((a) => a.enabled).length}
         matchedAlertsCount={matchedAlertItems.length}
         excelFileName={excelFileName}
+        searchQuery={filter.searchQuery}
+        onSearchChange={(q) => {
+          setFilter((prev) => ({ ...prev, searchQuery: q }));
+          setCurrentPage(1);
+        }}
       />
 
       {/* Main Content Area */}
@@ -758,21 +765,23 @@ export default function App() {
           ) : (
             <div className="flex items-center gap-1">
               <button
-                id="mobile-bottom-bar-add-btn"
-                onClick={handleOpenAddPropertyModal}
-                className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3 py-2 rounded-xl font-bold transition-all cursor-pointer shadow-xs"
+                id="mobile-bottom-bar-upload-btn"
+                onClick={() => setShowExcelDropzone((prev) => !prev)}
+                className="flex items-center gap-1 px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all cursor-pointer font-bold"
+                title="آپلود یا جایگزینی فایل اکسل"
               >
-                <PlusCircle className="w-3.5 h-3.5" />
-                <span>+ ملک جدید</span>
+                <Upload className="w-3.5 h-3.5 text-slate-400" />
+                <span>آپلود</span>
               </button>
 
               <button
                 id="mobile-bottom-bar-export-btn"
                 onClick={handleExportFiltered}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-xl transition-all cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-xl transition-all cursor-pointer font-bold"
                 title="دانلود فایل اکسل"
               >
                 <Download className="w-3.5 h-3.5" />
+                <span>خروجی</span>
               </button>
             </div>
           )}
@@ -809,6 +818,26 @@ export default function App() {
           </button>
         </div>
       </div>
+
+      {/* Telegram-style Floating Action Button (FAB) for Adding New Property */}
+      {currentMode === 'excel' && (
+        <div className="fixed bottom-20 sm:bottom-8 left-4 sm:left-8 z-40 animate-in zoom-in-75 duration-200">
+          <button
+            id="telegram-fab-add-property"
+            onClick={handleOpenAddPropertyModal}
+            className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-linear-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 hover:scale-105 active:scale-90 text-white shadow-xl shadow-emerald-700/40 hover:shadow-2xl hover:shadow-emerald-700/60 transition-all duration-200 cursor-pointer border-2 border-white/40"
+            title="افزودن ملک جدید (مشابه دکمه گفتگوی جدید تلگرام)"
+            aria-label="افزودن ملک جدید"
+          >
+            <Plus className="w-7 h-7 stroke-[2.5] transition-transform duration-200 group-hover:rotate-90" />
+
+            {/* Telegram-style floating label badge */}
+            <span className="hidden sm:group-hover:inline-flex absolute right-full mr-3.5 px-3 py-1.5 rounded-xl bg-slate-900/95 text-white text-xs font-bold whitespace-nowrap shadow-xl backdrop-blur-xs border border-slate-700 pointer-events-none animate-in fade-in">
+              + افزودن ملک جدید
+            </span>
+          </button>
+        </div>
+      )}
 
       {/* Mobile Filter Drawer / Modal */}
       {isMobileFilterOpen && (
