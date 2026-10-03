@@ -3,12 +3,8 @@ import {
   FileSpreadsheet,
   Upload,
   Download,
-  CheckCircle2,
   Database,
-  Calendar,
-  Layers,
   PlusCircle,
-  Edit3,
 } from 'lucide-react';
 import { toPersianDigits } from '../utils/formatters';
 
@@ -60,10 +56,6 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
                 {fmt(totalItems)} ملک ثبت شده
               </span>
 
-              <span className="inline-flex items-center gap-1 text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full font-medium">
-                پشتیبانی کامل از تصاویر و عکس ملک
-              </span>
-
               {hasUnsavedChanges && (
                 <span className="inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold animate-pulse">
                   تغییرات جدید آماده دانلود در خروجی اکسل
@@ -72,11 +64,11 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
             </div>
 
             <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span>مدیریت، ویرایش، تصاویر و تحلیل هوشمند فایل‌های اکسل املاک</span>
+              <span>مدیریت، ویرایش و تحلیل هوشمند فایل‌های اکسل املاک</span>
             </h2>
 
             <p className="text-xs text-slate-500 leading-relaxed max-w-3xl">
-              در <strong>داشبورد من</strong> می‌توانید به راحتی ملک جدید به همراه تصاویر اضافه کنید، مشخصات و عکس‌های املاک موجود را ویرایش یا حذف نمایید و با زدن دکمه <strong>«خروجی اکسل»</strong> فایل جدید را با تمام تغییرات و تصاویر ذخیره و دانلود کنید.
+              در <strong>داشبورد من</strong> می‌توانید به راحتی ملک جدید اضافه کنید.
             </p>
           </div>
 
@@ -120,18 +112,6 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
               <Database className="w-3.5 h-3.5 text-slate-400" />
               <span>بازنشانی به دیتای نمونه</span>
             </button>
-          </div>
-        </div>
-
-        {/* Status Bar */}
-        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>امکانات فعال: افزودن، ویرایش، حذف، تفکیک رهن و اجاره و دانلود اکسل بروز شده</span>
-          </div>
-
-          <div className="text-slate-400 text-2xs">
-            پشتیبانی از فرمت‌های xlsx. و xls.
           </div>
         </div>
       </div>
