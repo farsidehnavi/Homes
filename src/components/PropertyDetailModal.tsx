@@ -23,6 +23,8 @@ import {
   Edit,
   Camera,
   Upload,
+  FileSpreadsheet,
+  BellRing,
 } from 'lucide-react';
 import { RealEstateItem } from '../types';
 import { formatPrice, formatPriceShort, toPersianDigits, formatDepositRent } from '../utils/formatters';
@@ -33,6 +35,8 @@ interface PropertyDetailModalProps {
   usePersianDigits: boolean;
   isExcelMode?: boolean;
   onEditItem?: (item: RealEstateItem) => void;
+  onAddToExcel?: (item: RealEstateItem) => void;
+  onAddToAlerts?: (item: RealEstateItem) => void;
 }
 
 export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
@@ -41,6 +45,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
   usePersianDigits,
   isExcelMode = false,
   onEditItem,
+  onAddToExcel,
+  onAddToAlerts,
 }) => {
   const [copied, setCopied] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -325,22 +331,37 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                     <div>
                       <span className="text-xs text-slate-500 block">مبلغ ودیعه / رهن:</span>
                       <span className="text-lg sm:text-xl font-black text-blue-900">
-                        {item.deposit && item.deposit > 0 ? `${formatPrice(item.deposit)} تومان` : 'توافقی'}
+                        {item.deposit && item.deposit > 0
+                          ? `${formatPrice(item.deposit)} تومان`
+                          : item.depositText || 'توافقی'}
                       </span>
                     </div>
                     <div className="h-8 w-px bg-blue-200 hidden sm:block" />
                     <div>
                       <span className="text-xs text-slate-500 block">اجاره ماهیانه:</span>
                       <span className="text-lg sm:text-xl font-black text-blue-900">
-                        {item.rent && item.rent > 0 ? `${formatPrice(item.rent)} تومان` : 'رهن کامل'}
+                        {item.rent && item.rent > 0
+                          ? `${formatPrice(item.rent)} تومان`
+                          : item.rentText || (item.deposit && item.deposit > 0 ? 'رهن کامل' : 'توافقی')}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-blue-100 text-right">
-                  <span className="text-2xs text-slate-500 block">متراژ واحد:</span>
-                  <span className="text-base font-bold text-slate-900">{fmt(item.area)} متر مربع</span>
+                  <span className="text-2xs text-slate-500 block">
+                    {item.landArea && item.buildingArea && item.landArea !== item.buildingArea
+                      ? 'متراژ کل / زمین:'
+                      : 'متراژ:'}
+                  </span>
+                  <span className="text-base font-bold text-slate-900">
+                    {item.area && item.area > 0 ? `${fmt(item.area)} متر مربع` : 'نامشخص'}
+                  </span>
+                  {item.buildingArea && item.landArea && item.buildingArea !== item.landArea && (
+                    <span className="text-2xs text-slate-500 block mt-0.5 font-medium">
+                      زیربنا: {fmt(item.buildingArea)} متر مربع
+                    </span>
+                  )}
                 </div>
               </>
             ) : (
@@ -361,12 +382,19 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
                 {(item.pricePerMeter || (item.price && item.area && item.area > 0)) && (
                   <div className="bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-emerald-100 text-right space-y-0.5">
-                    <span className="text-2xs text-slate-500 block">قیمت هر متر مربع:</span>
+                    <span className="text-2xs text-slate-500 block">
+                      قیمت هر متر مربع:
+                    </span>
                     <span className="text-base font-bold text-slate-900">
                       {item.pricePerMeter && item.pricePerMeter > 0
                         ? `${formatPrice(item.pricePerMeter)} تومان`
                         : `${formatPrice(Math.round(item.price! / item.area!))} تومان`}
                     </span>
+                    {item.area && item.area > 0 && (
+                      <span className="text-2xs text-slate-500 block">
+                        متراژ کل: {fmt(item.area)} متر
+                      </span>
+                    )}
                   </div>
                 )}
               </>
@@ -382,10 +410,19 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-2xs block mb-1">متراژ</span>
+                <span className="text-slate-400 text-2xs block mb-1">
+                  {item.landArea && item.buildingArea && item.landArea !== item.buildingArea
+                    ? 'متراژ کل / زمین'
+                    : 'متراژ'}
+                </span>
                 <span className="font-bold text-slate-900">
                   {item.area && item.area > 0 ? `${fmt(item.area)} متر مربع` : 'ذکر نشده در آگهی'}
                 </span>
+                {item.buildingArea && item.landArea && item.buildingArea !== item.landArea && (
+                  <span className="text-2xs text-slate-500 block mt-0.5">
+                    زیربنا: {fmt(item.buildingArea)} متر مربع
+                  </span>
+                )}
               </div>
 
               {item.rooms !== undefined && item.rooms > 0 && (
@@ -406,7 +443,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
               {item.age !== undefined && (
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  <span className="text-slate-400 text-2xs block mb-1">سن بنا</span>
+                  <span className="text-slate-400 text-2xs block mb-1">سال ساخت</span>
                   <span className="font-bold text-slate-900">
                     {item.age === 0 ? 'نوساز (صفر)' : `${fmt(item.age)} سال ساخت`}
                   </span>
@@ -516,15 +553,29 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </button>
             </div>
 
+            {/* If NOT in Excel mode and item is NOT from Excel, show Add to Excel */}
+            {!isExcelMode && item.source !== 'excel' && onAddToExcel && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => onAddToExcel(item)}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs shadow-md shadow-emerald-700/20 transition-all cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>افزودن مستقیم این ملک به جدول اکسل من</span>
+                </button>
+              </div>
+            )}
+
             {item.divarUrl && (
               <a
                 href={item.divarUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-xs hover:shadow transition-all"
+                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-all"
               >
-                <span>مشاهده این آگهی مستقیماً در سایت دیوار</span>
-                <ExternalLink className="w-4 h-4" />
+                <span>مشاهده این آگهی در وب‌سایت دیوار</span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
               </a>
             )}
           </div>
@@ -532,7 +583,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
         {/* Footer */}
         <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-2">
             {isExcelMode && onEditItem && (
               <button
                 type="button"
@@ -544,6 +595,17 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               >
                 <Edit className="w-3.5 h-3.5" />
                 <span>ویرایش مشخصات و تصاویر این ملک</span>
+              </button>
+            )}
+
+            {!isExcelMode && onAddToExcel && (
+              <button
+                type="button"
+                onClick={() => onAddToExcel(item)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>+ افزودن به اکسل</span>
               </button>
             )}
           </div>

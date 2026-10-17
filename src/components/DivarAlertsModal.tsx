@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Bell,
   BellRing,
@@ -17,8 +17,9 @@ import {
   ChevronUp,
   Eye,
   Check,
+  FileSpreadsheet,
 } from 'lucide-react';
-import { DivarAlert, RealEstateItem, TransactionType, PropertyType } from '../types';
+import { DivarAlert, RealEstateItem, TransactionType, PropertyType, FilterState } from '../types';
 import { toPersianDigits, formatPriceShort, normalizePersianText } from '../utils/formatters';
 import { playNotificationChime } from '../utils/audioAlert';
 
@@ -26,12 +27,17 @@ interface DivarAlertsModalProps {
   isOpen: boolean;
   onClose: () => void;
   alerts: DivarAlert[];
-  onAddAlert: (alert: Omit<DivarAlert, 'id' | 'createdAt'>) => void;
-  onToggleAlert: (id: string) => void;
-  onDeleteAlert: (id: string) => void;
-  divarItems: RealEstateItem[];
-  onSelectProperty: (item: RealEstateItem) => void;
+  onSaveAlerts?: (alerts: DivarAlert[]) => void;
+  onAddAlert?: (alert: Omit<DivarAlert, 'id' | 'createdAt'>) => void;
+  onToggleAlert?: (id: string) => void;
+  onDeleteAlert?: (id: string) => void;
+  divarItems?: RealEstateItem[];
+  currentDivarItems?: RealEstateItem[];
+  onSelectProperty?: (item: RealEstateItem) => void;
+  onAddToExcel?: (item: RealEstateItem) => void;
   usePersianDigits: boolean;
+  initialFilter?: FilterState | null;
+  initialItem?: RealEstateItem | null;
 }
 
 export function matchItemWithAlert(item: RealEstateItem, alert: DivarAlert): boolean {
@@ -117,13 +123,19 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
   isOpen,
   onClose,
   alerts,
+  onSaveAlerts,
   onAddAlert,
   onToggleAlert,
   onDeleteAlert,
-  divarItems,
+  divarItems = [],
+  currentDivarItems = [],
   onSelectProperty,
+  onAddToExcel,
   usePersianDigits,
+  initialFilter,
+  initialItem,
 }) => {
+  const activeItems = divarItems.length > 0 ? divarItems : currentDivarItems;
   const [showCreateForm, setShowCreateForm] = useState(alerts.length === 0);
   const [title, setTitle] = useState('');
   const [transactionType, setTransactionType] = useState<'all' | 'خرید و فروش' | 'رهن و اجاره'>('all');
@@ -134,11 +146,59 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
   const [maxPrice, setMaxPrice] = useState<number | ''>('');
   const [requiresParking, setRequiresParking] = useState(false);
   const [requiresElevator, setRequiresElevator] = useState(false);
+  const [autoAddToExcel, setAutoAddToExcel] = useState(true);
   const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
   const [browserNotificationStatus, setBrowserNotificationStatus] = useState<string>(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
   const [testTriggered, setTestTriggered] = useState(false);
+
+  // Sync with initialFilter or initialItem when opened
+  useEffect(() => {
+    if (!isOpen) return;
+    if (initialFilter) {
+      setShowCreateForm(true);
+      setTitle('هشدار بر اساس فیلترهای دیوار');
+      setTransactionType(
+        initialFilter.transactionType === 'all'
+          ? 'all'
+          : (initialFilter.transactionType as any) || 'all'
+      );
+      if (initialFilter.propertyTypes && initialFilter.propertyTypes.length > 0) {
+        setPropertyType(initialFilter.propertyTypes[0]);
+      } else {
+        setPropertyType('all');
+      }
+      if (initialFilter.minArea || initialFilter.maxArea) {
+        setTargetArea(initialFilter.minArea || initialFilter.maxArea || '');
+      }
+      if (initialFilter.maxPrice || initialFilter.maxDeposit) {
+        setMaxPrice(initialFilter.maxPrice || initialFilter.maxDeposit || '');
+      }
+      if (initialFilter.searchQuery) {
+        setStreetOrNeighborhood(initialFilter.searchQuery);
+      }
+      setRequiresParking(initialFilter.parking === 'yes');
+      setRequiresElevator(initialFilter.elevator === 'yes');
+      setAutoAddToExcel(true);
+    } else if (initialItem) {
+      setShowCreateForm(true);
+      setTitle(`املاک مشابه ${initialItem.title || initialItem.propertyType}`);
+      setTransactionType(
+        initialItem.transactionType === 'خرید و فروش' || initialItem.transactionType === 'رهن و اجاره'
+          ? initialItem.transactionType
+          : 'all'
+      );
+      setPropertyType(initialItem.propertyType || 'all');
+      setTargetArea(initialItem.area || '');
+      setAreaTolerance(15);
+      setStreetOrNeighborhood(initialItem.district || '');
+      setMaxPrice(initialItem.price || initialItem.deposit || '');
+      setRequiresParking(initialItem.hasParking === true);
+      setRequiresElevator(initialItem.hasElevator === true);
+      setAutoAddToExcel(true);
+    }
+  }, [isOpen, initialFilter, initialItem]);
 
   if (!isOpen) return null;
 
@@ -172,6 +232,28 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
     }
   };
 
+  const handleToggle = (id: string) => {
+    if (onToggleAlert) {
+      onToggleAlert(id);
+    } else if (onSaveAlerts) {
+      onSaveAlerts(alerts.map((a) => (a.id === id ? { ...a, enabled: !a.enabled } : a)));
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (onDeleteAlert) {
+      onDeleteAlert(id);
+    } else if (onSaveAlerts) {
+      onSaveAlerts(alerts.filter((a) => a.id !== id));
+    }
+  };
+
+  const handleToggleAutoExcel = (id: string) => {
+    if (onSaveAlerts) {
+      onSaveAlerts(alerts.map((a) => (a.id === id ? { ...a, autoAddToExcel: !a.autoAddToExcel } : a)));
+    }
+  };
+
   const handleCreateAlert = (e: React.FormEvent) => {
     e.preventDefault();
     const finalTitle =
@@ -180,7 +262,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
         streetOrNeighborhood ? `در ${streetOrNeighborhood}` : ''
       }`.trim();
 
-    onAddAlert({
+    const newAlertData = {
       title: finalTitle || 'هشدار سفارشی ملک',
       enabled: true,
       transactionType,
@@ -191,7 +273,20 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
       maxPrice: maxPrice === '' ? null : Number(maxPrice),
       requiresParking,
       requiresElevator,
-    });
+      autoAddToExcel,
+      notifiedItemIds: [],
+    };
+
+    if (onAddAlert) {
+      onAddAlert(newAlertData);
+    } else if (onSaveAlerts) {
+      const fullAlert: DivarAlert = {
+        ...newAlertData,
+        id: `alert-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        createdAt: new Date().toISOString(),
+      };
+      onSaveAlerts([fullAlert, ...alerts]);
+    }
 
     // Reset & close form
     setTitle('');
@@ -367,6 +462,26 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                 </div>
               </div>
 
+              {/* Option to automatically add matching property to Excel */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="auto-add-excel-cb"
+                  checked={autoAddToExcel}
+                  onChange={(e) => setAutoAddToExcel(e.target.checked)}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 mt-0.5 cursor-pointer"
+                />
+                <label htmlFor="auto-add-excel-cb" className="cursor-pointer text-xs text-slate-800 space-y-0.5">
+                  <div className="font-bold flex items-center gap-1.5 text-emerald-900">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                    <span>افزودن خودکار به فایل اکسل من به محض انتشار ملک منطبق</span>
+                  </div>
+                  <p className="text-2xs text-slate-600 leading-normal">
+                    هر ملکی که در دیوار نجف‌آباد منتشر شود و با این مشخصات تطابق داشته باشد، علاوه بر ارسال هشدار و زنگ، خودکار به جدول اکسل شما اضافه می‌شود.
+                  </p>
+                </label>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
                 <div className="flex items-center gap-4 text-xs text-slate-700">
                   <label className="flex items-center gap-1.5 cursor-pointer">
@@ -415,7 +530,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
             <h3 className="text-xs font-black text-slate-800 flex items-center justify-between">
               <span>هشدارهای فعال شما ({fmt(alerts.length)} مورد):</span>
               <span className="text-2xs text-slate-400 font-normal">
-                سیستم با هر بار بازخوانی دیوار، تمام موارد منطبق را اطلاع‌رسانی می‌کند
+                سیستم با هر بار بازخوانی دیوار، تمام موارد منطبق را بررسی و اطلاع‌رسانی می‌کند
               </span>
             </h3>
 
@@ -438,7 +553,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
             ) : (
               <div className="space-y-3">
                 {alerts.map((al) => {
-                  const matchedItems = divarItems.filter((it) => matchItemWithAlert(it, al));
+                  const matchedItems = activeItems.filter((it) => matchItemWithAlert(it, al));
                   const isExpanded = expandedAlertId === al.id;
 
                   return (
@@ -450,7 +565,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                     >
                       <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span
                               className={`w-2.5 h-2.5 rounded-full ${
                                 al.enabled ? 'bg-red-600 animate-pulse' : 'bg-slate-300'
@@ -486,7 +601,22 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                         </div>
 
                         {/* Controls */}
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-2 flex-wrap shrink-0">
+                          {/* Auto add to Excel toggle */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleAutoExcel(al.id)}
+                            className={`px-2 py-1 rounded-lg text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 border ${
+                              al.autoAddToExcel
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                : 'bg-slate-50 text-slate-400 border-slate-200'
+                            }`}
+                            title="کلیک برای فعال یا غیرفعال کردن افزودن خودکار به اکسل"
+                          >
+                            <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
+                            <span>{al.autoAddToExcel ? 'ثبت خودکار در اکسل: روشن' : 'ثبت در اکسل: خاموش'}</span>
+                          </button>
+
                           {matchedItems.length > 0 && (
                             <button
                               type="button"
@@ -494,14 +624,14 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                               className="flex items-center gap-1 text-2xs font-bold text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 cursor-pointer"
                             >
                               <Eye className="w-3.5 h-3.5" />
-                              <span>مشاهده {fmt(matchedItems.length)} آگهی منطبق</span>
+                              <span>مشاهده {fmt(matchedItems.length)} آگهی</span>
                               {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                             </button>
                           )}
 
                           <button
                             type="button"
-                            onClick={() => onToggleAlert(al.id)}
+                            onClick={() => handleToggle(al.id)}
                             className={`px-3 py-1.5 rounded-lg text-2xs font-bold transition-colors cursor-pointer ${
                               al.enabled
                                 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
@@ -513,7 +643,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
 
                           <button
                             type="button"
-                            onClick={() => onDeleteAlert(al.id)}
+                            onClick={() => handleDelete(al.id)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                             title="حذف هشدار"
                           >
@@ -533,7 +663,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                               <div
                                 key={m.id}
                                 onClick={() => {
-                                  onSelectProperty(m);
+                                  if (onSelectProperty) onSelectProperty(m);
                                   onClose();
                                 }}
                                 className="bg-white p-2.5 rounded-xl border border-slate-200 hover:border-red-400 flex items-center justify-between gap-2 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
@@ -552,9 +682,28 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                                     <span className="text-2xs text-emerald-700 font-semibold">{m.priceText}</span>
                                   </div>
                                 </div>
-                                <span className="text-2xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md shrink-0">
-                                  مشاهده ↗
-                                </span>
+                                <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                  {onAddToExcel && (
+                                    <button
+                                      type="button"
+                                      onClick={() => onAddToExcel(m)}
+                                      className="text-2xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-1 rounded-md flex items-center gap-1 cursor-pointer"
+                                      title="افزودن مستقیم این ملک به جدول اکسل"
+                                    >
+                                      <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
+                                      <span>+ اکسل</span>
+                                    </button>
+                                  )}
+                                  <span
+                                    onClick={() => {
+                                      if (onSelectProperty) onSelectProperty(m);
+                                      onClose();
+                                    }}
+                                    className="text-2xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 py-1 rounded-md cursor-pointer"
+                                  >
+                                    مشاهده ↗
+                                  </span>
+                                </div>
                               </div>
                             ))}
                           </div>

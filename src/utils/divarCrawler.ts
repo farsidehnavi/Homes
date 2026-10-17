@@ -43,7 +43,9 @@ function toEnglishDigits(text: any): string {
 
 function parseNumber(text: any): number | undefined {
   if (!text) return undefined;
-  const clean = toEnglishDigits(text).replace(/[,،]/g, '');
+  const clean = toEnglishDigits(text)
+    .replace(/[\u200e\u200f\u202a-\u202e\s]/g, '')
+    .replace(/[,،]/g, '');
   const match = clean.match(/\d+/);
   return match ? parseInt(match[0], 10) : undefined;
 }
@@ -107,10 +109,14 @@ function extractDivarFields(
   title: string,
   priceText: string,
   bottomText: string,
-  postDetail: any | null
+  postDetail: any | null,
+  topText: string = ''
 ) {
   let description = '';
-  let area: number | undefined = undefined;
+  let groupArea: number | undefined = undefined;
+  let landArea: number | undefined = undefined;
+  let buildingArea: number | undefined = undefined;
+  let unexpArea: number | undefined = undefined;
   let rooms: number | undefined = undefined;
   let floor: number | undefined = undefined;
   let totalFloors: number | undefined = undefined;
@@ -125,7 +131,9 @@ function extractDivarFields(
   let detailPrice: number | undefined = undefined;
   let detailPricePerMeter: number | undefined = undefined;
   let detailDeposit: number | undefined = undefined;
+  let detailDepositText: string | undefined = undefined;
   let detailRent: number | undefined = undefined;
+  let detailRentText: string | undefined = undefined;
 
   if (postDetail) {
     const widgets = postDetail.sections?.flatMap((s: any) => s.widgets || []) || [];
@@ -138,10 +146,10 @@ function extractDivarFields(
         description += ' ' + (d.text || '');
       } else if (wt === 'GROUP_INFO_ROW') {
         for (const it of d.items || []) {
-          const tIt = it.title || '';
-          const vIt = it.value || '';
+          const tIt = (it.title || '').trim();
+          const vIt = (it.value || '').trim();
           if (tIt.includes('متراژ')) {
-            area = parseNumber(vIt);
+            groupArea = parseNumber(vIt);
           } else if (tIt.includes('اتاق')) {
             rooms = parseNumber(vIt);
           } else if (tIt.includes('ساخت')) {
@@ -170,18 +178,52 @@ function extractDivarFields(
           }
         }
       } else if (wt === 'UNEXPANDABLE_ROW') {
-        const tRow = d.title || '';
-        const vRow = d.value || '';
-        if (tRow.includes('متراژ') && area === undefined) {
-          area = parseNumber(vRow);
+        const tRow = (d.title || '').trim();
+        const vRow = (d.value || '').trim();
+
+        // CAREFUL: "ودیعه و اجاره" contains "ودیعه", but is a convertible status row (e.g. "غیر قابل تبدیل")!
+        // ONLY match exact "ودیعه" or row containing "ودیعه" WITHOUT "اجاره"
+        if (tRow === 'ودیعه' || (tRow.includes('ودیعه') && !tRow.includes('اجاره'))) {
+          if (vRow.includes('توافقی')) {
+            detailDeposit = 0;
+            detailDepositText = 'توافقی';
+          } else if (vRow.includes('رایگان') || vRow.includes('مجانی')) {
+            detailDeposit = 0;
+            detailDepositText = 'رایگان';
+          } else {
+            const parsed = parseNumber(vRow);
+            if (parsed !== undefined) {
+              detailDeposit = parsed;
+              detailDepositText = vRow;
+            }
+          }
+        } else if ((tRow.startsWith('اجاره') || tRow.includes('اجارهٔ')) && !tRow.includes('ودیعه')) {
+          if (vRow.includes('توافقی')) {
+            detailRent = 0;
+            detailRentText = 'توافقی';
+          } else if (vRow.includes('رایگان') || vRow.includes('مجانی')) {
+            detailRent = 0;
+            detailRentText = 'رایگان';
+          } else if (vRow.includes('رهن کامل')) {
+            detailRent = 0;
+            detailRentText = 'رهن کامل';
+          } else {
+            const parsed = parseNumber(vRow);
+            if (parsed !== undefined) {
+              detailRent = parsed;
+              detailRentText = vRow;
+            }
+          }
+        } else if (tRow.includes('متراژ زمین')) {
+          landArea = parseNumber(vRow);
+        } else if (tRow === 'متراژ') {
+          unexpArea = parseNumber(vRow);
+        } else if (tRow.includes('زیربنا')) {
+          buildingArea = parseNumber(vRow);
         } else if (tRow.includes('قیمت کل')) {
           detailPrice = parseNumber(vRow);
         } else if (tRow.includes('قیمت هر متر')) {
           detailPricePerMeter = parseNumber(vRow);
-        } else if (tRow.includes('ودیعه')) {
-          detailDeposit = parseNumber(vRow);
-        } else if (tRow.includes('اجاره')) {
-          detailRent = parseNumber(vRow);
         } else if (tRow.includes('طبقه')) {
           if (vRow.includes('همکف')) {
             floor = 0;
@@ -204,11 +246,39 @@ function extractDivarFields(
   const fullText = `${title} ${description} ${bottomText}`;
   const fullTextNorm = toEnglishDigits(fullText);
 
-  // Area: ONLY if explicitly mentioned in text (if not in widgets)
-  if (area === undefined) {
-    const m = fullTextNorm.match(/(\d+)\s*(?:متر|متری|متر مربع)/);
-    if (m) {
-      const val = parseInt(m[1], 10);
+  // Determine accurate area:
+  // 1. If title explicitly declares an area (e.g. "خانه‌باغ 670متری", "منزل 300 متری", "زمین ۲۵۰ متر"),
+  // that is the primary advertised area the user expects to see!
+  const titleNorm = toEnglishDigits(title);
+  const mTitle = titleNorm.match(/(\d+)\s*(?:متر|متری)/);
+  const titleArea = mTitle ? parseInt(mTitle[1], 10) : undefined;
+
+  let area: number | undefined = undefined;
+
+  if (titleArea && titleArea >= 10 && titleArea <= 50000) {
+    area = titleArea;
+    if (landArea && landArea === titleArea) {
+      if (groupArea && groupArea !== titleArea) buildingArea = groupArea;
+    } else if (groupArea && groupArea === titleArea) {
+      if (landArea && landArea !== titleArea) landArea = landArea;
+    } else {
+      if (groupArea && !buildingArea) buildingArea = groupArea;
+      if (landArea && !landArea) landArea = landArea;
+    }
+  } else if (landArea) {
+    area = landArea;
+    if (groupArea && groupArea !== landArea) {
+      buildingArea = groupArea;
+    }
+  } else if (groupArea) {
+    area = groupArea;
+  } else if (unexpArea) {
+    area = unexpArea;
+  } else {
+    // Check description ONLY if not found in any structured field
+    const mDesc = fullTextNorm.match(/(\d+)\s*(?:متر|متری|متر مربع)/);
+    if (mDesc) {
+      const val = parseInt(mDesc[1], 10);
       if (val >= 10 && val <= 50000) area = val;
     }
   }
@@ -234,7 +304,7 @@ function extractDivarFields(
     }
   }
 
-  // Elevator: "If it didn't mention having an elevator. Don't mention. That's it"
+  // Elevator: ONLY if explicitly mentioned
   if (hasElevator === undefined) {
     if (
       fullText.includes('آسانسور دارد') ||
@@ -249,7 +319,6 @@ function extractDivarFields(
     ) {
       hasElevator = false;
     }
-    // If not mentioned at all -> remains undefined!
   }
 
   // Parking: ONLY if mentioned
@@ -313,6 +382,8 @@ function extractDivarFields(
 
   return {
     area,
+    landArea,
+    buildingArea,
     rooms,
     floor,
     totalFloors,
@@ -327,7 +398,9 @@ function extractDivarFields(
     detailPrice,
     detailPricePerMeter,
     detailDeposit,
+    detailDepositText,
     detailRent,
+    detailRentText,
   };
 }
 
@@ -428,7 +501,8 @@ export async function fetchNajafabadDivar(
               ? `نجف‌آباد، ${districtClean}`
               : districtClean || 'نجف‌آباد';
 
-          const extracted = extractDivarFields(title, priceText, d.bottom_description_text || '', detail);
+          const topText = d.top_description_text || '';
+          const extracted = extractDivarFields(title, priceText, d.bottom_description_text || '', detail, topText);
           const propType = detectPropertyType(title);
 
           const price =
@@ -445,13 +519,59 @@ export async function fetchNajafabadDivar(
               ? Math.round(price / extracted.area)
               : undefined;
 
-          let deposit = extracted.detailDeposit || 0;
-          let rent = extracted.detailRent || 0;
-          if (transType === 'رهن و اجاره' && !deposit && !rent) {
-            const rawNumbers = toEnglishDigits(priceText).match(/\d+/g);
-            if (rawNumbers && rawNumbers.length >= 2) {
-              deposit = parseInt(rawNumbers[0], 10);
-              rent = parseInt(rawNumbers[1], 10);
+          let deposit = extracted.detailDeposit;
+          let depositText = extracted.detailDepositText;
+
+          let rent = extracted.detailRent;
+          let rentText = extracted.detailRentText;
+
+          if (transType === 'رهن و اجاره') {
+            if (deposit === undefined && topText.includes('ودیعه')) {
+              if (topText.includes('توافقی')) {
+                deposit = 0;
+                depositText = 'توافقی';
+              } else if (topText.includes('رایگان') || topText.includes('مجانی')) {
+                deposit = 0;
+                depositText = 'رایگان';
+              } else {
+                deposit = parseNumber(topText);
+                depositText = topText.replace(/^ودیعه:\s*/, '').trim();
+              }
+            }
+
+            if (rent === undefined) {
+              if (priceText.includes('اجاره')) {
+                if (priceText.includes('توافقی')) {
+                  rent = 0;
+                  rentText = 'توافقی';
+                } else if (priceText.includes('رایگان') || priceText.includes('مجانی')) {
+                  rent = 0;
+                  rentText = 'رایگان';
+                } else {
+                  rent = parseNumber(priceText);
+                  rentText = priceText.replace(/^اجاره:\s*/, '').trim();
+                }
+              } else if (priceText.includes('رهن کامل')) {
+                rent = 0;
+                rentText = 'رهن کامل';
+              }
+            }
+
+            if (deposit === undefined) deposit = 0;
+            if (rent === undefined) rent = 0;
+
+            if (deposit > 0 && !depositText) {
+              depositText = `${deposit.toLocaleString('fa-IR')} تومان`;
+            }
+            if (rent > 0 && !rentText) {
+              rentText = `${rent.toLocaleString('fa-IR')} تومان`;
+            }
+
+            if (deposit === 0 && !depositText) {
+              depositText = 'توافقی';
+            }
+            if (rent === 0 && !rentText) {
+              rentText = deposit > 0 ? 'رهن کامل' : 'توافقی';
             }
           }
 
@@ -471,6 +591,8 @@ export async function fetchNajafabadDivar(
             propertyType: propType,
             transactionType: transType,
             area: extracted.area,
+            landArea: extracted.landArea,
+            buildingArea: extracted.buildingArea,
             rooms: extracted.rooms,
             floor: extracted.floor,
             totalFloors: extracted.totalFloors,
@@ -483,11 +605,11 @@ export async function fetchNajafabadDivar(
             documentType: extracted.documentType,
             price,
             pricePerMeter,
-            deposit,
-            rent,
-            depositText: deposit > 0 ? `${deposit.toLocaleString('fa-IR')} تومان` : undefined,
-            rentText: rent > 0 ? `${rent.toLocaleString('fa-IR')} تومان` : undefined,
-            priceText: priceText || (transType === 'رهن و اجاره' ? 'ودیعه و اجاره توافقی' : 'توافقی'),
+            deposit: deposit || 0,
+            rent: rent || 0,
+            depositText,
+            rentText,
+            priceText: priceText || (transType === 'رهن و اجاره' ? (depositText ? `ودیعه: ${depositText}` : 'توافقی') : 'توافقی'),
             district: districtClean,
             divarToken: token,
             divarUrl: token ? `https://divar.ir/v/-/${token}` : 'https://divar.ir/s/najafabad/real-estate',

@@ -151,6 +151,8 @@ export default function App() {
   // Divar Alerts (گوش‌به‌زنگ)
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState<boolean>(false);
   const [divarAlerts, setDivarAlerts] = useState<DivarAlert[]>([]);
+  const [alertsInitialFilter, setAlertsInitialFilter] = useState<FilterState | null>(null);
+  const [alertsInitialItem, setAlertsInitialItem] = useState<RealEstateItem | null>(null);
 
   // Synchronize component states whenever active dashboard changes
   useEffect(() => {
@@ -415,6 +417,54 @@ export default function App() {
     showToast('فیلترها بازنشانی شدند.', 'success');
   };
 
+  // Add single Divar item directly into Excel sheet
+  const handleAddDivarItemToExcel = useCallback(
+    (item: RealEstateItem) => {
+      const alreadyExists = excelData.some(
+        (ex) =>
+          (ex.divarToken && ex.divarToken === item.divarToken) ||
+          (ex.title === item.title && ex.address === item.address)
+      );
+      if (alreadyExists) {
+        showToast(`ملک «${item.title}» قبلاً در جدول اکسل شما ذخیره شده است.`, 'alert');
+        return;
+      }
+
+      const newId = excelData.length > 0 ? Math.max(...excelData.map((i) => i.id)) + 1 : 1;
+      const newRowNumber = excelData.length + 1;
+
+      const newItem: RealEstateItem = {
+        ...item,
+        id: newId,
+        rowNumber: newRowNumber,
+        source: 'excel',
+      };
+
+      const updated = [newItem, ...excelData];
+      setExcelData(updated);
+      setHasExcelModifications(true);
+      persistActiveDashboard({
+        excelData: updated,
+        hasExcelModifications: true,
+      });
+
+      showToast(`ملک «${item.title}» مستقیماً به جدول اکسل افزوده شد!`, 'success');
+    },
+    [excelData, persistActiveDashboard, showToast]
+  );
+
+  const handleOpenAlertsWithCurrentFilters = useCallback(() => {
+    setAlertsInitialFilter(filter);
+    setAlertsInitialItem(null);
+    setIsAlertsModalOpen(true);
+  }, [filter]);
+
+  const handleOpenAlertsWithItem = useCallback((item: RealEstateItem) => {
+    setAlertsInitialItem(item);
+    setAlertsInitialFilter(null);
+    setIsAlertsModalOpen(true);
+  }, []);
+
   // Active dataset depending on mode
   const activeDataset = useMemo(() => {
     return currentMode === 'divar' ? divarData : excelData;
@@ -610,6 +660,79 @@ export default function App() {
     return divarData.filter((item) => activeList.some((alert) => matchItemWithAlert(item, alert)));
   }, [divarAlerts, divarData]);
 
+  // Automated matching and auto-add to Excel for alerts with autoAddToExcel: true
+  useEffect(() => {
+    if (divarAlerts.length === 0 || divarData.length === 0) return;
+
+    const activeAutoExcelAlerts = divarAlerts.filter((a) => a.enabled && a.autoAddToExcel);
+    if (activeAutoExcelAlerts.length === 0) return;
+
+    let newlyAddedItems: RealEstateItem[] = [];
+    let alertsUpdated = false;
+    const updatedAlerts = [...divarAlerts];
+
+    for (let i = 0; i < updatedAlerts.length; i++) {
+      const alert = updatedAlerts[i];
+      if (!alert.enabled || !alert.autoAddToExcel) continue;
+
+      const notifiedIds = new Set(alert.notifiedItemIds || []);
+      const matchingItems = divarData.filter((item) => matchItemWithAlert(item, alert));
+
+      for (const item of matchingItems) {
+        const itemKey = item.divarToken || String(item.id);
+        if (!notifiedIds.has(itemKey)) {
+          notifiedIds.add(itemKey);
+          alertsUpdated = true;
+
+          const existsInExcel = excelData.some(
+            (ex) =>
+              (ex.divarToken && ex.divarToken === item.divarToken) ||
+              (ex.title === item.title && ex.address === item.address)
+          );
+
+          if (!existsInExcel) {
+            newlyAddedItems.push(item);
+          }
+        }
+      }
+      alert.notifiedItemIds = Array.from(notifiedIds);
+    }
+
+    if (newlyAddedItems.length > 0) {
+      const startId = excelData.length > 0 ? Math.max(...excelData.map((i) => i.id)) : 0;
+      let curRow = excelData.length;
+      const formattedNewItems: RealEstateItem[] = newlyAddedItems.map((item, idx) => ({
+        ...item,
+        id: startId + idx + 1,
+        rowNumber: curRow + idx + 1,
+        source: 'excel',
+      }));
+
+      const newExcelData = [...formattedNewItems, ...excelData];
+      setExcelData(newExcelData);
+      setHasExcelModifications(true);
+      persistActiveDashboard({
+        excelData: newExcelData,
+        hasExcelModifications: true,
+        divarAlerts: updatedAlerts,
+      });
+
+      playNotificationChime();
+      showToast(
+        `🔔 گوش‌به‌زنگ: ${toPersianDigits(newlyAddedItems.length)} ملک منطبق در دیوار پیدا و خودکار به جدول اکسل اضافه شد!`,
+        'success'
+      );
+
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('گوش‌به‌زنگ دیوار: ملک جدید به اکسل اضافه شد', {
+          body: `${newlyAddedItems[0].title} مطابق فیلترهای گوش‌به‌زنگ شما پیدا شد.`,
+        });
+      }
+    } else if (alertsUpdated) {
+      persistActiveDashboard({ divarAlerts: updatedAlerts });
+    }
+  }, [divarData, divarAlerts, excelData, persistActiveDashboard, showToast]);
+
   // SCREEN 1: LOGIN PAGE (If user is not logged in)
   if (!currentUser || currentScreen === 'login') {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
@@ -781,6 +904,7 @@ export default function App() {
                 fetchLiveDivar(range);
                 persistActiveDashboard({ divarTimeRange: range });
               }}
+              onSaveFiltersAsAlert={handleOpenAlertsWithCurrentFilters}
             />
           </div>
 
@@ -800,6 +924,7 @@ export default function App() {
                 onAddNewProperty={handleOpenAddPropertyModal}
                 onEditItem={handleOpenEditPropertyModal}
                 onDeleteItem={handleDeleteProperty}
+                onAddToExcel={handleAddDivarItemToExcel}
               />
             ) : (
               <PropertyCardList
@@ -809,6 +934,8 @@ export default function App() {
                 isExcelMode={currentMode === 'excel'}
                 onEditItem={handleOpenEditPropertyModal}
                 onDeleteItem={handleDeleteProperty}
+                onAddToExcel={handleAddDivarItemToExcel}
+                onAddToAlerts={handleOpenAlertsWithItem}
               />
             )}
 
@@ -928,6 +1055,10 @@ export default function App() {
                 fetchLiveDivar(range);
                 persistActiveDashboard({ divarTimeRange: range });
               }}
+              onSaveFiltersAsAlert={() => {
+                setIsMobileFilterOpen(false);
+                handleOpenAlertsWithCurrentFilters();
+              }}
             />
           </div>
         </div>
@@ -938,6 +1069,10 @@ export default function App() {
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
         usePersianDigits={usePersianDigits}
+        isExcelMode={currentMode === 'excel'}
+        onEditItem={handleOpenEditPropertyModal}
+        onAddToExcel={handleAddDivarItemToExcel}
+        onAddToAlerts={handleOpenAlertsWithItem}
       />
 
       {/* Property Form Modal for Excel CRUD */}
@@ -956,14 +1091,23 @@ export default function App() {
       {/* Divar Alerts Modal */}
       <DivarAlertsModal
         isOpen={isAlertsModalOpen}
-        onClose={() => setIsAlertsModalOpen(false)}
+        onClose={() => {
+          setIsAlertsModalOpen(false);
+          setAlertsInitialFilter(null);
+          setAlertsInitialItem(null);
+        }}
         alerts={divarAlerts}
         onSaveAlerts={(updated) => {
           setDivarAlerts(updated);
           persistActiveDashboard({ divarAlerts: updated });
         }}
         usePersianDigits={usePersianDigits}
+        divarItems={divarData}
         currentDivarItems={divarData}
+        onSelectProperty={setSelectedItem}
+        onAddToExcel={handleAddDivarItemToExcel}
+        initialFilter={alertsInitialFilter}
+        initialItem={alertsInitialItem}
       />
 
       {/* Property Deletion Confirmation Modal (Prevents Accidental Touch) */}

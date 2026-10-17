@@ -18,6 +18,8 @@ import {
   Images,
   Camera,
   Upload,
+  FileSpreadsheet,
+  BellRing,
 } from 'lucide-react';
 import { RealEstateItem } from '../types';
 import { formatPrice, formatPriceShort, toPersianDigits } from '../utils/formatters';
@@ -29,6 +31,8 @@ interface PropertyCardListProps {
   isExcelMode?: boolean;
   onEditItem?: (item: RealEstateItem) => void;
   onDeleteItem?: (item: RealEstateItem) => void;
+  onAddToExcel?: (item: RealEstateItem) => void;
+  onAddToAlerts?: (item: RealEstateItem) => void;
 }
 
 // Subcomponent for card image carousel to browse all images
@@ -101,6 +105,8 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
   isExcelMode = false,
   onEditItem,
   onDeleteItem,
+  onAddToExcel,
+  onAddToAlerts,
 }) => {
   const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
@@ -277,13 +283,17 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-500">رهن / ودیعه:</span>
                         <span className="font-bold text-blue-900">
-                          {item.deposit && item.deposit > 0 ? `${formatPriceShort(item.deposit, usePersianDigits)}` : 'توافقی'}
+                          {item.deposit && item.deposit > 0
+                            ? `${formatPriceShort(item.deposit, usePersianDigits)}`
+                            : item.depositText || 'توافقی'}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-500">اجاره ماهیانه:</span>
                         <span className="font-bold text-blue-900">
-                          {item.rent && item.rent > 0 ? `${formatPriceShort(item.rent, usePersianDigits)}` : 'رهن کامل'}
+                          {item.rent && item.rent > 0
+                            ? `${formatPriceShort(item.rent, usePersianDigits)}`
+                            : item.rentText || (item.deposit && item.deposit > 0 ? 'رهن کامل' : 'توافقی')}
                         </span>
                       </div>
                     </div>
@@ -309,11 +319,14 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
                 {/* Specs Pill Grid */}
                 <div className="grid grid-cols-3 gap-2 text-2xs text-slate-600 bg-slate-50 p-2 rounded-xl">
                   <div className="flex items-center gap-1">
-                    <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
+                    <Maximize2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     {item.area && item.area > 0 ? (
-                      <>
-                        <span className="font-bold text-slate-800">{fmt(item.area)}</span> متر
-                      </>
+                      <span className="truncate">
+                        <strong className="text-slate-800">{fmt(item.area)}</strong> متر
+                        {item.buildingArea && item.landArea && item.buildingArea !== item.landArea && (
+                          <span className="text-3xs text-slate-400 font-normal mr-0.5">({fmt(item.buildingArea)} بنا)</span>
+                        )}
+                      </span>
                     ) : (
                       <span className="text-slate-400">نامشخص</span>
                     )}
@@ -410,9 +423,25 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-1 text-slate-400 group-hover:text-indigo-600 font-medium">
-                  <span>جزئیات</span>
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                  {!isExcelMode && item.source !== 'excel' && onAddToExcel && (
+                    <button
+                      type="button"
+                      onClick={() => onAddToExcel(item)}
+                      className="flex items-center gap-1 px-2.5 py-1 text-2xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:scale-95 border border-emerald-200 rounded-lg transition-all cursor-pointer shadow-2xs"
+                      title="افزودن مستقیم این ملک به جدول اکسل من"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>+ اکسل</span>
+                    </button>
+                  )}
+                  <div
+                    onClick={() => onSelectItem(item)}
+                    className="flex items-center gap-0.5 text-slate-400 hover:text-indigo-600 font-medium mr-1 cursor-pointer"
+                  >
+                    <span>جزئیات</span>
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </div>
                 </div>
               )}
             </div>

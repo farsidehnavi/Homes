@@ -579,7 +579,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-2xs font-semibold text-slate-600">سن بنا (سال):</label>
+              <label className="text-2xs font-semibold text-slate-600">سال ساخت (سال):</label>
               <input
                 type="number"
                 value={age}

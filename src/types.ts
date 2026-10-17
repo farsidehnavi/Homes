@@ -24,7 +24,9 @@ export interface RealEstateItem {
   address: string; // آدرس
   propertyType: PropertyType; // نوع ملک
   transactionType?: TransactionType; // نوع معامله: خرید و فروش یا رهن و اجاره
-  area?: number; // متراژ (متر مربع - در صورت عدم ذکر در دیوار خالی می‌ماند)
+  area?: number; // متراژ اصلی / کل (متر مربع)
+  landArea?: number; // متراژ زمین (متر مربع - در صورت وجود)
+  buildingArea?: number; // متراژ زیربنا / بنا (متر مربع - در صورت وجود)
   rooms?: number; // تعداد اتاق
   floor?: number; // طبقه
   totalFloors?: number; // تعداد کل طبقات

@@ -34,6 +34,7 @@ interface PropertyTableProps {
   onAddNewProperty?: () => void;
   onEditItem?: (item: RealEstateItem) => void;
   onDeleteItem?: (item: RealEstateItem) => void;
+  onAddToExcel?: (item: RealEstateItem) => void;
 }
 
 export const PropertyTable: React.FC<PropertyTableProps> = ({
@@ -49,6 +50,7 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
   onAddNewProperty,
   onEditItem,
   onDeleteItem,
+  onAddToExcel,
 }) => {
   const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
@@ -383,9 +385,16 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                     {/* Area */}
                     <td className="py-2.5 px-3 text-center font-semibold text-slate-800 whitespace-nowrap">
                       {item.area && item.area > 0 ? (
-                        <>
-                          {fmt(item.area)} <span className="text-[10px] text-slate-500 font-normal">م²</span>
-                        </>
+                        <div>
+                          <div>
+                            {fmt(item.area)} <span className="text-[10px] text-slate-500 font-normal">م²</span>
+                          </div>
+                          {item.buildingArea && item.landArea && item.buildingArea !== item.landArea && (
+                            <div className="text-3xs text-slate-400 font-normal">
+                              ({fmt(item.buildingArea)} بنا)
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-slate-400 font-normal text-2xs">ذکر نشده</span>
                       )}
@@ -434,10 +443,20 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                       {isRent ? (
                         <div className="text-right">
                           <div className="font-bold text-blue-900 text-xs">
-                            {item.deposit && item.deposit > 0 ? `رهن: ${formatPriceShort(item.deposit, usePersianDigits)}` : 'ودیعه: توافقی'}
+                            {item.deposit && item.deposit > 0
+                              ? `رهن: ${formatPriceShort(item.deposit, usePersianDigits)}`
+                              : item.depositText
+                              ? `رهن: ${item.depositText}`
+                              : 'ودیعه: توافقی'}
                           </div>
                           <div className="text-2xs text-blue-700 font-semibold">
-                            {item.rent && item.rent > 0 ? `اجاره: ${formatPriceShort(item.rent, usePersianDigits)}` : 'رهن کامل'}
+                            {item.rent && item.rent > 0
+                              ? `اجاره: ${formatPriceShort(item.rent, usePersianDigits)}`
+                              : item.rentText
+                              ? `اجاره: ${item.rentText}`
+                              : item.deposit && item.deposit > 0
+                              ? 'رهن کامل'
+                              : 'توافقی'}
                           </div>
                         </div>
                       ) : (
@@ -480,13 +499,27 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                           )}
                         </div>
                       ) : (
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1 text-slate-500 hover:text-indigo-600 text-2xs font-semibold py-1 px-2 rounded-md hover:bg-slate-100 transition-colors"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>مشاهده</span>
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          {!isExcelMode && item.source !== 'excel' && onAddToExcel && (
+                            <button
+                              type="button"
+                              onClick={() => onAddToExcel(item)}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-2xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:scale-95 border border-emerald-200 rounded-md transition-all cursor-pointer shadow-2xs"
+                              title="افزودن مستقیم این ملک به جدول اکسل من"
+                            >
+                              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>+ اکسل</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => onSelectItem(item)}
+                            className="inline-flex items-center gap-1 text-slate-500 hover:text-indigo-600 text-2xs font-semibold py-1 px-2 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>مشاهده</span>
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

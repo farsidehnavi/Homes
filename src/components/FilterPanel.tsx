@@ -16,6 +16,7 @@ import {
   Tag,
   Key,
   Layers,
+  BellRing,
 } from 'lucide-react';
 import { FilterState, PropertyType, DivarTimeRange, TransactionType } from '../types';
 import { toPersianDigits, formatPriceShort } from '../utils/formatters';
@@ -36,6 +37,7 @@ interface FilterPanelProps {
   isDivarMode?: boolean;
   currentTimeRange?: DivarTimeRange;
   onTimeRangeChange?: (range: DivarTimeRange) => void;
+  onSaveFiltersAsAlert?: () => void;
 }
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -54,6 +56,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   isDivarMode = false,
   currentTimeRange = '24h',
   onTimeRangeChange,
+  onSaveFiltersAsAlert,
 }) => {
   const [openSections, setOpenSections] = useState({
     timeRange: true,
@@ -212,6 +215,24 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* Divar Alert Trigger: Add current filters directly to Gosh-Be-Zang */}
+      {isDivarMode && onSaveFiltersAsAlert && (
+        <div className="p-3 bg-linear-to-r from-red-50 to-amber-50 border-b border-red-100 flex flex-col gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={onSaveFiltersAsAlert}
+            className="w-full py-2.5 px-3 bg-linear-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="ثبت این فیلترها در گوش‌به‌زنگ تا در صورت انتشار ملک جدید، اعلان ارسال شود و خودکار به اکسل اضافه گردد"
+          >
+            <BellRing className="w-4 h-4 animate-bounce shrink-0" />
+            <span>ثبت این فیلترها در گوش‌به‌زنگ</span>
+          </button>
+          <span className="text-[10px] text-red-800/80 text-center font-medium">
+            اعلان خودکار به محض انتشار ملک جدید + امکان افزودن مستقیم به اکسل
+          </span>
+        </div>
+      )}
 
       {/* Filter Sections Scrollable Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5 text-right divide-y divide-slate-100">
