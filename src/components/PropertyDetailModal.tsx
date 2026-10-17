@@ -129,7 +129,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             <div className="relative w-full h-56 sm:h-80 overflow-hidden bg-slate-900 group">
               <img
                 src={allImages[activeImageIndex]}
-                alt={`${item.title || item.address} - تصویر واقعی دیوار ${activeImageIndex + 1}`}
+                alt={`${item.title || item.address} - عکس ${activeImageIndex + 1}`}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover transition-all duration-300"
               />
@@ -198,7 +198,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   <Images className="w-3.5 h-3.5 text-red-400" />
                 )}
                 <span>
-                  عکس {fmt(activeImageIndex + 1)} از {fmt(allImages.length)} {isExcelMode || item.source === 'excel' ? '(تصاویر ثبت شده داشبورد من)' : '(تصاویر واقعی دیوار)'}
+                  عکس {fmt(activeImageIndex + 1)} از {fmt(allImages.length)}
                 </span>
               </div>
 
@@ -359,14 +359,16 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   )}
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-emerald-100 text-right space-y-0.5">
-                  <span className="text-2xs text-slate-500 block">قیمت هر متر مربع:</span>
-                  <span className="text-base font-bold text-slate-900">
-                    {item.pricePerMeter && item.pricePerMeter > 0
-                      ? `${formatPrice(item.pricePerMeter)} تومان`
-                      : fmt(Math.round(item.price / (item.area || 1)))}
-                  </span>
-                </div>
+                {(item.pricePerMeter || (item.price && item.area && item.area > 0)) && (
+                  <div className="bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-emerald-100 text-right space-y-0.5">
+                    <span className="text-2xs text-slate-500 block">قیمت هر متر مربع:</span>
+                    <span className="text-base font-bold text-slate-900">
+                      {item.pricePerMeter && item.pricePerMeter > 0
+                        ? `${formatPrice(item.pricePerMeter)} تومان`
+                        : `${formatPrice(Math.round(item.price! / item.area!))} تومان`}
+                    </span>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -381,42 +383,56 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <span className="text-slate-400 text-2xs block mb-1">متراژ</span>
-                <span className="font-bold text-slate-900">{fmt(item.area)} متر مربع</span>
-              </div>
-
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-2xs block mb-1">تعداد اتاق</span>
-                <span className="font-bold text-slate-900">{fmt(item.rooms)} خوابه</span>
-              </div>
-
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-2xs block mb-1">طبقه</span>
                 <span className="font-bold text-slate-900">
-                  {item.floor === 0 ? 'همکف' : fmt(item.floor)} از {fmt(item.totalFloors)}
+                  {item.area && item.area > 0 ? `${fmt(item.area)} متر مربع` : 'ذکر نشده در آگهی'}
                 </span>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-2xs block mb-1">سن بنا</span>
-                <span className="font-bold text-slate-900">
-                  {item.age === 0 ? 'نوساز (صفر)' : `${fmt(item.age)} سال ساخت`}
-                </span>
-              </div>
+              {item.rooms !== undefined && item.rooms > 0 && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-2xs block mb-1">تعداد اتاق</span>
+                  <span className="font-bold text-slate-900">{fmt(item.rooms)} خوابه</span>
+                </div>
+              )}
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-2xs block mb-1">جهت ساختمان</span>
-                <span className="font-bold text-slate-900">{item.orientation}</span>
-              </div>
+              {item.floor !== undefined && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-2xs block mb-1">طبقه</span>
+                  <span className="font-bold text-slate-900">
+                    {item.floor === 0 ? 'همکف' : fmt(item.floor)} {item.totalFloors ? `از ${fmt(item.totalFloors)}` : ''}
+                  </span>
+                </div>
+              )}
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-2xs block mb-1">نمای ساختمان</span>
-                <span className="font-bold text-slate-900">{item.facade}</span>
-              </div>
+              {item.age !== undefined && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-2xs block mb-1">سن بنا</span>
+                  <span className="font-bold text-slate-900">
+                    {item.age === 0 ? 'نوساز (صفر)' : `${fmt(item.age)} سال ساخت`}
+                  </span>
+                </div>
+              )}
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-slate-400 text-2xs block mb-1">نوع سند</span>
-                <span className="font-bold text-slate-900">{item.documentType}</span>
-              </div>
+              {item.orientation && item.orientation.trim() !== '' && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-2xs block mb-1">جهت ساختمان</span>
+                  <span className="font-bold text-slate-900">{item.orientation}</span>
+                </div>
+              )}
+
+              {item.facade && item.facade.trim() !== '' && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-2xs block mb-1">نمای ساختمان</span>
+                  <span className="font-bold text-slate-900">{item.facade}</span>
+                </div>
+              )}
+
+              {item.documentType && item.documentType.trim() !== '' && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-2xs block mb-1">نوع سند</span>
+                  <span className="font-bold text-slate-900">{item.documentType}</span>
+                </div>
+              )}
 
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <span className="text-slate-400 text-2xs block mb-1">نوع ملک</span>
@@ -425,53 +441,61 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Amenities Badges */}
-          <div>
-            <h4 className="text-xs font-bold text-slate-700 mb-3">امکانات رفاهی:</h4>
-            <div className="grid grid-cols-3 gap-3">
-              <div
-                className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
-                  item.hasParking
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Car className="w-4 h-4" />
-                  <span>پارکینگ</span>
-                </div>
-                <span>{item.hasParking ? 'دارد' : 'ندارد'}</span>
-              </div>
+          {/* Amenities Badges - only rendered if actually mentioned */}
+          {(item.hasParking !== undefined || item.hasElevator !== undefined || item.hasStorage !== undefined) && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-700 mb-3">امکانات رفاهی:</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {item.hasParking !== undefined && (
+                  <div
+                    className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
+                      item.hasParking
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-slate-50 border-slate-200 text-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Car className="w-4 h-4" />
+                      <span>پارکینگ</span>
+                    </div>
+                    <span>{item.hasParking ? 'دارد' : 'ندارد'}</span>
+                  </div>
+                )}
 
-              <div
-                className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
-                  item.hasElevator
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-4 h-4" />
-                  <span>آسانسور</span>
-                </div>
-                <span>{item.hasElevator ? 'دارد' : 'ندارد'}</span>
-              </div>
+                {item.hasElevator !== undefined && (
+                  <div
+                    className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
+                      item.hasElevator
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-slate-50 border-slate-200 text-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <ArrowUpDown className="w-4 h-4" />
+                      <span>آسانسور</span>
+                    </div>
+                    <span>{item.hasElevator ? 'دارد' : 'ندارد'}</span>
+                  </div>
+                )}
 
-              <div
-                className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
-                  item.hasStorage
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Warehouse className="w-4 h-4" />
-                  <span>انباری</span>
-                </div>
-                <span>{item.hasStorage ? 'دارد' : 'ندارد'}</span>
+                {item.hasStorage !== undefined && (
+                  <div
+                    className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
+                      item.hasStorage
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-slate-50 border-slate-200 text-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Warehouse className="w-4 h-4" />
+                      <span>انباری</span>
+                    </div>
+                    <span>{item.hasStorage ? 'دارد' : 'ندارد'}</span>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
 
           {/* Address & Divar Link */}
           <div className="space-y-3">

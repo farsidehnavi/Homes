@@ -3,7 +3,6 @@ import {
   FileSpreadsheet,
   Upload,
   Download,
-  Database,
   PlusCircle,
 } from 'lucide-react';
 import { toPersianDigits } from '../utils/formatters';
@@ -13,7 +12,6 @@ interface ExcelBannerProps {
   totalItems: number;
   filteredItemsCount: number;
   onUploadClick: () => void;
-  onLoadSampleClick: () => void;
   onExportExcel: () => void;
   onAddNewProperty: () => void;
   usePersianDigits: boolean;
@@ -25,7 +23,6 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
   totalItems,
   filteredItemsCount,
   onUploadClick,
-  onLoadSampleClick,
   onExportExcel,
   onAddNewProperty,
   usePersianDigits,
@@ -48,9 +45,15 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
                 داشبورد من
               </span>
 
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full">
-                فایل فعال: {fileName}
-              </span>
+              {fileName ? (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                  فایل فعال: {fileName}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                  داشبورد خالی (بدون فایل)
+                </span>
+              )}
 
               <span className="inline-flex items-center gap-1 text-xs text-teal-700 bg-teal-50 border border-teal-100 px-2.5 py-0.5 rounded-full font-medium">
                 {fmt(totalItems)} ملک ثبت شده
@@ -68,7 +71,7 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
             </h2>
 
             <p className="text-xs text-slate-500 leading-relaxed max-w-3xl">
-              در <strong>داشبورد من</strong> می‌توانید به راحتی ملک جدید اضافه کنید.
+              در <strong>داشبورد من</strong> می‌توانید به راحتی ملک جدید اضافه کرده یا فایل اکسل خود را بارگذاری نمایید.
             </p>
           </div>
 
@@ -101,16 +104,6 @@ export const ExcelBanner: React.FC<ExcelBannerProps> = ({
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" />
               <span>خروجی ({fmt(filteredItemsCount)})</span>
-            </button>
-
-            <button
-              id="excel-banner-sample-btn"
-              onClick={onLoadSampleClick}
-              className="col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-2 rounded-xl transition-colors cursor-pointer border border-slate-200"
-              title="بارگذاری مجدد ۱۰۰ رکورد نمونه نجف‌آباد"
-            >
-              <Database className="w-3.5 h-3.5 text-slate-400" />
-              <span>بازنشانی به دیتای نمونه</span>
             </button>
           </div>
         </div>

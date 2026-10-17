@@ -24,18 +24,18 @@ export interface RealEstateItem {
   address: string; // آدرس
   propertyType: PropertyType; // نوع ملک
   transactionType?: TransactionType; // نوع معامله: خرید و فروش یا رهن و اجاره
-  area: number; // متراژ (متر مربع)
-  rooms: number; // تعداد اتاق
-  floor: number; // طبقه
-  totalFloors: number; // تعداد کل طبقات
-  age: number; // سن بنا (سال)
-  orientation: BuildingOrientation; // جهت ساختمان
-  facade: BuildingFacade; // نمای ساختمان
-  hasParking: boolean; // پارکینگ
-  hasElevator: boolean; // آسانسور
-  hasStorage: boolean; // انباری
-  documentType: DocumentType; // نوع سند
-  price: number; // قیمت کل (تومان) برای خرید و فروش
+  area?: number; // متراژ (متر مربع - در صورت عدم ذکر در دیوار خالی می‌ماند)
+  rooms?: number; // تعداد اتاق
+  floor?: number; // طبقه
+  totalFloors?: number; // تعداد کل طبقات
+  age?: number; // سن بنا (سال)
+  orientation?: BuildingOrientation | string; // جهت ساختمان (تنها در صورت قید در آگهی)
+  facade?: BuildingFacade | string; // نمای ساختمان (تنها در صورت قید در آگهی)
+  hasParking?: boolean; // پارکینگ (تنها در صورت ذکر در امکانات آگهی)
+  hasElevator?: boolean; // آسانسور (تنها در صورت ذکر در آگهی قید می‌شود)
+  hasStorage?: boolean; // انباری (تنها در صورت ذکر در امکانات آگهی)
+  documentType?: DocumentType | string; // نوع سند (تنها در صورت قید در آگهی)
+  price?: number; // قیمت کل (تومان) برای خرید و فروش
   pricePerMeter?: number; // قیمت هر متر برای خرید و فروش
   deposit?: number; // ودیعه / رهن (تومان) برای رهن و اجاره
   rent?: number; // اجاره ماهیانه (تومان) برای رهن و اجاره
@@ -114,4 +114,29 @@ export interface DivarAlert {
   requiresParking?: boolean;
   requiresElevator?: boolean;
   notifiedItemIds?: (string | number)[];
+  autoAddToExcel?: boolean; // افزودن خودکار ملک‌های منطبق به جدول اکسل من
+}
+
+export interface AppUser {
+  id: string;
+  username: string;
+  password: string;
+  displayName: string;
+  role: 'admin' | 'user';
+  createdAt: string;
+  lastLoginAt?: string;
+  maxDashboards?: number; // default 5
+}
+
+export interface UserDashboard {
+  id: string;
+  userId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  excelFileName: string;
+  excelData: RealEstateItem[];
+  hasExcelModifications: boolean;
+  divarTimeRange?: DivarTimeRange;
+  divarAlerts?: DivarAlert[];
 }

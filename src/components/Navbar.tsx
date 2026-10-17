@@ -8,20 +8,22 @@ import {
   RefreshCw,
   Building2,
   FileSpreadsheet,
-  Home,
   Upload,
-  ArrowRight,
   BellRing,
   PlusCircle,
   Search,
   X,
+  Menu,
+  ShieldCheck,
+  LogOut,
+  Layers,
 } from 'lucide-react';
 import { toPersianDigits } from '../utils/formatters';
 
 interface NavbarProps {
   currentMode: 'excel' | 'divar';
   onSwitchMode: (mode: 'excel' | 'divar') => void;
-  onGoHome: () => void;
+  onGoHome?: () => void;
   onResetData: () => void;
   activeView: 'table' | 'cards';
   onToggleView: (view: 'table' | 'cards') => void;
@@ -42,12 +44,18 @@ interface NavbarProps {
   excelFileName?: string;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
+  // Account & Dashboard properties
+  onOpenHamburgerMenu?: () => void;
+  activeDashboardTitle?: string;
+  currentUserName?: string;
+  isAdmin?: boolean;
+  onOpenAdminPanel?: () => void;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentMode,
   onSwitchMode,
-  onGoHome,
   onResetData,
   activeView,
   onToggleView,
@@ -68,25 +76,35 @@ export const Navbar: React.FC<NavbarProps> = ({
   excelFileName,
   searchQuery = '',
   onSearchChange,
+  onOpenHamburgerMenu,
+  activeDashboardTitle,
+  currentUserName,
+  isAdmin = false,
+  onOpenAdminPanel,
+  onLogout,
 }) => {
   const fmt = (n: number) => (usePersianDigits ? toPersianDigits(n) : n);
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        {/* ROW 1: Branding, Mode Selector & Top Actions */}
+        {/* ROW 1: Hamburger Menu, Branding, Mode Selector & Top Actions */}
         <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
-          {/* Logo, Title & Back to Home */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              id="navbar-back-to-home-btn"
-              onClick={onGoHome}
-              className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 p-2 sm:px-2.5 sm:py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0"
-              title="بازگشت به صفحه انتخاب منبع"
-            >
-              <Home className="w-4 h-4" />
-              <span className="hidden md:inline">صفحه اصلی</span>
-            </button>
+          {/* Hamburger Menu & Brand Title */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* Hamburger Button */}
+            {onOpenHamburgerMenu && (
+              <button
+                id="navbar-hamburger-btn"
+                type="button"
+                onClick={onOpenHamburgerMenu}
+                className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 active:scale-95 text-white p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0"
+                title="منوی دسترسی (انتخاب داشبوردها، پنل دیوار و تنظیمات)"
+              >
+                <Menu className="w-4 h-4 text-emerald-400" />
+                <span className="hidden md:inline">منو و داشبوردها</span>
+              </button>
+            )}
 
             <div className="h-6 w-px bg-slate-200 hidden sm:block" />
 
@@ -107,8 +125,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h1 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight leading-tight">
-                    {currentMode === 'excel' ? 'داشبورد من' : 'پنل دیوار'}
+                  <h1 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight leading-tight truncate max-w-[140px] sm:max-w-none">
+                    {currentMode === 'excel'
+                      ? activeDashboardTitle || 'داشبورد من'
+                      : 'پنل دیوار'}
                   </h1>
                   <span
                     className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-2xs font-bold ${
@@ -124,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {currentMode === 'excel'
                     ? excelFileName
                       ? `فایل اکسل: ${excelFileName}`
-                      : 'مدیریت، ویرایش و تحلیل هوشمند املاک'
+                      : 'مدیریت و تحلیل هوشمند املاک'
                     : 'رصد زنده و فیلتر زمانی آگهی‌های دیوار نجف‌آباد'}
                 </p>
               </div>
@@ -160,32 +180,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* Mobile compact mode switcher pill in Row 1 */}
-          <div className="sm:hidden flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-            <button
-              onClick={() => onSwitchMode('excel')}
-              className={`px-2 py-1 rounded text-2xs font-bold transition-all cursor-pointer ${
-                currentMode === 'excel'
-                  ? 'bg-white text-emerald-800 shadow-xs'
-                  : 'text-slate-500'
-              }`}
-            >
-              اکسل
-            </button>
-            <button
-              onClick={() => onSwitchMode('divar')}
-              className={`px-2 py-1 rounded text-2xs font-bold transition-all cursor-pointer ${
-                currentMode === 'divar'
-                  ? 'bg-white text-red-700 shadow-xs'
-                  : 'text-slate-500'
-              }`}
-            >
-              دیوار
-            </button>
-          </div>
-
           {/* Desktop Right Action Buttons */}
           <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
+            {/* If Admin: Direct link to Admin Panel */}
+            {isAdmin && onOpenAdminPanel && (
+              <button
+                type="button"
+                onClick={onOpenAdminPanel}
+                className="flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-all cursor-pointer"
+                title="ورود به پنل مدیریت کل سیستم"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                <span>پنل ادمین</span>
+              </button>
+            )}
+
             {/* Divar Mode: Alerts (گوش‌به‌زنگ) Button */}
             {currentMode === 'divar' && onOpenAlertsModal && (
               <button
@@ -306,10 +315,33 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
+
+            {/* Logout Button */}
+            {onLogout && (
+              <button
+                id="navbar-logout-btn"
+                onClick={onLogout}
+                title="خروج از حساب"
+                className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          {/* Mobile Right Primary Action in Row 1 */}
+          {/* Mobile Right Actions in Row 1 */}
           <div className="sm:hidden flex items-center gap-1.5 shrink-0">
+            {isAdmin && onOpenAdminPanel && (
+              <button
+                type="button"
+                onClick={onOpenAdminPanel}
+                className="p-1.5 bg-amber-50 text-amber-800 border border-amber-300 rounded-xl text-2xs font-bold"
+                title="پنل مدیریت"
+              >
+                ادمین
+              </button>
+            )}
+
             {currentMode === 'divar' ? (
               <>
                 {onOpenAlertsModal && (
@@ -355,70 +387,114 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* ROW 2: Mobile Searchbar & Action Buttons (Strictly in two rows, no horizontal scrolling!) */}
-        <div className="sm:hidden pb-2.5 pt-1.5 border-t border-slate-100 flex items-center gap-1.5 w-full">
-          {/* Search Input Box */}
-          <div className="relative flex-1 min-w-0">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-              placeholder="جستجوی محله، خیابان، نوع ملک..."
-              className="w-full text-xs bg-slate-100 hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl pr-7.5 pl-6 py-2 focus:outline-hidden transition-all text-slate-900 placeholder:text-slate-400 font-medium"
-            />
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => onSearchChange && onSearchChange('')}
-                className="absolute left-2 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                title="پاک کردن جستجو"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+        {/* MOBILE SECTION: TWO DEDICATED ROWS (Strictly NO horizontal scrolling!) */}
+        <div className="sm:hidden border-t border-slate-100">
+          {/* ROW 1: Full-width Search Input */}
+          <div className="pt-2 pb-1.5">
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+                placeholder="جستجوی محله، خیابان، نوع ملک..."
+                className="w-full text-xs bg-slate-100/90 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-xl pr-8 pl-8 py-2.5 focus:outline-hidden transition-all text-slate-900 placeholder:text-slate-400 font-medium shadow-2xs"
+              />
+              <Search className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => onSearchChange && onSearchChange('')}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  title="پاک کردن جستجو"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Mobile Filter Drawer Button */}
-          <button
-            id="mobile-filter-toggle-btn"
-            onClick={onToggleFilterMobile}
-            className={`shrink-0 flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-bold transition-colors border cursor-pointer ${
-              isFilterOpenMobile
-                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-            title="فیلترهای پیشرفته"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span className="text-2xs">فیلتر</span>
-            <span className="inline-flex items-center justify-center min-w-4 h-4 px-1 text-[10px] rounded-full bg-slate-100 text-slate-800 font-black">
-              {fmt(filteredCount)}
-            </span>
-          </button>
+          {/* ROW 2: Mobile Action Buttons (Filters, View Switcher, Export/Refresh, Reset) */}
+          <div className="pb-2.5 flex items-center gap-1.5 w-full">
+            {/* Filter Drawer Toggle Button */}
+            <button
+              id="mobile-filter-toggle-btn"
+              onClick={onToggleFilterMobile}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                isFilterOpenMobile
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+              title="فیلترهای پیشرفته"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>فیلترها</span>
+              <span className="inline-flex items-center justify-center min-w-4 h-4 px-1 text-[10px] rounded-full bg-slate-100 text-slate-800 font-black">
+                {fmt(filteredCount)}
+              </span>
+            </button>
 
-          {/* Single-tap View Switcher (Cards vs Table) */}
-          <button
-            onClick={() => onToggleView(activeView === 'table' ? 'cards' : 'table')}
-            title={activeView === 'table' ? 'تغییر به نمای کارتی' : 'تغییر به نمای جدولی'}
-            className="shrink-0 p-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-          >
-            {activeView === 'table' ? (
-              <LayoutGrid className="w-3.5 h-3.5 text-indigo-600" />
-            ) : (
-              <TableIcon className="w-3.5 h-3.5 text-indigo-600" />
+            {/* View Switcher: Table vs Cards */}
+            <div className="bg-slate-100 p-0.5 rounded-xl border border-slate-200 flex items-center shrink-0">
+              <button
+                onClick={() => onToggleView('cards')}
+                title="نمای کارتی"
+                className={`p-1.5 px-2 rounded-lg text-2xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  activeView === 'cards'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="text-[11px]">کارت</span>
+              </button>
+              <button
+                onClick={() => onToggleView('table')}
+                title="نمای جدولی"
+                className={`p-1.5 px-2 rounded-lg text-2xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  activeView === 'table'
+                    ? 'bg-white text-slate-900 shadow-xs'
+                    : 'text-slate-500'
+                }`}
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span className="text-[11px]">جدول</span>
+              </button>
+            </div>
+
+            {/* Mode-specific Quick Action */}
+            {currentMode === 'excel' && onExportExcel && (
+              <button
+                onClick={onExportExcel}
+                className="flex items-center gap-1 py-2 px-2.5 rounded-xl text-2xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors shrink-0 cursor-pointer"
+                title="دانلود خروجی اکسل"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-[11px]">خروجی</span>
+              </button>
             )}
-          </button>
 
-          {/* Reset Filters Button */}
-          <button
-            id="mobile-reset-data-btn"
-            onClick={onResetData}
-            title="بازنشانی فیلترها"
-            className="shrink-0 p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 bg-white rounded-xl transition-colors cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+            {currentMode === 'divar' && onRefreshDivar && (
+              <button
+                onClick={onRefreshDivar}
+                disabled={isRefreshingDivar}
+                className="flex items-center gap-1 py-2 px-2.5 rounded-xl text-2xs font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                title="بروزرسانی دیوار"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingDivar ? 'animate-spin' : ''}`} />
+                <span className="text-[11px]">بروزرسانی</span>
+              </button>
+            )}
+
+            {/* Reset Filters Button */}
+            <button
+              id="mobile-reset-data-btn"
+              onClick={onResetData}
+              title="بازنشانی فیلترها"
+              className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 bg-white rounded-xl transition-colors shrink-0 cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </header>

@@ -100,7 +100,14 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
     }
   };
 
-  const renderBooleanBadge = (has: boolean) => {
+  const renderBooleanBadge = (has?: boolean | null) => {
+    if (has === undefined || has === null) {
+      return (
+        <span className="text-slate-300 text-xs font-semibold select-none" title="در آگهی ذکر نشده">
+          —
+        </span>
+      );
+    }
     return has ? (
       <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs" title="دارد">
         <Check className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -262,13 +269,17 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
             {items.length === 0 ? (
               <tr>
                 <td colSpan={15} className="py-12 text-center text-slate-500">
-                  <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="flex flex-col items-center justify-center gap-2 py-6">
                     <Building2 className="w-10 h-10 text-slate-300" />
                     <span className="text-sm font-semibold text-slate-700">
-                      هیچ ملکی با فیلترهای انتخاب شده یافت نشد
+                      {filteredCount === 0
+                        ? 'این داشبورد در حال حاضر خالی است'
+                        : 'هیچ ملکی با فیلترهای انتخاب شده یافت نشد'}
                     </span>
                     <span className="text-xs text-slate-400">
-                      لطفاً فیلترها را تغییر داده یا بازنشانی کنید
+                      {filteredCount === 0
+                        ? 'فایل اکسل خود را آپلود کرده یا با زدن دکمه «+ ملک» در گوشه پایین، اولین ملک را ثبت نمایید.'
+                        : 'لطفاً فیلترها را تغییر داده یا بازنشانی کنید'}
                     </span>
                   </div>
                 </td>
@@ -371,22 +382,36 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
 
                     {/* Area */}
                     <td className="py-2.5 px-3 text-center font-semibold text-slate-800 whitespace-nowrap">
-                      {fmt(item.area)} <span className="text-[10px] text-slate-500 font-normal">م²</span>
+                      {item.area && item.area > 0 ? (
+                        <>
+                          {fmt(item.area)} <span className="text-[10px] text-slate-500 font-normal">م²</span>
+                        </>
+                      ) : (
+                        <span className="text-slate-400 font-normal text-2xs">ذکر نشده</span>
+                      )}
                     </td>
 
                     {/* Rooms */}
                     <td className="py-2.5 px-3 text-center text-slate-700 font-medium whitespace-nowrap">
-                      {fmt(item.rooms)}
+                      {item.rooms !== undefined && item.rooms > 0 ? fmt(item.rooms) : <span className="text-slate-400">—</span>}
                     </td>
 
                     {/* Floor */}
                     <td className="py-2.5 px-3 text-center text-slate-700 whitespace-nowrap">
-                      {item.floor === 0 ? 'همکف' : `${fmt(item.floor)} از ${fmt(item.totalFloors)}`}
+                      {item.floor !== undefined ? (
+                        item.floor === 0 ? 'همکف' : `${fmt(item.floor)} ${item.totalFloors ? `از ${fmt(item.totalFloors)}` : ''}`
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
                     </td>
 
                     {/* Age */}
                     <td className="py-2.5 px-3 text-center text-slate-700 whitespace-nowrap">
-                      {item.age === 0 ? 'نوساز' : `${fmt(item.age)} سال`}
+                      {item.age !== undefined ? (
+                        item.age === 0 ? 'نوساز' : `${fmt(item.age)} سال`
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
                     </td>
 
                     {/* Parking */}
@@ -418,11 +443,11 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                       ) : (
                         <div className="text-right">
                           <div className="font-black text-emerald-900 text-xs">
-                            {item.price > 0 ? `${formatPrice(item.price, usePersianDigits)} تومان` : item.priceText || 'توافقی'}
+                            {item.price && item.price > 0 ? `${formatPrice(item.price, usePersianDigits)} تومان` : item.priceText || 'توافقی'}
                           </div>
-                          {item.price > 0 && (
+                          {(item.pricePerMeter || (item.price && item.area && item.area > 0)) && (
                             <div className="text-2xs text-slate-400">
-                              متری {fmt(item.pricePerMeter ? formatPrice(item.pricePerMeter, usePersianDigits) : Math.round(item.price / (item.area || 1)))}
+                              متری {fmt(item.pricePerMeter ? formatPrice(item.pricePerMeter, usePersianDigits) : formatPrice(Math.round(item.price! / item.area!), usePersianDigits))}
                             </div>
                           )}
                         </div>

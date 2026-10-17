@@ -5,15 +5,13 @@ import {
   AlertCircle,
   FileCheck2,
   Download,
-  Sparkles,
-  Database,
 } from 'lucide-react';
 import { parseExcelFile, ExcelParseResult } from '../utils/excelUtils';
 import { RealEstateItem } from '../types';
 
 interface UploadDropzoneProps {
   onDataLoaded: (items: RealEstateItem[], fileName: string) => void;
-  onLoadSampleData: () => void;
+  onLoadSampleData?: () => void;
   currentFileName?: string;
   totalLoadedItems?: number;
   usePersianDigits?: boolean;
@@ -21,7 +19,6 @@ interface UploadDropzoneProps {
 
 export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
   onDataLoaded,
-  onLoadSampleData,
   currentFileName,
   totalLoadedItems,
 }) => {
@@ -155,24 +152,6 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
           <span>{errorMessage}</span>
         </div>
       )}
-
-      {/* Sample Data Quick Loader */}
-      <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs text-slate-500 text-center sm:text-right">
-          <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 hidden sm:inline" />
-          <span>فایل اکسل آماده ندارید؟ می‌توانید از دیتاست پیش‌فرض املاک نجف‌آباد استفاده نمایید.</span>
-        </div>
-
-        <button
-          id="load-sample-excel-btn"
-          type="button"
-          onClick={onLoadSampleData}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer shrink-0"
-        >
-          <Database className="w-4 h-4 text-emerald-600" />
-          <span>بارگذاری داده‌های نمونه نجف‌آباد (۱۰۰ ملک)</span>
-        </button>
-      </div>
     </div>
   );
 };
