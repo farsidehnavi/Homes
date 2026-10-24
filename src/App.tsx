@@ -435,13 +435,9 @@ export default function App() {
     [workspaceUser, currentUser, refreshAllUsers, showToast]
   );
 
-  // Permission checkers based on Admin customizations
+  // Only Hesam (superadmin) accesses Admin Panel. Ali manages his members directly in the Hamburger menu.
   const canSeeAdminPanel = Boolean(
-    currentUser?.role === 'superadmin' ||
-    currentUser?.role === 'account_admin' ||
-    currentUser?.username === 'ali' ||
-    currentUser?.username === 'hesam' ||
-    currentUser?.permissions?.canAccessAdminPanel
+    currentUser?.username === 'hesam' || currentUser?.role === 'superadmin'
   );
 
   const canAddProperty = useMemo(() => {

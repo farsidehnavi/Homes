@@ -193,9 +193,6 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
 
                   {/* Badges on top of image */}
                   <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                    <span className="px-2.5 py-0.5 rounded-full text-2xs font-bold bg-black/60 text-white backdrop-blur-xs border border-white/20">
-                      ردیف {fmt(item.rowNumber)}
-                    </span>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-2xs font-bold text-white shadow-xs ${
                         isRent ? 'bg-blue-600' : 'bg-emerald-600'
@@ -224,9 +221,6 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
 
                   {/* Badges on top */}
                   <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-full text-2xs font-bold bg-white/90 text-slate-600 shadow-2xs border border-slate-200">
-                      ردیف {fmt(item.rowNumber)}
-                    </span>
                     <span
                       className={`px-2 py-0.5 rounded-full text-2xs font-bold text-white shadow-2xs ${
                         isRent ? 'bg-blue-600' : 'bg-emerald-600'
@@ -238,7 +232,6 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
                 </div>
               ) : (
                 <div className="p-4 pb-0 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">ردیف {fmt(item.rowNumber)}</span>
                   <div className="flex items-center gap-1.5">
                     <span
                       className={`px-2 py-0.5 rounded-full text-2xs font-bold text-white ${

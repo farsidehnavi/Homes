@@ -111,6 +111,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setUserToDelete(null);
   };
 
+  const handleUpdateUserMaxDashboards = (userId: string, newMax: number) => {
+    updateUser(userId, { maxDashboards: newMax });
+    refreshUserList();
+    setStatusMessage({
+      text: `سقف مجاز داشبورد کاربر با موفقیت به ${newMax} تغییر یافت.`,
+      type: 'success',
+    });
+  };
+
   const filteredUsers = users.filter((u) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();

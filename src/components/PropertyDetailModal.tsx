@@ -497,19 +497,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
       )}
 
       {/* Address & Divar Map Section */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-red-600" />
-            <h4 className="text-xs font-bold text-slate-800">
-              موقعیت مکانی و آدرس روی نقشه دیوار:
-            </h4>
-          </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
-            نقشه رسمی دیوار
-          </span>
-        </div>
-
+      <div className="space-y-3 pt-1">
         {/* Address bar written on top of map */}
         <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-2 text-xs text-slate-800 font-bold min-w-0">

@@ -120,14 +120,9 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
   if (!isOpen) return null;
 
-  const isAccountHead =
-    currentUser.role === 'account_admin' ||
-    currentUser.role === 'superadmin' ||
-    currentUser.username === 'ali' ||
-    currentUser.username === 'hesam';
-
+  // Only Hesam has the Admin Panel. Ali customizes members directly in the Hamburger menu.
   const canAccessAdmin =
-    isAccountHead || Boolean(currentUser.permissions?.canAccessAdminPanel);
+    currentUser.username === 'hesam' || currentUser.role === 'superadmin';
 
   const maxDashboards = currentUser.maxDashboards || 5;
   const canCreateMore = dashboards.length < maxDashboards;
@@ -269,7 +264,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   onSelectMode('excel');
                   onClose();
                 }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-right transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between p-3 rounded-2xl border text-right transition-all cursor-pointer ${
                   currentMode === 'excel'
                     ? 'bg-emerald-50/90 border-emerald-500 text-emerald-950 shadow-xs'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -285,12 +280,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   >
                     <FileSpreadsheet className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="text-xs font-bold">داشبورد من (اکسل)</div>
-                    <div className="text-2xs text-slate-500">
-                      مدیریت، ویرایش و خروجی فایل‌های اکسل
-                    </div>
-                  </div>
+                  <div className="text-xs font-bold">داشبورد من (اکسل)</div>
                 </div>
                 {currentMode === 'excel' && (
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
@@ -304,7 +294,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   onSelectMode('divar');
                   onClose();
                 }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-right transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between p-3 rounded-2xl border text-right transition-all cursor-pointer ${
                   currentMode === 'divar'
                     ? 'bg-red-50/90 border-red-500 text-red-950 shadow-xs'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -320,14 +310,9 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   >
                     <Building2 className="w-5 h-5" />
                   </div>
-                  <div>
-                    <div className="text-xs font-bold flex items-center gap-1.5">
-                      <span>پنل دیوار (divar.ir)</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
-                    </div>
-                    <div className="text-2xs text-slate-500">
-                      رصد زنده آگهی‌های املاک نجف‌آباد
-                    </div>
+                  <div className="text-xs font-bold flex items-center gap-1.5">
+                    <span>پنل دیوار (divar.ir)</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
                   </div>
                 </div>
                 {currentMode === 'divar' && (
@@ -345,7 +330,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   }
                   onClose();
                 }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-right transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between p-3 rounded-2xl border text-right transition-all cursor-pointer ${
                   activeView === 'map'
                     ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 shadow-xs ring-1 ring-indigo-500/30'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -361,28 +346,17 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   >
                     <MapPin className="w-5 h-5 text-red-500" />
                   </div>
-                  <div>
-                    <div className="text-xs font-bold flex items-center gap-1.5">
-                      <span>نقشه املاک نجف‌آباد</span>
-                      {activeView === 'map' && (
-                        <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-bold">
-                          فعال
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-2xs text-slate-500">
-                      {activeView === 'map'
-                        ? 'کلیک برای بازگشت به نمای لیست املاک'
-                        : 'مشاهده و مکان‌یابی املاک روی نقشه شهر'}
-                    </div>
+                  <div className="text-xs font-bold flex items-center gap-1.5">
+                    <span>نقشه املاک نجف‌آباد</span>
+                    {activeView === 'map' && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-bold">
+                        فعال
+                      </span>
+                    )}
                   </div>
                 </div>
-                {activeView === 'map' ? (
+                {activeView === 'map' && (
                   <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
-                ) : (
-                  <span className="text-2xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
-                    مشاهده نقشه
-                  </span>
                 )}
               </button>
             </div>
