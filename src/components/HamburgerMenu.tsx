@@ -20,6 +20,7 @@ import {
   Lock,
   ChevronDown,
   ChevronUp,
+  MapPin,
 } from 'lucide-react';
 import { AppUser, UserDashboard } from '../types';
 import { toPersianDigits } from '../utils/formatters';
@@ -67,6 +68,8 @@ interface HamburgerMenuProps {
   sharedExcels?: SharedExcelOption[];
   activeSharedUserId?: string | null;
   onSelectSharedExcel?: (userId: string) => void;
+  activeView?: 'cards' | 'map';
+  onSelectView?: (view: 'cards' | 'map') => void;
 }
 
 export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
@@ -98,6 +101,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   sharedExcels = [],
   activeSharedUserId,
   onSelectSharedExcel,
+  activeView = 'cards',
+  onSelectView,
 }) => {
   const [selectedUserForCustomization, setSelectedUserForCustomization] = useState<AppUser | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -327,6 +332,57 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 </div>
                 {currentMode === 'divar' && (
                   <span className="w-2.5 h-2.5 rounded-full bg-red-600" />
+                )}
+              </button>
+
+              {/* Option 3: Map View Single Button */}
+              <button
+                id="hamburger-map-view-btn"
+                type="button"
+                onClick={() => {
+                  if (onSelectView) {
+                    onSelectView(activeView === 'map' ? 'cards' : 'map');
+                  }
+                  onClose();
+                }}
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-right transition-all cursor-pointer ${
+                  activeView === 'map'
+                    ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 shadow-xs ring-1 ring-indigo-500/30'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      activeView === 'map'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    <MapPin className="w-5 h-5 text-red-500" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold flex items-center gap-1.5">
+                      <span>نقشه املاک نجف‌آباد</span>
+                      {activeView === 'map' && (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-bold">
+                          فعال
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-2xs text-slate-500">
+                      {activeView === 'map'
+                        ? 'کلیک برای بازگشت به نمای لیست املاک'
+                        : 'مشاهده و مکان‌یابی املاک روی نقشه شهر'}
+                    </div>
+                  </div>
+                </div>
+                {activeView === 'map' ? (
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                ) : (
+                  <span className="text-2xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">
+                    مشاهده نقشه
+                  </span>
                 )}
               </button>
             </div>

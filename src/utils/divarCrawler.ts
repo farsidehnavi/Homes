@@ -137,6 +137,8 @@ function extractDivarFields(
   let detailRentText: string | undefined = undefined;
   let latitude: number | undefined = undefined;
   let longitude: number | undefined = undefined;
+  let mapImageUrl: string | undefined = undefined;
+  let topAddress: string | undefined = undefined;
 
   if (postDetail) {
     const widgets = postDetail.sections?.flatMap((s: any) => s.widgets || []) || [];
@@ -145,7 +147,15 @@ function extractDivarFields(
       const wt = w.widget_type;
       const d = w.data || {};
 
-      if (wt === 'DESCRIPTION_ROW') {
+      if (wt === 'EXPANDABLE_SECTION') {
+        const t = d.title || '';
+        if (t.includes('در نجف‌آباد') || t.includes('در ')) {
+          const cleaned = t.replace(/^.*?در\s+/, '').replace(/^نجف‌آباد،?\s*/, '').trim();
+          if (cleaned) {
+            topAddress = 'نجف‌آباد، ' + cleaned;
+          }
+        }
+      } else if (wt === 'DESCRIPTION_ROW') {
         description += ' ' + (d.text || '');
       } else if (wt === 'GROUP_INFO_ROW') {
         for (const it of d.items || []) {
@@ -245,12 +255,15 @@ function extractDivarFields(
             .map((it: any) => it.image?.url || it.image?.thumbnail_url)
             .filter(Boolean);
         }
-      } else if (wt === 'MAP_ROW') {
+      } else if (wt === 'MAP_ROW' || (wt && wt.includes('MAP'))) {
         const loc = d.location || {};
-        const pt = loc.exact_data?.point || loc.fuzzy_data?.point;
+        const pt = loc.exact_data?.point || loc.fuzzy_data?.point || loc.point || d.point;
         if (pt && typeof pt.latitude === 'number' && typeof pt.longitude === 'number') {
           latitude = pt.latitude;
           longitude = pt.longitude;
+        }
+        if (d.image_url) {
+          mapImageUrl = d.image_url;
         }
       }
     }
@@ -417,6 +430,8 @@ function extractDivarFields(
     detailRentText,
     latitude,
     longitude,
+    mapImageUrl,
+    topAddress,
   };
 }
 
@@ -546,14 +561,15 @@ export async function fetchNajafabadDivar(
             .replace(/^دقایقی پیش در\s+/, '')
             .trim();
 
-          const address =
-            districtClean && !districtClean.includes('نجف')
-              ? `نجف‌آباد، ${districtClean}`
-              : districtClean || 'نجف‌آباد';
-
           const topText = d.top_description_text || '';
           const extracted = extractDivarFields(title, priceText, d.bottom_description_text || '', detail, topText);
           const propType = detectPropertyType(title);
+
+          const address =
+            extracted.topAddress ||
+            (districtClean && !districtClean.includes('نجف')
+              ? `نجف‌آباد، ${districtClean}`
+              : districtClean || 'نجف‌آباد');
 
           const price =
             extracted.detailPrice !== undefined
@@ -685,6 +701,7 @@ export async function fetchNajafabadDivar(
             district: districtClean,
             latitude: lat,
             longitude: lng,
+            mapImageUrl: extracted.mapImageUrl,
             divarToken: token,
             divarUrl: token ? `https://divar.ir/v/-/${token}` : 'https://divar.ir/s/najafabad/real-estate',
             imageUrl: primaryImage || images[0],

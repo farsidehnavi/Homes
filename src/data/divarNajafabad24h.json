@@ -12,7 +12,7 @@
       "id": 1,
       "rowNumber": 1,
       "title": "جا خانه معرفت گله داری",
-      "address": "نجف‌آباد، معرفت",
+      "address": "نجف‌آباد، معرفت، خ گله داری",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 92,
@@ -32,14 +32,15 @@
       "publishedAt": "2026-10-17T09:40:43.863138Z",
       "relativeTime": "دقایقی پیش در معرفت",
       "source": "divar",
-      "latitude": 32.644400000000005,
-      "longitude": 51.3484
+      "latitude": 32.6514039972,
+      "longitude": 51.362261026039,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXNRV2qU_RK3uQsEOlbBwdfpLZsHPjBlLND_9OCA2krNXqg=="
     },
     {
       "id": 2,
       "rowNumber": 2,
       "title": "منزل ویلایی",
-      "address": "نجف‌آباد، صالح آباد",
+      "address": "نجف‌آباد، صالح آباد، بلوار دکتر شریعتی",
       "propertyType": "ویلایی",
       "transactionType": "خرید و فروش",
       "area": 125,
@@ -65,9 +66,10 @@
       "publishedAt": "2026-10-17T09:30:38.621800Z",
       "relativeTime": "یک ربع پیش در صالح آباد",
       "source": "divar",
-      "latitude": 32.6226,
-      "longitude": 51.3768,
-      "builtYear": 1394
+      "latitude": 32.64619758554131,
+      "longitude": 51.31505866200543,
+      "builtYear": 1394,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXPg8LgvoRa3uQnpmtPZ9c_pLbLVwXnE9RJ0sitBwk5w9Iw==&is_nearby=true"
     },
     {
       "id": 3,
@@ -101,7 +103,7 @@
       "id": 4,
       "rowNumber": 4,
       "title": "فروش مسکونی جای خوب",
-      "address": "نجف‌آباد، ۲۲ بهمن",
+      "address": "نجف‌آباد، ۲۲ بهمن، خ مولوی جنوبی",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 105,
@@ -128,15 +130,16 @@
       "publishedAt": "2026-10-17T09:18:37.623461Z",
       "relativeTime": "نیم ساعت پیش در ۲۲ بهمن",
       "source": "divar",
-      "latitude": 32.6355,
-      "longitude": 51.3705,
-      "builtYear": 1392
+      "latitude": 32.631281704736,
+      "longitude": 51.378443847577,
+      "builtYear": 1392,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXP9c0EeTR63uQqLsPvhea_pLpMTrJ3C-7RqXCFE8QJ4eEg=="
     },
     {
       "id": 5,
       "rowNumber": 5,
       "title": "فروش مسکونی دوطبقه مجاهد شمالی",
-      "address": "نجف‌آباد، شریعتی غربی",
+      "address": "نجف‌آباد، شریعتی غربی، خ گل سرخ",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 175,
@@ -179,15 +182,16 @@
       "publishedAt": "2026-10-17T09:11:43.928130Z",
       "relativeTime": "نیم ساعت پیش در شریعتی غربی",
       "source": "divar",
-      "latitude": 32.6336,
-      "longitude": 51.3472,
-      "builtYear": 1386
+      "latitude": 32.640541855718,
+      "longitude": 51.34849835077,
+      "builtYear": 1386,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXNVsm9ejRq3uQggVJbm1d_pLZYk9lJHX_SBBVO9KQKQdDg=="
     },
     {
       "id": 6,
       "rowNumber": 6,
       "title": "خانه‌باغ 670متری خوش‌نقشه و دوکله در همت آباد",
-      "address": "حومه نجف آباد",
+      "address": "نجف‌آباد، حومه نجف آباد، خ پاچنار",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 670,
@@ -218,15 +222,16 @@
       "publishedAt": "2026-10-17T09:07:01.247900Z",
       "relativeTime": "در حومه نجف آباد",
       "source": "divar",
-      "latitude": 32.64,
-      "longitude": 51.36,
-      "builtYear": 1390
+      "latitude": 32.665742061005,
+      "longitude": 51.263770641413,
+      "builtYear": 1390,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXAakP5hpQq3uQvv2qx3tevpL1DCb_QFPOCixaLoE2WgrDA=="
     },
     {
       "id": 7,
       "rowNumber": 7,
       "title": "زمین باغی گلدشت",
-      "address": "نجف‌آباد، گلدشت",
+      "address": "نجف‌آباد، گلدشت، خ ابوذر",
       "propertyType": "زمین / کلنگی",
       "transactionType": "خرید و فروش",
       "area": 810,
@@ -247,14 +252,15 @@
       "publishedAt": "2026-10-17T09:03:48.021309Z",
       "relativeTime": "نیم ساعت پیش در گلدشت",
       "source": "divar",
-      "latitude": 32.624,
-      "longitude": 51.4396
+      "latitude": 32.670069758144,
+      "longitude": 51.453400912349,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXHDNmkmaQq3uQsT2rSsnYfpLXegAOJBZnQsumxGFa6Uriw=="
     },
     {
       "id": 8,
       "rowNumber": 8,
       "title": "دو خوابه،مستقل،شمالی",
-      "address": "نجف‌آباد، شریعتی غربی",
+      "address": "نجف‌آباد، امیرآباد، بلوار دکتر شریعتی",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 130,
@@ -281,15 +287,16 @@
       "publishedAt": "2026-10-17T08:57:51.868359Z",
       "relativeTime": "نیم ساعت پیش در شریعتی غربی",
       "source": "divar",
-      "latitude": 32.6324,
-      "longitude": 51.3412,
-      "builtYear": 1395
+      "latitude": 32.638941707703,
+      "longitude": 51.340201626127,
+      "builtYear": 1395,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXAE-l0aWRq3uQkCWPZulcPpLShMBVMG6cjqvui7ZYrsBtQ=="
     },
     {
       "id": 9,
       "rowNumber": 9,
       "title": "آپارتمان مسکن مهر نجف اباد",
-      "address": "نجف‌آباد، مسکن مهر",
+      "address": "نجف‌آباد، مسکن مهر، بلوار فردوسی",
       "propertyType": "آپارتمان",
       "transactionType": "رهن و اجاره",
       "area": 85,
@@ -324,15 +331,16 @@
       "publishedAt": "2026-10-17T08:57:50.117725Z",
       "relativeTime": "در مسکن مهر",
       "source": "divar",
-      "latitude": 32.6643,
-      "longitude": 51.3111,
-      "builtYear": 1392
+      "latitude": 32.660688045831,
+      "longitude": 51.308687332009,
+      "builtYear": 1392,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXKS2FPzPQ63uQr5iLTCtfPpLIRINe6Zn--UdkvRZ1frNeQ=="
     },
     {
       "id": 10,
       "rowNumber": 10,
       "title": "زمین ۲۵۰ متر شمالی منتظری شمالی بلوار فجر فردوسی",
-      "address": "نجف‌آباد، فردوسی شمالی",
+      "address": "نجف‌آباد، فردوسی شمالی، بلوار فجر",
       "propertyType": "زمین / کلنگی",
       "transactionType": "خرید و فروش",
       "area": 250,
@@ -352,14 +360,15 @@
       "publishedAt": "2026-10-17T08:53:34.440154Z",
       "relativeTime": "آژانس مشاورین بازار در فردوسی شمالی",
       "source": "divar",
-      "latitude": 32.6329,
-      "longitude": 51.370000000000005
+      "latitude": 32.644977755494,
+      "longitude": 51.368232552379,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXANQnTDQRa3uQhRSoB8MdPpLk86XcB9PoXjjjIXMOm8Hvg=="
     },
     {
       "id": 11,
       "rowNumber": 11,
       "title": "طبقه/دوخواب/محدوده شریعتی غربی",
-      "address": "نجف‌آباد، کشاورز",
+      "address": "نجف‌آباد، کشاورز، بلوار دکتر شریعتی",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 200,
@@ -393,15 +402,16 @@
       "publishedAt": "2026-10-17T08:53:09.386511Z",
       "relativeTime": "آژانس سامانه املاک نجف آباد در کشاورز",
       "source": "divar",
-      "latitude": 32.6312,
-      "longitude": 51.3352,
-      "builtYear": 1390
+      "latitude": 32.6371875595557,
+      "longitude": 51.34115384327835,
+      "builtYear": 1390,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXJu1us3RRq3uQrpT88yEcPpLlPsjRl1ctksdz3SndY4-wA==&is_nearby=true"
     },
     {
       "id": 12,
       "rowNumber": 12,
       "title": "پلاک زمین باغی واقع در مجموعه باغ",
-      "address": "نجف‌آباد، گلدشت",
+      "address": "نجف‌آباد، گلدشت، بلوار طالقانی",
       "propertyType": "زمین / کلنگی",
       "transactionType": "خرید و فروش",
       "area": 950,
@@ -425,14 +435,15 @@
       "publishedAt": "2026-10-17T08:52:36.230522Z",
       "relativeTime": "نیم ساعت پیش در گلدشت",
       "source": "divar",
-      "latitude": 32.626400000000004,
-      "longitude": 51.4384
+      "latitude": 32.6237802451021,
+      "longitude": 51.44305631383101,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXB0i5paGWK3uQlqvlTCYY_pLL6ZQuhUBrNK4ejPlZRyp0g==&is_nearby=true"
     },
     {
       "id": 13,
       "rowNumber": 13,
       "title": "فروش خانه طبقه اول",
-      "address": "نجف‌آباد، امام خمینی",
+      "address": "نجف‌آباد، امام خمینی، خ قدس",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 103,
@@ -459,9 +470,10 @@
       "publishedAt": "2026-10-17T08:50:52.187227Z",
       "relativeTime": "آژانس سجادی در امام خمینی",
       "source": "divar",
-      "latitude": 32.6309,
-      "longitude": 51.359300000000005,
-      "builtYear": 1399
+      "latitude": 32.632464880218,
+      "longitude": 51.348650893936,
+      "builtYear": 1399,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXJJc5gqqR63uQqghhbaOd_pLKzxAhNleEaAZ0OAELHEnEA=="
     },
     {
       "id": 14,
@@ -504,7 +516,7 @@
       "id": 15,
       "rowNumber": 15,
       "title": "باغ ویلا جلال آباد",
-      "address": "نجف‌آباد، جلال آباد",
+      "address": "نجف‌آباد، جلال آباد، خ امام خمینی",
       "propertyType": "ویلایی",
       "transactionType": "خرید و فروش",
       "area": 660,
@@ -533,15 +545,16 @@
       "publishedAt": "2026-10-17T08:43:33.412146Z",
       "relativeTime": "در جلال آباد",
       "source": "divar",
-      "latitude": 32.6492,
-      "longitude": 51.3016,
-      "builtYear": 1400
+      "latitude": 32.606558349156046,
+      "longitude": 51.3161727837405,
+      "builtYear": 1400,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXJkxKiX9Wq3uQkaxo3hWc_pLVxCqAgAgiIvT4eKDr4nT1A==&is_nearby=true"
     },
     {
       "id": 16,
       "rowNumber": 16,
       "title": "منزل 300 متری شمالی یزدانشهر",
-      "address": "نجف‌آباد، یزدانشهر",
+      "address": "نجف‌آباد، یزدانشهر، بلوار منتظری",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 300,
@@ -567,9 +580,10 @@
       "publishedAt": "2026-10-17T08:42:50.368523Z",
       "relativeTime": "آژانس مشاور املاک رز  در یزدانشهر",
       "source": "divar",
-      "latitude": 32.6144,
-      "longitude": 51.311,
-      "builtYear": 1370
+      "latitude": 32.630667768427,
+      "longitude": 51.312193558278,
+      "builtYear": 1370,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXMVroinnR63uQo7eSdTbfPpLRu1vzeHMd14Lv2yCOksnlA=="
     },
     {
       "id": 17,
@@ -613,7 +627,7 @@
       "id": 18,
       "rowNumber": 18,
       "title": "2 طبقه دربست/ 2 خواب/ محدوده دلگشا",
-      "address": "نجف‌آباد، طالقانی",
+      "address": "نجف‌آباد، طالقانی، خ محبت",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 130,
@@ -652,15 +666,16 @@
       "publishedAt": "2026-10-17T08:40:18.085243Z",
       "relativeTime": "آژانس سامانه املاک نجف آباد در طالقانی",
       "source": "divar",
-      "latitude": 32.633,
-      "longitude": 51.355599999999995,
-      "builtYear": 1397
+      "latitude": 32.62604027420973,
+      "longitude": 51.38846058695227,
+      "builtYear": 1397,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXJe1YYd8R63uQmPovjKXavpLjLXvO1zZHPFtGJPQJZyxKw==&is_nearby=true"
     },
     {
       "id": 19,
       "rowNumber": 19,
       "title": "باغ گلدشت خ منتظری قلعه سفید محله بالا",
-      "address": "نجف‌آباد، قلعه سفید",
+      "address": "نجف‌آباد، قلعه سفید، جاده گلدشت - فولادشهر",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 10000,
@@ -685,15 +700,16 @@
       "publishedAt": "2026-10-17T08:24:05.048790Z",
       "relativeTime": "در قلعه سفید",
       "source": "divar",
-      "latitude": 32.6192,
-      "longitude": 51.442,
-      "builtYear": 1400
+      "latitude": 32.617014965641175,
+      "longitude": 51.43286416191437,
+      "builtYear": 1400,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXGUmv8mkWa3uQhYz7TZGbPpLw9STH_UMIvQW7hbXk7kOjQ==&is_nearby=true"
     },
     {
       "id": 20,
       "rowNumber": 20,
       "title": "باغ ویلا 400متری در قلعه سفید",
-      "address": "نجف‌آباد، گلدشت",
+      "address": "نجف‌آباد، گلدشت، بلوار منتظری",
       "propertyType": "ویلایی",
       "transactionType": "خرید و فروش",
       "area": 400,
@@ -726,9 +742,10 @@
       "publishedAt": "2026-10-17T08:14:53.332853Z",
       "relativeTime": "در گلدشت",
       "source": "divar",
-      "latitude": 32.6276,
-      "longitude": 51.4444,
-      "builtYear": 1400
+      "latitude": 32.62851794176711,
+      "longitude": 51.43574908833587,
+      "builtYear": 1400,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXCIEsNctR63uQjJiYYHobPpLoagMWMOBepyQfTrJMOX6cw==&is_nearby=true"
     },
     {
       "id": 21,
@@ -761,7 +778,7 @@
       "id": 22,
       "rowNumber": 22,
       "title": "اجاره خانه",
-      "address": "نجف‌آباد، هفده شهریور",
+      "address": "نجف‌آباد، هفده شهریور، خ کاروان",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 240,
@@ -796,15 +813,16 @@
       "publishedAt": "2026-10-17T08:08:43.177649Z",
       "relativeTime": "۱ ساعت پیش در هفده شهریور",
       "source": "divar",
-      "latitude": 32.624,
-      "longitude": 51.366,
-      "builtYear": 1375
+      "latitude": 32.633581191300955,
+      "longitude": 51.385314287053596,
+      "builtYear": 1375,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXIiQLaFHRq3uQut-qtt_avpLK-6wXt-bZ9i5tpQ6oY4mng==&is_nearby=true"
     },
     {
       "id": 23,
       "rowNumber": 23,
       "title": "گاوداری صنعتی ۱۲۰ راسی (دامداری) نجف اباد",
-      "address": "نجف‌آباد، جوزدان",
+      "address": "نجف‌آباد، جوزدان، جاده جوزدان - نجف آباد",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 2980,
@@ -829,14 +847,15 @@
       "publishedAt": "2026-10-17T08:07:31.345993Z",
       "relativeTime": "در جوزدان",
       "source": "divar",
-      "latitude": 32.5874,
-      "longitude": 51.3584
+      "latitude": 32.57100125593625,
+      "longitude": 51.3875952738931,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXA9zpgBIXq3uQgYN-JmyavpLfXrrtQiX4bi19D4kTPr55g==&is_nearby=true"
     },
     {
       "id": 24,
       "rowNumber": 24,
       "title": "اجاره خانه دربست ۲۴۰ متری ۵ خواب پارکینگ‌دار",
-      "address": "نجف‌آباد، سعدی",
+      "address": "نجف‌آباد، سعدی، خ اسرافیلیان",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 240,
@@ -870,9 +889,10 @@
       "publishedAt": "2026-10-17T08:07:05.870975Z",
       "relativeTime": "۱ ساعت پیش در سعدی",
       "source": "divar",
-      "latitude": 32.6326,
-      "longitude": 51.366800000000005,
-      "builtYear": 1371
+      "latitude": 32.644662998243,
+      "longitude": 51.360847293358,
+      "builtYear": 1371,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXM5dPcDaRa3uQndeVR8edfpLfsu-_Sz0wuRWGP9ciuLK4A=="
     },
     {
       "id": 25,
@@ -908,7 +928,7 @@
       "id": 26,
       "rowNumber": 26,
       "title": "خونه تمیز هم کف شمالی",
-      "address": "نجف‌آباد، صالح آباد",
+      "address": "نجف‌آباد، صالح آباد، خ سلامت",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 90,
@@ -940,15 +960,16 @@
       "publishedAt": "2026-10-17T07:54:35.074375Z",
       "relativeTime": "۲ ساعت پیش در صالح آباد",
       "source": "divar",
-      "latitude": 32.6262,
-      "longitude": 51.3816,
-      "builtYear": 1398
+      "latitude": 32.6417378,
+      "longitude": 51.3180218,
+      "builtYear": 1398,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXPOixed6Ra3uQhiCH9Gac_pLavDHj3YiZHWvSwCm5O6tsw=="
     },
     {
       "id": 27,
       "rowNumber": 27,
       "title": "فروش،معاوضه با ماشین",
-      "address": "حومه نجف آباد",
+      "address": "نجف‌آباد، حومه نجف آباد، خ غلامرضا صالحی",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 144,
@@ -972,14 +993,15 @@
       "publishedAt": "2026-10-17T07:46:55.512791Z",
       "relativeTime": "۲ ساعت پیش در حومه نجف آباد",
       "source": "divar",
-      "latitude": 32.6295,
-      "longitude": 51.3735
+      "latitude": 32.653146032472,
+      "longitude": 51.249246046267,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXBwSGtvERK3uQtkYSGrJRPpLKlml3Zn0w7dW2JOgQHDEPA=="
     },
     {
       "id": 28,
       "rowNumber": 28,
       "title": "با ماهی ۵میلیون صاحب زمین سندار شوید شاهین شهر",
-      "address": "نجف‌آباد، فیروزآباد",
+      "address": "نجف‌آباد، فیروزآباد، خ ابوالقاسم پاینده",
       "propertyType": "زمین / کلنگی",
       "transactionType": "خرید و فروش",
       "area": 300,
@@ -999,8 +1021,9 @@
       "publishedAt": "2026-10-17T07:44:55.000516Z",
       "relativeTime": "دفتر مرکزی و نمایندگی زمین باغی ومسکونی شاهین شهر در فیروزآباد",
       "source": "divar",
-      "latitude": 32.625800000000005,
-      "longitude": 51.386199999999995
+      "latitude": 32.633213197324,
+      "longitude": 51.332071355777,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXDucWLBTRq3uQiw3RnGvcfpLcb6O1lRDny8QfScLlcNbOQ=="
     },
     {
       "id": 29,
@@ -1033,15 +1056,16 @@
       "publishedAt": "2026-10-17T07:43:52.225050Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
       "source": "divar",
-      "latitude": 32.6698,
-      "longitude": 51.412099999999995,
-      "builtYear": 1393
+      "latitude": 32.669795591033,
+      "longitude": 51.41449271084,
+      "builtYear": 1393,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXLBRtU3lQq3uQkUJ9jkgbvpLnEuqK5Sply4u9C11izcPhA=="
     },
     {
       "id": 30,
       "rowNumber": 30,
       "title": "فروش ویژه زمین",
-      "address": "حومه نجف آباد",
+      "address": "نجف‌آباد، حومه نجف آباد، بلوار صالحی",
       "propertyType": "زمین / کلنگی",
       "transactionType": "خرید و فروش",
       "area": 1080,
@@ -1062,14 +1086,15 @@
       "publishedAt": "2026-10-17T07:36:07.397663Z",
       "relativeTime": "در حومه نجف آباد",
       "source": "divar",
-      "latitude": 32.628,
-      "longitude": 51.366
+      "latitude": 32.59804788542938,
+      "longitude": 51.345543558876216,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXHvBVETSW63uQvjsXuQUd_pLLuWFMDrF-U_EsO88Ja-hCw==&is_nearby=true"
     },
     {
       "id": 31,
       "rowNumber": 31,
       "title": "باماهی9میلیون*صاحب زمین شوید باسندتک‌برگ شاهین‌شهر",
-      "address": "نجف‌آباد، شریعتی غربی",
+      "address": "نجف‌آباد، شریعتی غربی، خ محبت",
       "propertyType": "زمین / کلنگی",
       "transactionType": "خرید و فروش",
       "area": 201,
@@ -1090,14 +1115,15 @@
       "publishedAt": "2026-10-17T07:34:14.821041Z",
       "relativeTime": "در شریعتی غربی",
       "source": "divar",
-      "latitude": 32.6408,
-      "longitude": 51.3436
+      "latitude": 32.640015404604675,
+      "longitude": 51.342822036334795,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXAy0RZeyRq3uQsKEhbbPcPpLX2cASgflf1IEkhGeZVpm5w==&is_nearby=true"
     },
     {
       "id": 32,
       "rowNumber": 32,
       "title": "باغ استخر سر پوشیده صد هشتاد متر ساخت نجف آباد",
-      "address": "نجف‌آباد، شریعتی غربی",
+      "address": "نجف‌آباد، شریعتی غربی، بلوار جمهوری اسلامی",
       "propertyType": "خانه مسکونی",
       "transactionType": "خرید و فروش",
       "area": 850,
@@ -1133,15 +1159,16 @@
       "publishedAt": "2026-10-17T07:33:46.444156Z",
       "relativeTime": "۲ ساعت پیش در شریعتی غربی",
       "source": "divar",
-      "latitude": 32.636,
-      "longitude": 51.346000000000004,
-      "builtYear": 1403
+      "latitude": 32.64356290737463,
+      "longitude": 51.339461258442526,
+      "builtYear": 1403,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXJ9k5tU-Ra3uQrwVRVZdcPpLWqwtTIq7-oXw6otZoxQuFQ==&is_nearby=true"
     },
     {
       "id": 33,
       "rowNumber": 33,
       "title": "زمین جامغازه 53متری خیابان داوری",
-      "address": "نجف‌آباد، صالح آباد",
+      "address": "نجف‌آباد، صالح آباد، بن‌بست خیبر",
       "propertyType": "زمین / کلنگی",
       "transactionType": "خرید و فروش",
       "area": 53,
@@ -1163,8 +1190,9 @@
       "publishedAt": "2026-10-17T07:32:24.104249Z",
       "relativeTime": "۲ ساعت پیش در صالح آباد",
       "source": "divar",
-      "latitude": 32.619,
-      "longitude": 51.372
+      "latitude": 32.637847876917,
+      "longitude": 51.317502130881,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXHz43276Rq3uQpHywsmNc_pLITnGIQ_UzLySz3bZvSODkg=="
     },
     {
       "id": 34,
@@ -1235,9 +1263,10 @@
       "publishedAt": "2026-10-17T07:05:59.387374Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
       "source": "divar",
-      "latitude": 32.6674,
-      "longitude": 51.4133,
-      "builtYear": 1375
+      "latitude": 32.669795581807,
+      "longitude": 51.414492686467,
+      "builtYear": 1375,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXKQBgU3lQq3uQnLQgjkgbvpLEjcPBiyAhFVqg4FNg8keIA=="
     },
     {
       "id": 36,
@@ -1274,9 +1303,10 @@
       "publishedAt": "2026-10-17T07:04:15.335071Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
       "source": "divar",
-      "latitude": 32.6758,
-      "longitude": 51.415699999999994,
-      "builtYear": 1400
+      "latitude": 32.669795584642,
+      "longitude": 51.414492695107,
+      "builtYear": 1400,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXDXqi03lQq3uQhZClDkgbvpLc-tZW1jVVUqRUsc87gH45Q=="
     },
     {
       "id": 37,
@@ -1308,15 +1338,16 @@
       "publishedAt": "2026-10-17T07:02:49.321046Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
       "source": "divar",
-      "latitude": 32.671,
-      "longitude": 51.418099999999995,
-      "builtYear": 1393
+      "latitude": 32.66979554905,
+      "longitude": 51.414492664303,
+      "builtYear": 1393,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXMp5X03lQq3uQrh5UjkgbvpL-GB6VY3EwHaepkzKN76XxA=="
     },
     {
       "id": 38,
       "rowNumber": 38,
       "title": "سه خواب شریعتی بیمارستان منتظری",
-      "address": "نجف‌آباد، هفده شهریور",
+      "address": "نجف‌آباد، هفده شهریور، خ غیور",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 150,
@@ -1343,15 +1374,16 @@
       "publishedAt": "2026-10-17T06:42:41.053519Z",
       "relativeTime": "در هفده شهریور",
       "source": "divar",
-      "latitude": 32.6336,
-      "longitude": 51.3472,
-      "builtYear": 1385
+      "latitude": 32.635172294249,
+      "longitude": 51.374089395321,
+      "builtYear": 1385,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXLngccITRq3uQqngYwjMdPpLBwhub3l5tx6-4KfR3yeOPw=="
     },
     {
       "id": 39,
       "rowNumber": 39,
       "title": "2 طبقه دربست/ 3 خواب/ محدوده معرفت",
-      "address": "نجف‌آباد، معرفت",
+      "address": "نجف‌آباد، معرفت، خ معرفت",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 118,
@@ -1387,15 +1419,16 @@
       "publishedAt": "2026-10-17T06:12:28.504963Z",
       "relativeTime": "آژانس سامانه املاک نجف آباد در معرفت",
       "source": "divar",
-      "latitude": 32.646800000000006,
-      "longitude": 51.347199999999994,
-      "builtYear": 1387
+      "latitude": 32.65285322237979,
+      "longitude": 51.3653233381379,
+      "builtYear": 1387,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXI_10SDORK3uQnBVbsvsdfpL3UHwJJYCRwVyFzctRr8hyA==&is_nearby=true"
     },
     {
       "id": 40,
       "rowNumber": 40,
       "title": "اجاره مسکونی",
-      "address": "نجف‌آباد، هفده شهریور",
+      "address": "نجف‌آباد، هفده شهریور، خ بیست و دوم بهمن",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 240,
@@ -1426,15 +1459,16 @@
       "publishedAt": "2026-10-17T05:24:01.642964Z",
       "relativeTime": "در هفده شهریور",
       "source": "divar",
-      "latitude": 32.63,
-      "longitude": 51.3696,
-      "builtYear": 1401
+      "latitude": 32.634448167864,
+      "longitude": 51.376000175789,
+      "builtYear": 1401,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXJKS6wlrRq3uQtKRPecOa_pLO_BfjihSCaIAT477TS03fg=="
     },
     {
       "id": 41,
       "rowNumber": 41,
       "title": "خونه ویلایی دارای دوتا اتاق خواب پذیرایی",
-      "address": "نجف‌آباد، یزدانشهر",
+      "address": "نجف‌آباد، یزدانشهر، خ راستان بیست و سه",
       "propertyType": "ویلایی",
       "transactionType": "رهن و اجاره",
       "area": 152,
@@ -1462,15 +1496,16 @@
       "publishedAt": "2026-10-17T00:51:58.833080Z",
       "relativeTime": "۹ ساعت پیش در یزدانشهر",
       "source": "divar",
-      "latitude": 32.6132,
-      "longitude": 51.305,
-      "builtYear": 1382
+      "latitude": 32.622088302059,
+      "longitude": 51.306848169266,
+      "builtYear": 1382,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXOcn-gf-WK3uQuddKexofPpL4g8WVr7wOjok2wqeVzkZ9Q=="
     },
     {
       "id": 42,
       "rowNumber": 42,
       "title": "اجاره منزل واقع در ویلاشهر",
-      "address": "نجف‌آباد، ویلاشهر",
+      "address": "نجف‌آباد، ویلاشهر، خ طالقانی ۵",
       "propertyType": "ویلایی",
       "transactionType": "رهن و اجاره",
       "area": 160,
@@ -1496,9 +1531,10 @@
       "publishedAt": "2026-10-16T20:11:04.132989Z",
       "relativeTime": "۱۳ ساعت پیش در ویلاشهر",
       "source": "divar",
-      "latitude": 32.6734,
-      "longitude": 51.4169,
-      "builtYear": 1386
+      "latitude": 32.67420903397588,
+      "longitude": 51.43306887388932,
+      "builtYear": 1386,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXEyjWeoSQa3uQq2VLexAbPpLUbFxlhZIAWntweKliT3Qlg==&is_nearby=true"
     },
     {
       "id": 43,
@@ -1552,7 +1588,7 @@
       "id": 44,
       "rowNumber": 44,
       "title": "منزل مسکونی",
-      "address": "نجف‌آباد، فاز ۲ شهرک آزادگان",
+      "address": "نجف‌آباد، فاز ۲ شهرک آزادگان، خ لاله",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 90,
@@ -1580,15 +1616,16 @@
       "publishedAt": "2026-10-16T14:50:11.817769Z",
       "relativeTime": "۱۹ ساعت پیش در فاز ۲ شهرک آزادگان",
       "source": "divar",
-      "latitude": 32.6265,
-      "longitude": 51.3585,
-      "builtYear": 1390
+      "latitude": 32.659213340513,
+      "longitude": 51.324330647102,
+      "builtYear": 1390,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXMwkX4s_Q63uQlqFgYutcvpLrlIDOuFrQD1OInuBO_iK2Q=="
     },
     {
       "id": 45,
       "rowNumber": 45,
       "title": "یک خانه د جوزدان نجف آباد اجاره داده میشود",
-      "address": "نجف‌آباد، جوزدان",
+      "address": "نجف‌آباد، جوزدان، خ اوینی",
       "propertyType": "خانه مسکونی",
       "transactionType": "رهن و اجاره",
       "area": 300,
@@ -1620,15 +1657,16 @@
       "publishedAt": "2026-10-16T13:08:23.109959Z",
       "relativeTime": "در جوزدان",
       "source": "divar",
-      "latitude": 32.5874,
-      "longitude": 51.3584,
-      "builtYear": 1370
+      "latitude": 32.55506737665786,
+      "longitude": 51.37602163564863,
+      "builtYear": 1370,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXHmGsONSUK3uQrpuMVsPa_pLKjaQlwwQ4JxsL6ZV4Jhc6g==&is_nearby=true"
     },
     {
       "id": 46,
       "rowNumber": 46,
       "title": "زیرزمین مسکونی ۶۰ متری",
-      "address": "نجف‌آباد، ویلاشهر",
+      "address": "نجف‌آباد، ویلاشهر، خ دانش آموز ۳",
       "propertyType": "زمین / کلنگی",
       "transactionType": "رهن و اجاره",
       "area": 60,
@@ -1655,9 +1693,10 @@
       "publishedAt": "2026-10-16T10:38:02.726595Z",
       "relativeTime": "۲۳ ساعت پیش در ویلاشهر",
       "source": "divar",
-      "latitude": 32.6674,
-      "longitude": 51.4133,
-      "builtYear": 1382
+      "latitude": 32.66254389211589,
+      "longitude": 51.42264707006197,
+      "builtYear": 1382,
+      "mapImageUrl": "https://mapimage.divarcdn.com/v8/mapimage?encrypted_data=MTIzNDU2Nzg5MTIzXPMJ7K2QQ63uQnRiv203bfpLgy1ZgoGX5FCgXeYlJ2hDIQ==&is_nearby=true"
     },
     {
       "id": 47,

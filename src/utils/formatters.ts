@@ -1,7 +1,6 @@
 export const toPersianDigits = (n: number | string): string => {
   if (n === null || n === undefined) return '';
-  const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return n.toString().replace(/[0-9]/g, (w) => farsiDigits[+w]);
+  return n.toString();
 };
 
 export const normalizePersianText = (text: string): string => {
@@ -18,14 +17,14 @@ export const normalizePersianText = (text: string): string => {
     .replace(/\s+/g, ' ');
 };
 
-export const formatPrice = (price: number, usePersianDigits = true): string => {
-  if (price === null || price === undefined || isNaN(price)) return '۰';
+export const formatPrice = (price: number, usePersianDigits = false): string => {
+  if (price === null || price === undefined || isNaN(price)) return '0';
   const formatted = price.toLocaleString('en-US');
   return usePersianDigits ? toPersianDigits(formatted) : formatted;
 };
 
-export const formatPriceShort = (price: number, usePersianDigits = true): string => {
-  if (!price || isNaN(price)) return '۰';
+export const formatPriceShort = (price: number, usePersianDigits = false): string => {
+  if (!price || isNaN(price)) return '0';
   if (price >= 1_000_000_000) {
     const billions = price / 1_000_000_000;
     const formatted = billions.toFixed(billions >= 10 ? 1 : 2).replace(/\.0+$/, '');

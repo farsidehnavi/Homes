@@ -13,6 +13,7 @@ import {
   X,
   Info,
   Calendar,
+  ArrowRight,
 } from 'lucide-react';
 
 export interface PropertyMapProps {
@@ -21,6 +22,7 @@ export interface PropertyMapProps {
   onAddToExcel?: (item: RealEstateItem) => void;
   isExcelMode?: boolean;
   usePersianDigits?: boolean;
+  onBackToList?: () => void;
 }
 
 export const PropertyMap: React.FC<PropertyMapProps> = ({
@@ -28,7 +30,8 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
   onSelectProperty,
   onAddToExcel,
   isExcelMode = false,
-  usePersianDigits = true,
+  usePersianDigits = false,
+  onBackToList,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -155,7 +158,7 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
 
       marker.on('click', () => {
         setSelectedProperty(item);
-        map.panTo([lat, lng], { animate: true });
+        map.setView([lat, lng], 15, { animate: true });
       });
 
       markersGroup.addLayer(marker);
@@ -203,15 +206,27 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
           </button>
         </div>
 
-        {/* Toggle List View Drawer */}
+        {/* Toggle List View Drawer & Back to Properties */}
         <div className="pointer-events-auto flex items-center gap-2">
+          {onBackToList && (
+            <button
+              type="button"
+              onClick={onBackToList}
+              className="px-3.5 py-2 rounded-2xl bg-white/95 hover:bg-slate-100 backdrop-blur-md text-slate-800 shadow-lg text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer border border-slate-200"
+              title="بازگشت به نمای لیست املاک"
+            >
+              <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
+              <span>لیست املاک</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="px-3.5 py-2 rounded-2xl bg-slate-900/90 hover:bg-slate-900 backdrop-blur-md text-white shadow-lg text-xs font-bold flex items-center gap-2 active:scale-95 transition-all cursor-pointer border border-slate-700"
           >
             <Layers className="w-4 h-4" />
-            <span>{sidebarOpen ? 'بستن لیست' : 'لیست املاک روی نقشه'}</span>
+            <span>{sidebarOpen ? 'بستن لیست' : 'املاک روی نقشه'}</span>
           </button>
         </div>
       </div>
@@ -232,6 +247,19 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
             >
               <X className="w-4 h-4" />
             </button>
+
+            {/* Address on top of map */}
+            <div className="mb-2.5 pb-2 border-b border-slate-100 flex items-center justify-between pl-7">
+              <div className="flex items-center gap-1.5 text-xs text-slate-800 font-bold min-w-0">
+                <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                <span className="truncate" title={selectedProperty.address}>
+                  {selectedProperty.address}
+                </span>
+              </div>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 shrink-0">
+                نقشه دیوار
+              </span>
+            </div>
 
             {/* Content */}
             <div className="flex gap-3.5 items-start">
@@ -357,6 +385,37 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({
                   <ExternalLink className="w-4 h-4" />
                 </a>
               )}
+            </div>
+
+            {/* Direct Routing Links */}
+            <div className="grid grid-cols-3 gap-1.5 mt-2.5 pt-2 border-t border-slate-100 text-[10px]">
+              <a
+                href={`https://neshan.org/maps/@${selectedProperty.latitude},${selectedProperty.longitude},16z`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold transition-all text-center shadow-2xs"
+              >
+                <Navigation className="w-3 h-3 text-blue-600 shrink-0" />
+                <span>مسیریابی نشان</span>
+              </a>
+              <a
+                href={`https://balad.ir/location?latitude=${selectedProperty.latitude}&longitude=${selectedProperty.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition-all text-center shadow-2xs"
+              >
+                <Navigation className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>مسیریابی بلد</span>
+              </a>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${selectedProperty.latitude},${selectedProperty.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold transition-all text-center shadow-2xs"
+              >
+                <ExternalLink className="w-3 h-3 text-slate-600 shrink-0" />
+                <span>Google Maps</span>
+              </a>
             </div>
           </div>
         </div>

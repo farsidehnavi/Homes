@@ -55,6 +55,7 @@ export interface RealEstateItem {
   priceText?: string; // متن خام قیمت
   latitude?: number; // عرض جغرافیایی روی نقشه
   longitude?: number; // طول جغرافیایی روی نقشه
+  mapImageUrl?: string; // تصویر نقشه رسمی دیوار
   source?: 'divar' | 'excel' | 'sample'; // منبع داده
   rawRow?: Record<string, any>; // ستون‌های اضافه در اکسل
   createdByUserId?: string; // شناسه کاربری که این ملک را در اکسل ثبت کرده

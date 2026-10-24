@@ -20,7 +20,6 @@ import { HamburgerMenu, SharedExcelOption } from './components/HamburgerMenu';
 import { Navbar } from './components/Navbar';
 import { DivarSyncBanner } from './components/DivarSyncBanner';
 import { UploadDropzone } from './components/UploadDropzone';
-import { StatsOverview } from './components/StatsOverview';
 import { FilterPanel } from './components/FilterPanel';
 import { PropertyTable } from './components/PropertyTable';
 import { PropertyCardList } from './components/PropertyCardList';
@@ -247,8 +246,8 @@ export default function App() {
   const [filter, setFilter] = useState<FilterState>(INITIAL_FILTER);
   const [sortField, setSortField] = useState<SortField>('rowNumber');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [activeView, setActiveView] = useState<'table' | 'cards' | 'map'>('cards');
-  const [usePersianDigits, setUsePersianDigits] = useState<boolean>(true);
+  const [activeView, setActiveView] = useState<'cards' | 'map'>('cards');
+  const [usePersianDigits, setUsePersianDigits] = useState<boolean>(false);
   const [selectedItem, setSelectedItem] = useState<RealEstateItem | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
@@ -1002,29 +1001,10 @@ export default function App() {
       {/* Top Navigation Bar */}
       <Navbar
         currentMode={currentMode}
-        onSwitchMode={(m) => {
-          setCurrentMode(m);
-          setCurrentPage(1);
-        }}
-        onResetData={handleResetData}
-        activeView={activeView}
-        onToggleView={setActiveView}
-        usePersianDigits={usePersianDigits}
-        onTogglePersianDigits={() => setUsePersianDigits((prev) => !prev)}
         totalItems={activeDataset.length}
         filteredCount={filteredAndSortedItems.length}
         isFilterOpenMobile={isMobileFilterOpen}
         onToggleFilterMobile={() => setIsMobileFilterOpen((prev) => !prev)}
-        onRefreshDivar={currentMode === 'divar' ? () => fetchLiveDivar(divarTimeRange) : undefined}
-        isRefreshingDivar={isLoadingDivar}
-        onExportExcel={handleExportFiltered}
-        onUploadNewExcel={
-          currentMode === 'excel' ? () => setShowExcelDropzone((prev) => !prev) : undefined
-        }
-        onAddNewProperty={currentMode === 'excel' ? handleOpenAddPropertyModal : undefined}
-        onOpenAlertsModal={currentMode === 'divar' ? () => setIsAlertsModalOpen(true) : undefined}
-        activeAlertsCount={divarAlerts.filter((a) => a.enabled).length}
-        matchedAlertsCount={matchedAlertItems.length}
         excelFileName={excelFileName}
         searchQuery={filter.searchQuery}
         onSearchChange={(q) => {
@@ -1037,10 +1017,8 @@ export default function App() {
             ? (activeDashboard?.title || 'اکسل اشتراکی')
             : activeDashboard?.title
         }
-        currentUserName={workspaceUser?.displayName}
         isAdmin={canSeeAdminPanel}
         onOpenAdminPanel={canSeeAdminPanel ? () => setCurrentScreen('admin') : undefined}
-        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -1129,27 +1107,6 @@ export default function App() {
           ) : null
         )}
 
-        {/* Stats Overview */}
-        <StatsOverview
-          items={filteredAndSortedItems}
-          totalUploaded={activeDataset.length}
-          usePersianDigits={usePersianDigits}
-          selectedTypes={filter.propertyTypes}
-          onSelectPropertyType={(type) => {
-            const exists = filter.propertyTypes.includes(type);
-            const updated = exists
-              ? filter.propertyTypes.filter((t) => t !== type)
-              : [...filter.propertyTypes, type];
-            setFilter({ ...filter, propertyTypes: updated });
-            setCurrentPage(1);
-          }}
-          selectedTransactionType={filter.transactionType}
-          onSelectTransactionType={(t) => {
-            setFilter({ ...filter, transactionType: t });
-            setCurrentPage(1);
-          }}
-        />
-
         {/* Content Layout: Sidebar Filter + Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
           {/* Desktop Filter Sidebar */}
@@ -1191,24 +1148,7 @@ export default function App() {
                 onAddToExcel={handleAddDivarItemToExcel}
                 isExcelMode={currentMode === 'excel'}
                 usePersianDigits={usePersianDigits}
-              />
-            ) : activeView === 'table' ? (
-              <PropertyTable
-                items={paginatedItems}
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                onSelectItem={setSelectedItem}
-                usePersianDigits={usePersianDigits}
-                onExportExcel={handleExportFiltered}
-                filteredCount={filteredAndSortedItems.length}
-                isExcelMode={currentMode === 'excel'}
-                onAddNewProperty={handleOpenAddPropertyModal}
-                onEditItem={handleOpenEditPropertyModal}
-                onDeleteItem={handleDeleteProperty}
-                onAddToExcel={handleAddDivarItemToExcel}
-                canEditItem={canEditProperty}
-                canDeleteItem={canDeleteProperty}
+                onBackToList={() => setActiveView('cards')}
               />
             ) : (
               <PropertyCardList
@@ -1293,6 +1233,8 @@ export default function App() {
             setCurrentMode(m);
             setCurrentPage(1);
           }}
+          activeView={activeView}
+          onSelectView={(v) => setActiveView(v)}
           dashboards={userDashboards}
           activeDashboardId={activeDashboardId}
           onSelectDashboard={handleSelectDashboard}

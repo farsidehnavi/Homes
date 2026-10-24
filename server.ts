@@ -50,6 +50,62 @@ async function startServer() {
     }
   });
 
+  // API route: Get map and location details directly from Divar for a specific post token
+  app.get('/api/divar/post/:token/map', async (req, res) => {
+    try {
+      const token = req.params.token;
+      if (!token) {
+        return res.status(400).json({ success: false });
+      }
+
+      const response = await fetch(`https://api.divar.ir/v8/posts-v2/web/${token}`, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        },
+      });
+
+      if (!response.ok) {
+        return res.json({ success: false });
+      }
+
+      const json: any = await response.json();
+      const widgets = json.sections?.flatMap((s: any) => s.widgets || []) || [];
+
+      let lat: number | undefined;
+      let lng: number | undefined;
+      let mapImageUrl: string | undefined;
+      let topAddress: string | undefined;
+
+      for (const w of widgets) {
+        if (w.widget_type === 'MAP_ROW' || (w.widget_type && w.widget_type.includes('MAP'))) {
+          const d = w.data || {};
+          const pt = d.location?.exact_data?.point || d.location?.fuzzy_data?.point || d.point;
+          if (pt && typeof pt.latitude === 'number') {
+            lat = pt.latitude;
+            lng = pt.longitude;
+          }
+          if (d.image_url) {
+            mapImageUrl = d.image_url;
+          }
+        }
+        if (w.widget_type === 'EXPANDABLE_SECTION') {
+          const t = w.data?.title || '';
+          if (t.includes('در نجف‌آباد') || t.includes('در ')) {
+            const cleaned = t.replace(/^.*?در\s+/, '').replace(/^نجف‌آباد،?\s*/, '').trim();
+            if (cleaned) {
+              topAddress = 'نجف‌آباد، ' + cleaned;
+            }
+          }
+        }
+      }
+
+      res.json({ success: true, latitude: lat, longitude: lng, mapImageUrl, topAddress });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message });
+    }
+  });
+
   // API route: Get real estate in Najaf Abad from divar.ir with selectable time range
   app.get('/api/divar/najafabad-24h', async (req, res) => {
     try {
