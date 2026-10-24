@@ -27,7 +27,7 @@ import {
   BellRing,
 } from 'lucide-react';
 import { RealEstateItem } from '../types';
-import { formatPrice, formatPriceShort, toPersianDigits, formatDepositRent } from '../utils/formatters';
+import { formatPrice, formatPriceShort, toPersianDigits, formatDepositRent, formatBuiltYear } from '../utils/formatters';
 
 interface PropertyDetailModalProps {
   item: RealEstateItem | null;
@@ -441,11 +441,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 </div>
               )}
 
-              {item.age !== undefined && (
+              {(item.builtYear !== undefined || item.age !== undefined) && (
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span className="text-slate-400 text-2xs block mb-1">سال ساخت</span>
                   <span className="font-bold text-slate-900">
-                    {item.age === 0 ? 'نوساز (صفر)' : `${fmt(item.age)} سال ساخت`}
+                    {formatBuiltYear(item, usePersianDigits)}
                   </span>
                 </div>
               )}

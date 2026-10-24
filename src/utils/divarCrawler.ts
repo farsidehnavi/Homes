@@ -121,6 +121,7 @@ function extractDivarFields(
   let floor: number | undefined = undefined;
   let totalFloors: number | undefined = undefined;
   let age: number | undefined = undefined;
+  let builtYear: number | undefined = undefined;
   let hasElevator: boolean | undefined = undefined;
   let hasParking: boolean | undefined = undefined;
   let hasStorage: boolean | undefined = undefined;
@@ -134,6 +135,8 @@ function extractDivarFields(
   let detailDepositText: string | undefined = undefined;
   let detailRent: number | undefined = undefined;
   let detailRentText: string | undefined = undefined;
+  let latitude: number | undefined = undefined;
+  let longitude: number | undefined = undefined;
 
   if (postDetail) {
     const widgets = postDetail.sections?.flatMap((s: any) => s.widgets || []) || [];
@@ -155,12 +158,15 @@ function extractDivarFields(
           } else if (tIt.includes('ساخت')) {
             if (vIt.includes('نوساز') || vIt.includes('صفر')) {
               age = 0;
+              builtYear = 1403;
             } else {
               const y = parseNumber(vIt);
               if (y && y > 1300) {
+                builtYear = y;
                 age = Math.max(0, 1403 - y);
               } else if (y !== undefined) {
                 age = y;
+                builtYear = Math.max(1350, 1403 - y);
               }
             }
           }
@@ -238,6 +244,13 @@ function extractDivarFields(
           detailImages = d.items
             .map((it: any) => it.image?.url || it.image?.thumbnail_url)
             .filter(Boolean);
+        }
+      } else if (wt === 'MAP_ROW') {
+        const loc = d.location || {};
+        const pt = loc.exact_data?.point || loc.fuzzy_data?.point;
+        if (pt && typeof pt.latitude === 'number' && typeof pt.longitude === 'number') {
+          latitude = pt.latitude;
+          longitude = pt.longitude;
         }
       }
     }
@@ -388,6 +401,7 @@ function extractDivarFields(
     floor,
     totalFloors,
     age,
+    builtYear,
     hasElevator,
     hasParking,
     hasStorage,
@@ -401,8 +415,44 @@ function extractDivarFields(
     detailDepositText,
     detailRent,
     detailRentText,
+    latitude,
+    longitude,
   };
 }
+
+export const NAJAFABAD_DISTRICT_COORDS: Record<string, [number, number]> = {
+  'ویلاشهر': [32.6698, 51.4145],
+  'شریعتی': [32.6372, 51.3412],
+  'شریعتی غربی': [32.6372, 51.3412],
+  'شریعتی شرقی': [32.6385, 51.3650],
+  'فردوسی': [32.6341, 51.3652],
+  'فردوسی مرکزی': [32.6341, 51.3652],
+  'فردوسی شمالی': [32.6410, 51.3650],
+  'فردوسی جنوبی': [32.6280, 51.3650],
+  'یزدانشهر': [32.6180, 51.3050],
+  'یزدان شهر': [32.6180, 51.3050],
+  'گلدشت': [32.6240, 51.4420],
+  'امیرآباد': [32.6510, 51.3850],
+  'امیر آباد': [32.6510, 51.3850],
+  'قلعه سفید': [32.6360, 51.4550],
+  'صالح آباد': [32.6250, 51.3780],
+  'جوزدان': [32.5850, 51.3620],
+  'جلال آباد': [32.6480, 51.2980],
+  'نهضت آباد': [32.6750, 51.3320],
+  'معرفت': [32.6420, 51.3520],
+  'طالقانی': [32.6330, 51.3580],
+  'امام خمینی': [32.6333, 51.3605],
+  'کشاورز': [32.6390, 51.3480],
+  'مسکن مهر': [32.6607, 51.3087],
+  'هفده شهریور': [32.6300, 51.3720],
+  'سعدی': [32.6350, 51.3680],
+  'بلوار فجر': [32.6440, 51.3690],
+  'بلوار ایزدی': [32.6308, 51.4026],
+  'منتظری': [32.6320, 51.3610],
+  'منتظری شمالی': [32.6390, 51.3610],
+  'فیروزآباد': [32.6210, 51.3910],
+  'دلگشا': [32.6355, 51.3550],
+};
 
 function detectPropertyType(title: string): string {
   if (title.includes('آپارتمان')) return 'آپارتمان';
@@ -583,6 +633,27 @@ export async function fetchNajafabadDivar(
               ? [primaryImage]
               : [];
 
+          let lat = extracted.latitude;
+          let lng = extracted.longitude;
+
+          if (!lat || !lng) {
+            for (const [key, coords] of Object.entries(NAJAFABAD_DISTRICT_COORDS)) {
+              if (address.includes(key) || districtClean.includes(key) || title.includes(key)) {
+                const jitterLat = ((rowNum * 7) % 11 - 5) * 0.0012;
+                const jitterLng = ((rowNum * 13) % 11 - 5) * 0.0012;
+                lat = coords[0] + jitterLat;
+                lng = coords[1] + jitterLng;
+                break;
+              }
+            }
+          }
+          if (!lat || !lng) {
+            const jitterLat = ((rowNum * 7) % 11 - 5) * 0.0015;
+            const jitterLng = ((rowNum * 13) % 11 - 5) * 0.0015;
+            lat = 32.634 + jitterLat;
+            lng = 51.366 + jitterLng;
+          }
+
           items.push({
             id: rowNum,
             rowNumber: rowNum,
@@ -597,6 +668,7 @@ export async function fetchNajafabadDivar(
             floor: extracted.floor,
             totalFloors: extracted.totalFloors,
             age: extracted.age,
+            builtYear: extracted.builtYear,
             orientation: extracted.orientation,
             facade: extracted.facade,
             hasParking: extracted.hasParking,
@@ -611,6 +683,8 @@ export async function fetchNajafabadDivar(
             rentText,
             priceText: priceText || (transType === 'رهن و اجاره' ? (depositText ? `ودیعه: ${depositText}` : 'توافقی') : 'توافقی'),
             district: districtClean,
+            latitude: lat,
+            longitude: lng,
             divarToken: token,
             divarUrl: token ? `https://divar.ir/v/-/${token}` : 'https://divar.ir/s/najafabad/real-estate',
             imageUrl: primaryImage || images[0],

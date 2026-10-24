@@ -90,7 +90,7 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
       else if (norm.includes('کل طبقات') || norm.includes('تعداد طبقات') || norm === 'total floors')
         colIndex.totalFloors = idx;
       else if (norm.includes('طبقه') || norm === 'floor') colIndex.floor = idx;
-      else if (norm.includes('سن بنا') || norm.includes('عمر بنا') || norm.includes('قدمت') || norm === 'age')
+      else if (norm.includes('سال ساخت') || norm.includes('سن بنا') || norm.includes('عمر بنا') || norm.includes('قدمت') || norm === 'age')
         colIndex.age = idx;
       else if (norm.includes('جهت') || norm === 'orientation' || norm === 'direction') colIndex.orientation = idx;
       else if (norm.includes('نما') || norm === 'facade') colIndex.facade = idx;
@@ -219,6 +219,26 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         }
       });
 
+      const rawAgeVal = getVal('age');
+      const parsedAgeOrYear = parseNumberFromString(rawAgeVal);
+      let itemBuiltYear: number | undefined = undefined;
+      let itemAge: number | undefined = undefined;
+      if (parsedAgeOrYear !== undefined && parsedAgeOrYear > 0) {
+        if (parsedAgeOrYear > 1300 && parsedAgeOrYear <= 1500) {
+          itemBuiltYear = parsedAgeOrYear;
+          itemAge = Math.max(0, 1403 - parsedAgeOrYear);
+        } else if (parsedAgeOrYear > 1900 && parsedAgeOrYear <= 2100) {
+          itemBuiltYear = parsedAgeOrYear;
+          itemAge = Math.max(0, 2025 - parsedAgeOrYear);
+        } else {
+          itemAge = parsedAgeOrYear;
+          itemBuiltYear = 1403 - parsedAgeOrYear;
+        }
+      } else if (parsedAgeOrYear === 0) {
+        itemAge = 0;
+        itemBuiltYear = 1403;
+      }
+
       items.push({
         id: idx + 1,
         rowNumber: rowNumVal,
@@ -230,7 +250,8 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         rooms: parseNumberFromString(getVal('rooms')) || 1,
         floor: parseNumberFromString(getVal('floor')) || 0,
         totalFloors: parseNumberFromString(getVal('totalFloors')) || 1,
-        age: parseNumberFromString(getVal('age')) || 0,
+        age: itemAge,
+        builtYear: itemBuiltYear,
         orientation: String(getVal('orientation') || 'شمالی').trim(),
         facade: String(getVal('facade') || 'سنگ').trim(),
         hasParking: parseBooleanStatus(getVal('parking')),
@@ -289,7 +310,7 @@ export const exportToExcel = (items: RealEstateItem[], fileName = 'املاک_د
     'تعداد اتاق': item.rooms,
     طبقه: item.floor === 0 ? 'همکف' : item.floor,
     'تعداد کل طبقات': item.totalFloors,
-    'سن بنا (سال)': item.age,
+    'سال ساخت': item.builtYear || (item.age !== undefined ? (item.age > 1300 ? item.age : item.age === 0 ? 'نوساز' : 1403 - item.age) : ''),
     'جهت ساختمان': item.orientation,
     'نمای ساختمان': item.facade,
     پارکینگ: item.hasParking ? 'دارد' : 'ندارد',

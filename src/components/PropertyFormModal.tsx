@@ -59,6 +59,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   const [rooms, setRooms] = useState<number>(2);
   const [floor, setFloor] = useState<number>(1);
   const [totalFloors, setTotalFloors] = useState<number>(4);
+  const [builtYear, setBuiltYear] = useState<number | ''>(1400);
   const [age, setAge] = useState<number>(3);
   const [orientation, setOrientation] = useState<string>('شمالی');
   const [facade, setFacade] = useState<string>('سنگ');
@@ -86,6 +87,8 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       setRooms(itemToEdit.rooms || 2);
       setFloor(itemToEdit.floor ?? 1);
       setTotalFloors(itemToEdit.totalFloors || 4);
+      const existingYear = itemToEdit.builtYear ?? (itemToEdit.age !== undefined ? (itemToEdit.age > 1300 ? itemToEdit.age : itemToEdit.age === 0 ? 1403 : 1403 - itemToEdit.age) : 1400);
+      setBuiltYear(existingYear);
       setAge(itemToEdit.age ?? 0);
       setOrientation(itemToEdit.orientation || 'شمالی');
       setFacade(itemToEdit.facade || 'سنگ');
@@ -114,6 +117,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       setRooms(2);
       setFloor(1);
       setTotalFloors(3);
+      setBuiltYear(1401);
       setAge(2);
       setOrientation('شمالی');
       setFacade('سنگ');
@@ -198,7 +202,10 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       rooms,
       floor,
       totalFloors,
-      age,
+      builtYear: typeof builtYear === 'number' ? builtYear : undefined,
+      age: typeof builtYear === 'number'
+        ? (builtYear > 1300 && builtYear <= 1500 ? Math.max(0, 1403 - builtYear) : builtYear > 1900 ? Math.max(0, 2025 - builtYear) : builtYear)
+        : age,
       orientation,
       facade,
       documentType,
@@ -579,11 +586,12 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-2xs font-semibold text-slate-600">سال ساخت (سال):</label>
+              <label className="text-2xs font-semibold text-slate-600">سال ساخت:</label>
               <input
                 type="number"
-                value={age}
-                onChange={(e) => setAge(Number(e.target.value))}
+                value={builtYear}
+                onChange={(e) => setBuiltYear(e.target.value === '' ? '' : Number(e.target.value))}
+                placeholder="مثلاً: ۱۳۹۵ یا ۱۴۰۳"
                 className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2"
               />
             </div>

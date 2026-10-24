@@ -17,9 +17,10 @@ import {
   PlusCircle,
   Tag,
   Camera,
+  Lock,
 } from 'lucide-react';
 import { RealEstateItem, SortField, SortOrder } from '../types';
-import { formatPrice, formatPriceShort, toPersianDigits } from '../utils/formatters';
+import { formatPrice, formatPriceShort, toPersianDigits, formatBuiltYear } from '../utils/formatters';
 
 interface PropertyTableProps {
   items: RealEstateItem[];
@@ -35,6 +36,8 @@ interface PropertyTableProps {
   onEditItem?: (item: RealEstateItem) => void;
   onDeleteItem?: (item: RealEstateItem) => void;
   onAddToExcel?: (item: RealEstateItem) => void;
+  canEditItem?: (item: RealEstateItem) => boolean;
+  canDeleteItem?: (item: RealEstateItem) => boolean;
 }
 
 export const PropertyTable: React.FC<PropertyTableProps> = ({
@@ -51,6 +54,8 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
   onEditItem,
   onDeleteItem,
   onAddToExcel,
+  canEditItem,
+  canDeleteItem,
 }) => {
   const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
@@ -228,7 +233,7 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                 className="py-3 px-3 cursor-pointer group hover:bg-slate-200/70 transition-colors text-center"
               >
                 <div className="flex items-center justify-center gap-1">
-                  <span>قدمت</span>
+                  <span>سال ساخت</span>
                   {getSortIcon('age')}
                 </div>
               </th>
@@ -414,13 +419,9 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                       )}
                     </td>
 
-                    {/* Age */}
-                    <td className="py-2.5 px-3 text-center text-slate-700 whitespace-nowrap">
-                      {item.age !== undefined ? (
-                        item.age === 0 ? 'نوساز' : `${fmt(item.age)} سال`
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
+                    {/* Built Year */}
+                    <td className="py-2.5 px-3 text-center text-slate-700 whitespace-nowrap font-medium">
+                      {formatBuiltYear(item, usePersianDigits)}
                     </td>
 
                     {/* Parking */}
@@ -478,16 +479,25 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
                       {isExcelMode ? (
                         <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
                           {onEditItem && (
-                            <button
-                              type="button"
-                              onClick={() => onEditItem(item)}
-                              className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                              title="ویرایش ملک"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </button>
+                            canEditItem && !canEditItem(item) ? (
+                              <span
+                                className="p-1.5 text-slate-300 rounded-lg cursor-not-allowed inline-flex items-center"
+                                title={`این ملک توسط «${item.createdByUsername || 'کاربر دیگر'}» در اکسل مدیر ثبت شده و برای شما قفل است.`}
+                              >
+                                <Lock className="w-3.5 h-3.5 text-slate-400" />
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => onEditItem(item)}
+                                className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                                title="ویرایش ملک"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                            )
                           )}
-                          {onDeleteItem && (
+                          {onDeleteItem && (!canDeleteItem || canDeleteItem(item)) && (
                             <button
                               type="button"
                               onClick={() => onDeleteItem(item)}

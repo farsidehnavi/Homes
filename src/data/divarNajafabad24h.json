@@ -31,7 +31,9 @@
       ],
       "publishedAt": "2026-10-17T09:40:43.863138Z",
       "relativeTime": "دقایقی پیش در معرفت",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.644400000000005,
+      "longitude": 51.3484
     },
     {
       "id": 2,
@@ -62,7 +64,10 @@
       ],
       "publishedAt": "2026-10-17T09:30:38.621800Z",
       "relativeTime": "یک ربع پیش در صالح آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6226,
+      "longitude": 51.3768,
+      "builtYear": 1394
     },
     {
       "id": 3,
@@ -88,7 +93,9 @@
       ],
       "publishedAt": "2026-10-17T09:20:17.726824Z",
       "relativeTime": "تیم پیشتازان در منتظری جنوبی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.638,
+      "longitude": 51.362199999999994
     },
     {
       "id": 4,
@@ -120,7 +127,10 @@
       ],
       "publishedAt": "2026-10-17T09:18:37.623461Z",
       "relativeTime": "نیم ساعت پیش در ۲۲ بهمن",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6355,
+      "longitude": 51.3705,
+      "builtYear": 1392
     },
     {
       "id": 5,
@@ -168,7 +178,10 @@
       ],
       "publishedAt": "2026-10-17T09:11:43.928130Z",
       "relativeTime": "نیم ساعت پیش در شریعتی غربی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6336,
+      "longitude": 51.3472,
+      "builtYear": 1386
     },
     {
       "id": 6,
@@ -204,7 +217,10 @@
       ],
       "publishedAt": "2026-10-17T09:07:01.247900Z",
       "relativeTime": "در حومه نجف آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.64,
+      "longitude": 51.36,
+      "builtYear": 1390
     },
     {
       "id": 7,
@@ -230,7 +246,9 @@
       ],
       "publishedAt": "2026-10-17T09:03:48.021309Z",
       "relativeTime": "نیم ساعت پیش در گلدشت",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.624,
+      "longitude": 51.4396
     },
     {
       "id": 8,
@@ -262,7 +280,10 @@
       ],
       "publishedAt": "2026-10-17T08:57:51.868359Z",
       "relativeTime": "نیم ساعت پیش در شریعتی غربی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6324,
+      "longitude": 51.3412,
+      "builtYear": 1395
     },
     {
       "id": 9,
@@ -302,7 +323,10 @@
       ],
       "publishedAt": "2026-10-17T08:57:50.117725Z",
       "relativeTime": "در مسکن مهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6643,
+      "longitude": 51.3111,
+      "builtYear": 1392
     },
     {
       "id": 10,
@@ -327,7 +351,9 @@
       ],
       "publishedAt": "2026-10-17T08:53:34.440154Z",
       "relativeTime": "آژانس مشاورین بازار در فردوسی شمالی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6329,
+      "longitude": 51.370000000000005
     },
     {
       "id": 11,
@@ -366,7 +392,10 @@
       ],
       "publishedAt": "2026-10-17T08:53:09.386511Z",
       "relativeTime": "آژانس سامانه املاک نجف آباد در کشاورز",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6312,
+      "longitude": 51.3352,
+      "builtYear": 1390
     },
     {
       "id": 12,
@@ -395,7 +424,9 @@
       ],
       "publishedAt": "2026-10-17T08:52:36.230522Z",
       "relativeTime": "نیم ساعت پیش در گلدشت",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.626400000000004,
+      "longitude": 51.4384
     },
     {
       "id": 13,
@@ -427,7 +458,10 @@
       ],
       "publishedAt": "2026-10-17T08:50:52.187227Z",
       "relativeTime": "آژانس سجادی در امام خمینی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6309,
+      "longitude": 51.359300000000005,
+      "builtYear": 1399
     },
     {
       "id": 14,
@@ -462,7 +496,9 @@
       ],
       "publishedAt": "2026-10-17T08:46:56.182274Z",
       "relativeTime": "در حومه نجف آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.681,
+      "longitude": 51.3332
     },
     {
       "id": 15,
@@ -496,7 +532,10 @@
       ],
       "publishedAt": "2026-10-17T08:43:33.412146Z",
       "relativeTime": "در جلال آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6492,
+      "longitude": 51.3016,
+      "builtYear": 1400
     },
     {
       "id": 16,
@@ -527,7 +566,10 @@
       ],
       "publishedAt": "2026-10-17T08:42:50.368523Z",
       "relativeTime": "آژانس مشاور املاک رز  در یزدانشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6144,
+      "longitude": 51.311,
+      "builtYear": 1370
     },
     {
       "id": 17,
@@ -562,7 +604,10 @@
       ],
       "publishedAt": "2026-10-17T08:40:45.335867Z",
       "relativeTime": "آژانس سامانه املاک نجف آباد در امام خمینی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6381,
+      "longitude": 51.3557,
+      "builtYear": 1393
     },
     {
       "id": 18,
@@ -606,7 +651,10 @@
       ],
       "publishedAt": "2026-10-17T08:40:18.085243Z",
       "relativeTime": "آژانس سامانه املاک نجف آباد در طالقانی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.633,
+      "longitude": 51.355599999999995,
+      "builtYear": 1397
     },
     {
       "id": 19,
@@ -636,7 +684,10 @@
       ],
       "publishedAt": "2026-10-17T08:24:05.048790Z",
       "relativeTime": "در قلعه سفید",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6192,
+      "longitude": 51.442,
+      "builtYear": 1400
     },
     {
       "id": 20,
@@ -674,7 +725,10 @@
       ],
       "publishedAt": "2026-10-17T08:14:53.332853Z",
       "relativeTime": "در گلدشت",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6276,
+      "longitude": 51.4444,
+      "builtYear": 1400
     },
     {
       "id": 21,
@@ -699,7 +753,9 @@
       ],
       "publishedAt": "2026-10-17T08:10:31.056958Z",
       "relativeTime": "مشاور هاشمی در طالقانی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.631800000000005,
+      "longitude": 51.3628
     },
     {
       "id": 22,
@@ -739,7 +795,10 @@
       ],
       "publishedAt": "2026-10-17T08:08:43.177649Z",
       "relativeTime": "۱ ساعت پیش در هفده شهریور",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.624,
+      "longitude": 51.366,
+      "builtYear": 1375
     },
     {
       "id": 23,
@@ -769,7 +828,9 @@
       ],
       "publishedAt": "2026-10-17T08:07:31.345993Z",
       "relativeTime": "در جوزدان",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.5874,
+      "longitude": 51.3584
     },
     {
       "id": 24,
@@ -808,7 +869,10 @@
       ],
       "publishedAt": "2026-10-17T08:07:05.870975Z",
       "relativeTime": "۱ ساعت پیش در سعدی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6326,
+      "longitude": 51.366800000000005,
+      "builtYear": 1371
     },
     {
       "id": 25,
@@ -836,7 +900,9 @@
       ],
       "publishedAt": "2026-10-17T07:56:02.486506Z",
       "relativeTime": "مشاور هاشمی در طالقانی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.639,
+      "longitude": 51.359199999999994
     },
     {
       "id": 26,
@@ -873,7 +939,10 @@
       ],
       "publishedAt": "2026-10-17T07:54:35.074375Z",
       "relativeTime": "۲ ساعت پیش در صالح آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6262,
+      "longitude": 51.3816,
+      "builtYear": 1398
     },
     {
       "id": 27,
@@ -902,7 +971,9 @@
       ],
       "publishedAt": "2026-10-17T07:46:55.512791Z",
       "relativeTime": "۲ ساعت پیش در حومه نجف آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6295,
+      "longitude": 51.3735
     },
     {
       "id": 28,
@@ -927,7 +998,9 @@
       ],
       "publishedAt": "2026-10-17T07:44:55.000516Z",
       "relativeTime": "دفتر مرکزی و نمایندگی زمین باغی ومسکونی شاهین شهر در فیروزآباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.625800000000005,
+      "longitude": 51.386199999999995
     },
     {
       "id": 29,
@@ -959,7 +1032,10 @@
       ],
       "publishedAt": "2026-10-17T07:43:52.225050Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6698,
+      "longitude": 51.412099999999995,
+      "builtYear": 1393
     },
     {
       "id": 30,
@@ -985,7 +1061,9 @@
       ],
       "publishedAt": "2026-10-17T07:36:07.397663Z",
       "relativeTime": "در حومه نجف آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.628,
+      "longitude": 51.366
     },
     {
       "id": 31,
@@ -1011,7 +1089,9 @@
       ],
       "publishedAt": "2026-10-17T07:34:14.821041Z",
       "relativeTime": "در شریعتی غربی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6408,
+      "longitude": 51.3436
     },
     {
       "id": 32,
@@ -1052,7 +1132,10 @@
       ],
       "publishedAt": "2026-10-17T07:33:46.444156Z",
       "relativeTime": "۲ ساعت پیش در شریعتی غربی",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.636,
+      "longitude": 51.346000000000004,
+      "builtYear": 1403
     },
     {
       "id": 33,
@@ -1079,7 +1162,9 @@
       ],
       "publishedAt": "2026-10-17T07:32:24.104249Z",
       "relativeTime": "۲ ساعت پیش در صالح آباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.619,
+      "longitude": 51.372
     },
     {
       "id": 34,
@@ -1114,7 +1199,10 @@
       ],
       "publishedAt": "2026-10-17T07:30:02.700010Z",
       "relativeTime": "۲ ساعت پیش در کشاورز",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.641400000000004,
+      "longitude": 51.3444,
+      "builtYear": 1395
     },
     {
       "id": 35,
@@ -1146,7 +1234,10 @@
       ],
       "publishedAt": "2026-10-17T07:05:59.387374Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6674,
+      "longitude": 51.4133,
+      "builtYear": 1375
     },
     {
       "id": 36,
@@ -1182,7 +1273,10 @@
       ],
       "publishedAt": "2026-10-17T07:04:15.335071Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6758,
+      "longitude": 51.415699999999994,
+      "builtYear": 1400
     },
     {
       "id": 37,
@@ -1213,7 +1307,10 @@
       ],
       "publishedAt": "2026-10-17T07:02:49.321046Z",
       "relativeTime": "سامانه املاک ویلاشهر هوم مهندس بهاءلو در ویلاشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.671,
+      "longitude": 51.418099999999995,
+      "builtYear": 1393
     },
     {
       "id": 38,
@@ -1245,7 +1342,10 @@
       ],
       "publishedAt": "2026-10-17T06:42:41.053519Z",
       "relativeTime": "در هفده شهریور",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6336,
+      "longitude": 51.3472,
+      "builtYear": 1385
     },
     {
       "id": 39,
@@ -1286,7 +1386,10 @@
       ],
       "publishedAt": "2026-10-17T06:12:28.504963Z",
       "relativeTime": "آژانس سامانه املاک نجف آباد در معرفت",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.646800000000006,
+      "longitude": 51.347199999999994,
+      "builtYear": 1387
     },
     {
       "id": 40,
@@ -1322,7 +1425,10 @@
       ],
       "publishedAt": "2026-10-17T05:24:01.642964Z",
       "relativeTime": "در هفده شهریور",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.63,
+      "longitude": 51.3696,
+      "builtYear": 1401
     },
     {
       "id": 41,
@@ -1355,7 +1461,10 @@
       ],
       "publishedAt": "2026-10-17T00:51:58.833080Z",
       "relativeTime": "۹ ساعت پیش در یزدانشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6132,
+      "longitude": 51.305,
+      "builtYear": 1382
     },
     {
       "id": 42,
@@ -1386,7 +1495,10 @@
       ],
       "publishedAt": "2026-10-16T20:11:04.132989Z",
       "relativeTime": "۱۳ ساعت پیش در ویلاشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6734,
+      "longitude": 51.4169,
+      "builtYear": 1386
     },
     {
       "id": 43,
@@ -1431,7 +1543,10 @@
       ],
       "publishedAt": "2026-10-16T15:22:43.341086Z",
       "relativeTime": "۱۸ ساعت پیش در امیرآباد",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.649800000000006,
+      "longitude": 51.3898,
+      "builtYear": 1400
     },
     {
       "id": 44,
@@ -1464,7 +1579,10 @@
       ],
       "publishedAt": "2026-10-16T14:50:11.817769Z",
       "relativeTime": "۱۹ ساعت پیش در فاز ۲ شهرک آزادگان",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6265,
+      "longitude": 51.3585,
+      "builtYear": 1390
     },
     {
       "id": 45,
@@ -1501,7 +1619,10 @@
       ],
       "publishedAt": "2026-10-16T13:08:23.109959Z",
       "relativeTime": "در جوزدان",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.5874,
+      "longitude": 51.3584,
+      "builtYear": 1370
     },
     {
       "id": 46,
@@ -1533,7 +1654,10 @@
       ],
       "publishedAt": "2026-10-16T10:38:02.726595Z",
       "relativeTime": "۲۳ ساعت پیش در ویلاشهر",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.6674,
+      "longitude": 51.4133,
+      "builtYear": 1382
     },
     {
       "id": 47,
@@ -1564,7 +1688,10 @@
       ],
       "publishedAt": "2026-10-16T10:16:48.569988Z",
       "relativeTime": "۲۳ ساعت پیش در قلعه سفید",
-      "source": "divar"
+      "source": "divar",
+      "latitude": 32.642,
+      "longitude": 51.456199999999995,
+      "builtYear": 1388
     }
   ]
 }

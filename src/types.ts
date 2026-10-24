@@ -30,7 +30,8 @@ export interface RealEstateItem {
   rooms?: number; // تعداد اتاق
   floor?: number; // طبقه
   totalFloors?: number; // تعداد کل طبقات
-  age?: number; // سن بنا (سال)
+  age?: number; // سن بنا بر حسب سال (برای سازگاری قدیمی)
+  builtYear?: number; // سال ساخت دقیق تقویمی (مثلاً ۱۳۹۴، ۱۳۹۵ یا ۲۰۲۴)
   orientation?: BuildingOrientation | string; // جهت ساختمان (تنها در صورت قید در آگهی)
   facade?: BuildingFacade | string; // نمای ساختمان (تنها در صورت قید در آگهی)
   hasParking?: boolean; // پارکینگ (تنها در صورت ذکر در امکانات آگهی)
@@ -52,8 +53,12 @@ export interface RealEstateItem {
   publishedAt?: string; // تاریخ و زمان انتشار (ISO)
   relativeTime?: string; // زمان نسبی انتشار (مثلاً ۱ ساعت پیش، دیروز)
   priceText?: string; // متن خام قیمت
+  latitude?: number; // عرض جغرافیایی روی نقشه
+  longitude?: number; // طول جغرافیایی روی نقشه
   source?: 'divar' | 'excel' | 'sample'; // منبع داده
   rawRow?: Record<string, any>; // ستون‌های اضافه در اکسل
+  createdByUserId?: string; // شناسه کاربری که این ملک را در اکسل ثبت کرده
+  createdByUsername?: string; // نام کاربری یا نام ثبت‌کننده ملک
 }
 
 export interface FilterState {
@@ -117,17 +122,61 @@ export interface DivarAlert {
   requiresElevator?: boolean;
   notifiedItemIds?: (string | number)[];
   autoAddToExcel?: boolean; // افزودن خودکار ملک‌های منطبق به جدول اکسل من
+  customerName?: string; // نام مشتری / متقاضی این ملک
+  customerPhone?: string; // شماره تماس مشتری متقاضی (شروع با 09)
 }
+
+export interface UserPermissions {
+  canAccessAdminPanel: boolean; // آیا می‌تواند پنل مدیریت حساب را ببیند
+  canViewAdminExcel: boolean; // آیا می‌تواند آیتم‌های اکسل مدیر حساب (علی) را ببیند
+  canAddToAdminExcel: boolean; // آیا می‌تواند به اکسل مدیر ملک اضافه کند
+  canEditOthersItemsInAdminExcel: boolean; // آیا می‌تواند املاکی که توسط خودش ثبت نشده را در اکسل مدیر ویرایش کند
+  canDeleteFromAdminExcel?: boolean; // آیا می‌تواند از اکسل مدیر ملک حذف کند
+  canExportExcel?: boolean; // خروجی اکسل
+  canUploadExcel?: boolean; // آپلود فایل اکسل
+  canAccessDivar?: boolean; // دسترسی به پنل دیوار
+  canCreateDivarAlerts?: boolean; // دسترسی به گوش‌به‌زنگ
+  allowedUserExcelIds?: string[]; // شناسه‌های کاربری اعضای دیگر که این کاربر مجاز است اکسل آن‌ها را ببیند (مثلاً اکسل حامد برای رضا)
+}
+
+export const DEFAULT_USER_PERMISSIONS: UserPermissions = {
+  canAccessAdminPanel: false,
+  canViewAdminExcel: false,
+  canAddToAdminExcel: false,
+  canEditOthersItemsInAdminExcel: false,
+  canDeleteFromAdminExcel: false,
+  canExportExcel: true,
+  canUploadExcel: true,
+  canAccessDivar: true,
+  canCreateDivarAlerts: true,
+  allowedUserExcelIds: [],
+};
+
+export const ADMIN_USER_PERMISSIONS: UserPermissions = {
+  canAccessAdminPanel: true,
+  canViewAdminExcel: true,
+  canAddToAdminExcel: true,
+  canEditOthersItemsInAdminExcel: true,
+  canDeleteFromAdminExcel: true,
+  canExportExcel: true,
+  canUploadExcel: true,
+  canAccessDivar: true,
+  canCreateDivarAlerts: true,
+  allowedUserExcelIds: [],
+};
 
 export interface AppUser {
   id: string;
+  accountId: string; // شناسه حساب / آژانس (مثلاً acc_ali)
+  accountOwnerUsername?: string; // نام صاحب حساب اصلی
   username: string;
   password: string;
   displayName: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'superadmin' | 'account_admin' | 'member';
   createdAt: string;
   lastLoginAt?: string;
   maxDashboards?: number; // default 5
+  permissions?: UserPermissions;
 }
 
 export interface UserDashboard {

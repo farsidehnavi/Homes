@@ -216,24 +216,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </div>
       </div>
 
-      {/* Divar Alert Trigger: Add current filters directly to Gosh-Be-Zang */}
-      {isDivarMode && onSaveFiltersAsAlert && (
-        <div className="p-3 bg-linear-to-r from-red-50 to-amber-50 border-b border-red-100 flex flex-col gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={onSaveFiltersAsAlert}
-            className="w-full py-2.5 px-3 bg-linear-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            title="ثبت این فیلترها در گوش‌به‌زنگ تا در صورت انتشار ملک جدید، اعلان ارسال شود و خودکار به اکسل اضافه گردد"
-          >
-            <BellRing className="w-4 h-4 animate-bounce shrink-0" />
-            <span>ثبت این فیلترها در گوش‌به‌زنگ</span>
-          </button>
-          <span className="text-[10px] text-red-800/80 text-center font-medium">
-            اعلان خودکار به محض انتشار ملک جدید + امکان افزودن مستقیم به اکسل
-          </span>
-        </div>
-      )}
-
       {/* Filter Sections Scrollable Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5 text-right divide-y divide-slate-100">
         {/* 1. Search Query */}
@@ -779,6 +761,37 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
             </div>
           )}
+
+          {/* Divar Alert Trigger directly under filter menu */}
+          {isDivarMode && onSaveFiltersAsAlert && (
+            <div className="pt-4 pb-2 border-t border-slate-200">
+              <div className="p-3.5 bg-linear-to-br from-amber-50 via-rose-50 to-orange-50 border border-amber-200/90 rounded-2xl shadow-xs space-y-2 text-right">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-amber-900 font-black text-xs">
+                    <BellRing className="w-4 h-4 text-red-500 animate-bounce" />
+                    <span>گوش‌به‌زنگ با فیلترهای انتخابی</span>
+                  </div>
+                  {isFiltered && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900">
+                      فیلترهای فعال
+                    </span>
+                  )}
+                </div>
+                <p className="text-2xs text-slate-600 leading-relaxed">
+                  با ثبت فیلترهای بالا در «گوش‌به‌زنگ»، به محض انتشار هر ملک جدید در دیوار نجف‌آباد، فوراً اعلان دریافت کنید.
+                </p>
+                <button
+                  type="button"
+                  onClick={onSaveFiltersAsAlert}
+                  className="w-full py-2.5 px-3 bg-linear-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  title="ثبت این فیلترها در گوش‌به‌زنگ"
+                >
+                  <BellRing className="w-4 h-4" />
+                  <span>ثبت این فیلترها در گوش‌به‌زنگ</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -796,7 +809,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <button
               type="button"
               onClick={onResetFilters}
-              className="py-3 px-3.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              className="py-3 px-3.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0"
               title="پاک‌سازی همه فیلترها"
             >
               پاک‌سازی

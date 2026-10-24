@@ -20,9 +20,11 @@ import {
   Upload,
   FileSpreadsheet,
   BellRing,
+  Calendar,
+  Lock,
 } from 'lucide-react';
 import { RealEstateItem } from '../types';
-import { formatPrice, formatPriceShort, toPersianDigits } from '../utils/formatters';
+import { formatPrice, formatPriceShort, toPersianDigits, formatBuiltYear } from '../utils/formatters';
 
 interface PropertyCardListProps {
   items: RealEstateItem[];
@@ -33,6 +35,8 @@ interface PropertyCardListProps {
   onDeleteItem?: (item: RealEstateItem) => void;
   onAddToExcel?: (item: RealEstateItem) => void;
   onAddToAlerts?: (item: RealEstateItem) => void;
+  canEditItem?: (item: RealEstateItem) => boolean;
+  canDeleteItem?: (item: RealEstateItem) => boolean;
 }
 
 // Subcomponent for card image carousel to browse all images
@@ -107,6 +111,8 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
   onDeleteItem,
   onAddToExcel,
   onAddToAlerts,
+  canEditItem,
+  canDeleteItem,
 }) => {
   const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
@@ -317,42 +323,46 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
                 </div>
 
                 {/* Specs Pill Grid */}
-                <div className="grid grid-cols-3 gap-2 text-2xs text-slate-600 bg-slate-50 p-2 rounded-xl">
-                  <div className="flex items-center gap-1">
+                <div className="grid grid-cols-4 gap-1.5 text-2xs text-slate-600 bg-slate-50 p-2 rounded-xl">
+                  <div className="flex items-center gap-1 min-w-0" title="متراژ">
                     <Maximize2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     {item.area && item.area > 0 ? (
                       <span className="truncate">
-                        <strong className="text-slate-800">{fmt(item.area)}</strong> متر
-                        {item.buildingArea && item.landArea && item.buildingArea !== item.landArea && (
-                          <span className="text-3xs text-slate-400 font-normal mr-0.5">({fmt(item.buildingArea)} بنا)</span>
-                        )}
+                        <strong className="text-slate-800">{fmt(item.area)}</strong> م²
                       </span>
-                    ) : (
-                      <span className="text-slate-400">نامشخص</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <BedDouble className="w-3.5 h-3.5 text-slate-400" />
-                    {item.rooms !== undefined && item.rooms > 0 ? (
-                      <>
-                        <span className="font-bold text-slate-800">{fmt(item.rooms)}</span> خواب
-                      </>
                     ) : (
                       <span className="text-slate-400">—</span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <Layers className="w-3.5 h-3.5 text-slate-400" />
-                    <span>
+                  <div className="flex items-center gap-1 min-w-0" title="تعداد اتاق خواب">
+                    <BedDouble className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    {item.rooms !== undefined && item.rooms > 0 ? (
+                      <span className="truncate">
+                        <strong className="text-slate-800">{fmt(item.rooms)}</strong> خواب
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 min-w-0" title="طبقه">
+                    <Layers className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">
                       {item.floor !== undefined ? (
                         <>
-                          طبقه <strong className="text-slate-800">{item.floor === 0 ? 'همکف' : fmt(item.floor)}</strong>
+                          <strong className="text-slate-800">{item.floor === 0 ? 'همکف' : `ط ${fmt(item.floor)}`}</strong>
                         </>
                       ) : (
-                        <span className="text-slate-400">طبقه —</span>
+                        <span className="text-slate-400">—</span>
                       )}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1 min-w-0" title="سال ساخت">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate font-semibold text-slate-800">
+                      {formatBuiltYear(item, usePersianDigits)}
                     </span>
                   </div>
                 </div>
@@ -396,19 +406,28 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
               {isExcelMode ? (
                 <div className="flex items-center gap-1">
                   {onEditItem && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditItem(item);
-                      }}
-                      className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                      title="ویرایش ملک"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
+                    canEditItem && !canEditItem(item) ? (
+                      <span
+                        className="p-1.5 text-slate-300 rounded-lg cursor-not-allowed inline-flex items-center"
+                        title={`این ملک توسط «${item.createdByUsername || 'کاربر دیگر'}» در اکسل مدیر ثبت شده و برای شما قفل است.`}
+                      >
+                        <Lock className="w-3.5 h-3.5 text-slate-400" />
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditItem(item);
+                        }}
+                        className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                        title="ویرایش ملک"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                    )
                   )}
-                  {onDeleteItem && (
+                  {onDeleteItem && (!canDeleteItem || canDeleteItem(item)) && (
                     <button
                       type="button"
                       onClick={(e) => {

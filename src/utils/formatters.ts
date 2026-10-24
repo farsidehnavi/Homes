@@ -101,3 +101,35 @@ export const formatRelativeTimePersian = (date: Date): string => {
   const diffDays = Math.floor(diffHours / 24);
   return `${toPersianDigits(diffDays)} روز پیش`;
 };
+
+export const formatBuiltYear = (
+  item?: { builtYear?: number; age?: number } | null,
+  usePersianDigits = true
+): string => {
+  if (!item) return '—';
+  const fmt = (v: number | string) => (usePersianDigits ? toPersianDigits(v) : String(v));
+
+  // If explicit builtYear is available (e.g. 1395, 2015)
+  if (item.builtYear !== undefined && item.builtYear !== null) {
+    if (item.builtYear >= 1403 || item.age === 0) {
+      return 'نوساز (۱۴۰۳)';
+    }
+    return fmt(item.builtYear);
+  }
+
+  // If age is available
+  if (item.age !== undefined && item.age !== null) {
+    if (item.age === 0) {
+      return 'نوساز (۱۴۰۳)';
+    }
+    // If age is already a 4-digit year (e.g. 1394, 2015)
+    if (item.age > 1300) {
+      return fmt(item.age);
+    }
+    // If age is relative number (e.g. 10 years ago -> 1403 - 10 = 1393)
+    const calculatedYear = 1403 - item.age;
+    return fmt(calculatedYear);
+  }
+
+  return '—';
+};

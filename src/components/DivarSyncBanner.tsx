@@ -20,7 +20,7 @@ interface DivarSyncBannerProps {
   filteredItemsCount: number;
   isLoading: boolean;
   onRefresh: () => void;
-  onExportExcel: () => void;
+  onExportExcel?: () => void;
   usePersianDigits: boolean;
   lastSyncedAt?: Date | null;
   currentTimeRange: DivarTimeRange;
@@ -135,16 +135,6 @@ export const DivarSyncBanner: React.FC<DivarSyncBannerProps> = ({
             >
               <RotateCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               <span>{isLoading ? 'در حال دریافت...' : 'بروزرسانی دیوار'}</span>
-            </button>
-
-            <button
-              id="export-divar-excel-btn"
-              onClick={onExportExcel}
-              className="flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition-colors cursor-pointer"
-              title="دانلود لیست فیلترشده در قالب اکسل"
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-600" />
-              <span>خروجی اکسل ({fmt(filteredItemsCount)})</span>
             </button>
           </div>
         </div>

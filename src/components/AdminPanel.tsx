@@ -18,15 +18,19 @@ import {
   Tag,
   Eye,
   RefreshCw,
+  Sliders,
 } from 'lucide-react';
 import { AppUser, UserDashboard } from '../types';
 import {
-  getUsers,
+  getUsersForAccount,
   createUser,
+  updateUser,
   deleteUser,
   getUserDashboards,
+  getAccountOwner,
 } from '../utils/userStorage';
 import { toPersianDigits } from '../utils/formatters';
+import { UserCustomizationModal } from './UserCustomizationModal';
 
 interface AdminPanelProps {
   currentUser: AppUser;
@@ -39,7 +43,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onLogout,
   onEnterUserWorkspace,
 }) => {
-  const [users, setUsers] = useState<AppUser[]>(() => getUsers());
+  const isHesam = currentUser.username === 'hesam' || currentUser.role === 'superadmin';
+  const isAli = currentUser.username === 'ali' || currentUser.role === 'account_admin';
+
+  const [users, setUsers] = useState<AppUser[]>(() =>
+    getUsersForAccount(currentUser.accountId || 'acc_ali', currentUser.username)
+  );
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newDisplayName, setNewDisplayName] = useState('');
@@ -49,9 +58,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
+  const [selectedUserForCustomization, setSelectedUserForCustomization] = useState<AppUser | null>(null);
 
   const refreshUserList = () => {
-    setUsers(getUsers());
+    setUsers(getUsersForAccount(currentUser.accountId || 'acc_ali', currentUser.username));
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -74,6 +84,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       username: newUsername,
       password: newPassword,
       displayName: newDisplayName.trim() || newUsername.trim(),
+      accountId: currentUser.accountId || 'acc_ali',
+      accountOwnerUsername: currentUser.username,
     });
 
     if (res.success) {
@@ -108,6 +120,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     );
   });
 
+  const accountOwner = isHesam ? getAccountOwner('acc_ali') : currentUser;
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-['Vazirmatn',sans-serif]">
       {/* Top Admin Header */}
@@ -120,14 +134,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-sm sm:text-base font-black text-white">
-                  پنل مدیریت سیستم
+                  {isHesam
+                    ? 'پنل مدیریت کل سامانه (حسام)'
+                    : `پنل مدیریت حساب املاک (${currentUser.displayName})`}
                 </h1>
                 <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-2xs font-bold px-2 py-0.5 rounded-full">
-                  مدیر کل (hesam)
+                  {isHesam
+                    ? 'مدیر ارشد کل سیستم'
+                    : `مدیر حساب (${currentUser.username})`}
                 </span>
               </div>
               <p className="text-2xs text-slate-400 hidden sm:block">
-                تعریف، ویرایش و مدیریت کاربران و کنترل سهمیه ۵ داشبورد برای هر کاربر
+                {isHesam
+                  ? 'تعریف حساب‌های مدیران و کنترل ساختار چندمستاجری املاک نجف‌آباد'
+                  : 'تعریف اعضای حساب (رضا، حامد)، تعیین رمز عبور و سفارشی‌سازی دسترسی به اکسل شما و اکسل سایر همکاران'}
               </p>
             </div>
           </div>
@@ -137,10 +157,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <button
               onClick={() => onEnterUserWorkspace(currentUser)}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
-              title="ورود به داشبورد و اکسل‌های اختصاصی خود حسام"
+              title="ورود به داشبورد و اکسل‌های این حساب"
             >
               <FileSpreadsheet className="w-4 h-4" />
-              <span className="hidden sm:inline">ورود به داشبورد من</span>
+              <span className="hidden sm:inline">ورود به داشبورد اکسل</span>
             </button>
 
             {/* Logout */}
@@ -191,9 +211,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-2xs text-slate-400 font-medium">کل کاربران سامانه</div>
+              <div className="text-2xs text-slate-400 font-medium">
+                {isHesam ? 'کل حساب‌های سامانه' : 'کاربران و همکاران این حساب'}
+              </div>
               <div className="text-2xl font-black text-white">
-                {toPersianDigits(users.length)} <span className="text-xs font-normal text-slate-400">حساب</span>
+                {toPersianDigits(users.length)} <span className="text-xs font-normal text-slate-400">کاربر</span>
               </div>
             </div>
           </div>
@@ -217,7 +239,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="lg:col-span-1 bg-slate-800/90 border border-slate-700 rounded-3xl p-5 sm:p-6 shadow-xl sticky top-22">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-700/80 text-emerald-400 font-black text-sm">
               <UserPlus className="w-5 h-5 text-emerald-400" />
-              <span>افزودن کاربر جدید</span>
+              <span>
+                {isHesam ? 'تعریف حساب مدیر جدید' : 'افزودن همکار جدید به حساب'}
+              </span>
             </div>
 
             <form onSubmit={handleCreateUser} className="space-y-4">
@@ -230,8 +254,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type="text"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="مثال: ahmad_re"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-emerald-500 transition-all text-right"
+                    placeholder="مثال: reza یا hamed"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-emerald-500 transition-all text-right font-mono"
                   />
                   <User className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -262,7 +286,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type="text"
                     value={newDisplayName}
                     onChange={(e) => setNewDisplayName(e.target.value)}
-                    placeholder="مثال: مشاور املاک تابان نجف‌آباد"
+                    placeholder="مثال: رضا (مشاور املاک)"
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-emerald-500 transition-all text-right"
                   />
                   <Tag className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -270,7 +294,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 text-2xs text-slate-400 leading-relaxed">
-                💡 این کاربر می‌تواند در اولین صفحه لاگین وارد شود و به صورت مستقل تا <strong>۵ داشبورد مجزا</strong> با داده‌های اکسل تفکیک‌شده داشته باشد.
+                💡 کاربر ایجاد شده فوراً می‌تواند لاگین کند. شما به عنوان مدیر می‌توانید دسترسی او به اکسل خود و همکاران را سفارشی‌سازی کنید.
               </div>
 
               <button
@@ -278,7 +302,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/25 transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>ثبت و ایجاد حساب کاربری</span>
+                <span>ثبت و ایجاد کاربر در حساب</span>
               </button>
             </form>
           </div>
@@ -289,7 +313,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="p-4 sm:p-5 border-b border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-800">
               <div className="flex items-center gap-2 self-start sm:self-center">
                 <Users className="w-5 h-5 text-indigo-400" />
-                <h2 className="text-sm font-bold text-white">لیست کاربران سامانه</h2>
+                <h2 className="text-sm font-bold text-white">
+                  {isHesam ? 'لیست تمام کاربران' : 'لیست همکاران این حساب'}
+                </h2>
                 <span className="text-2xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full font-bold">
                   {toPersianDigits(filteredUsers.length)} کاربر
                 </span>
@@ -311,12 +337,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="divide-y divide-slate-700/80 overflow-x-auto">
               {filteredUsers.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-400">
-                  کاربری با این مشخصات یافت نشد.
+                  کاربری با این مشخصات در حساب یافت نشد.
                 </div>
               ) : (
                 filteredUsers.map((user) => {
                   const userDashboards = getUserDashboards(user.id);
-                  const isHesam = user.username === 'hesam';
+                  const isThisUserHesam = user.username === 'hesam';
+                  const isThisUserAli = user.username === 'ali' || user.role === 'account_admin';
 
                   return (
                     <div
@@ -327,7 +354,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <div className="flex items-start gap-3">
                         <div
                           className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm ${
-                            isHesam
+                            isThisUserHesam
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                              : isThisUserAli
                               ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                               : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                           }`}
@@ -343,13 +372,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             <span className="font-mono text-2xs px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-700">
                               @{user.username}
                             </span>
-                            {isHesam ? (
+                            {isThisUserHesam ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                                مدیر کل ارشد سامانه
+                              </span>
+                            ) : isThisUserAli ? (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                                مدیر کل
+                                مدیر حساب (مالک)
                               </span>
                             ) : (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
-                                کاربر عادی
+                                همکار / مشاور املاک
                               </span>
                             )}
                           </div>
@@ -375,11 +408,47 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               </span>
                             )}
                           </div>
+
+                          {/* Quick Permission Badges */}
+                          {!isThisUserAli && !isThisUserHesam && (
+                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                              {user.permissions?.canViewAdminExcel ? (
+                                <span className="text-[10px] bg-emerald-950/60 text-emerald-300 border border-emerald-800/80 px-2 py-0.5 rounded-md font-medium">
+                                  ✓ مشاهده اکسل مدیر ({accountOwner?.displayName || 'علی'})
+                                </span>
+                              ) : (
+                                <span className="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-md">
+                                  ✕ بدون اکسل مدیر
+                                </span>
+                              )}
+                              {(user.permissions?.allowedUserExcelIds?.length || 0) > 0 && (
+                                <span className="text-[10px] bg-indigo-950/60 text-indigo-300 border border-indigo-800/80 px-2 py-0.5 rounded-md font-medium">
+                                  ✓ اکسل {toPersianDigits(user.permissions!.allowedUserExcelIds!.length)} همکار
+                                </span>
+                              )}
+                              {user.permissions?.canAccessAdminPanel && (
+                                <span className="text-[10px] bg-amber-950/60 text-amber-300 border border-amber-800/80 px-2 py-0.5 rounded-md font-medium">
+                                  ✓ دسترسی به پنل ادمین
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       {/* Action buttons */}
                       <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        {/* Customize user permissions */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUserForCustomization(user)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/25 active:scale-95 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                          title="سفارشی‌سازی تنظیمات و سطوح دسترسی این کاربر"
+                        >
+                          <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                          <span>سفارشی‌سازی دسترسی‌ها</span>
+                        </button>
+
                         {/* Switch / View this user's workspace */}
                         <button
                           type="button"
@@ -391,8 +460,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           <span>ورود به داشبورد</span>
                         </button>
 
-                        {/* Delete user (disabled for hesam) */}
-                        {!isHesam && (
+                        {/* Delete user (disabled for account owner and hesam) */}
+                        {!isThisUserAli && !isThisUserHesam && (
                           <button
                             type="button"
                             onClick={() => setUserToDelete(user)}
@@ -423,7 +492,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="text-center space-y-1">
               <h3 className="text-base font-bold text-white">حذف کاربر</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                آیا از حذف کاربر «<strong>{userToDelete.displayName}</strong>» با نام کاربری «<strong>{userToDelete.username}</strong>» و تمام ۵ داشبورد او مطمئن هستید؟ این عمل غیرقابل بازگشت است.
+                آیا از حذف کاربر «<strong>{userToDelete.displayName}</strong>» با نام کاربری «<strong>{userToDelete.username}</strong>» و تمام داشبوردهای او مطمئن هستید؟ این عمل غیرقابل بازگشت است.
               </p>
             </div>
 
@@ -445,6 +514,27 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* User Customization Modal */}
+      {selectedUserForCustomization && (
+        <UserCustomizationModal
+          isOpen={Boolean(selectedUserForCustomization)}
+          onClose={() => setSelectedUserForCustomization(null)}
+          user={selectedUserForCustomization}
+          accountOwner={accountOwner}
+          accountTeammates={users}
+          onSave={(userId, updates) => {
+            const res = updateUser(userId, updates);
+            if (res.success) {
+              setStatusMessage({ text: res.message, type: 'success' });
+              refreshUserList();
+            } else {
+              setStatusMessage({ text: res.message, type: 'error' });
+            }
+            setSelectedUserForCustomization(null);
+          }}
+        />
       )}
     </div>
   );

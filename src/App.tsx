@@ -16,15 +16,15 @@ import {
 } from './data/divarNajafabadData';
 import { LoginPage } from './components/LoginPage';
 import { AdminPanel } from './components/AdminPanel';
-import { HamburgerMenu } from './components/HamburgerMenu';
+import { HamburgerMenu, SharedExcelOption } from './components/HamburgerMenu';
 import { Navbar } from './components/Navbar';
 import { DivarSyncBanner } from './components/DivarSyncBanner';
-import { ExcelBanner } from './components/ExcelBanner';
 import { UploadDropzone } from './components/UploadDropzone';
 import { StatsOverview } from './components/StatsOverview';
 import { FilterPanel } from './components/FilterPanel';
 import { PropertyTable } from './components/PropertyTable';
 import { PropertyCardList } from './components/PropertyCardList';
+import { PropertyMap } from './components/PropertyMap';
 import { PropertyDetailModal } from './components/PropertyDetailModal';
 import { PropertyFormModal } from './components/PropertyFormModal';
 import { DivarAlertsModal, matchItemWithAlert } from './components/DivarAlertsModal';
@@ -37,6 +37,14 @@ import {
   getCurrentUser,
   setCurrentUser,
   logout as logoutUser,
+  getUsers,
+  updateUser,
+  createUser,
+  getUsersForAccount,
+  getAccountOwner,
+  getUserPrimaryDashboard,
+  getAdminUser,
+  getAdminPrimaryDashboard,
   getUserDashboards,
   saveSingleDashboard,
   createDashboard as createNewDashboard,
@@ -63,6 +71,7 @@ import {
   RefreshCw,
   ArrowUp,
   Menu,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 const INITIAL_FILTER: FilterState = {
@@ -103,19 +112,52 @@ export default function App() {
   // Target workspace user (when admin is previewing another user's workspace)
   const [workspaceUser, setWorkspaceUser] = useState<AppUser | null>(() => getCurrentUser());
 
-  // 2. Dashboards State for current workspace user (max 5 dashboards per user)
+  // 2. Dashboards State for current workspace user (max dashboards per user)
   const [userDashboards, setUserDashboards] = useState<UserDashboard[]>([]);
   const [activeDashboardId, setActiveDashId] = useState<string>('');
   const [isHamburgerOpen, setIsHamburgerOpen] = useState<boolean>(false);
 
-  // Active dashboard instance
+  // User Management & Permissions (Admin controls user customizations)
+  const [allUsers, setAllUsers] = useState<AppUser[]>(() => getUsers());
+  const refreshAllUsers = useCallback(() => {
+    setAllUsers(getUsers());
+  }, []);
+
+  // Account Owner and Teammates for current user
+  const accountOwner = useMemo(() => {
+    if (!currentUser) return null;
+    return getAccountOwner(currentUser.accountId || 'acc_ali') || null;
+  }, [currentUser, allUsers]);
+
+  const accountMembers = useMemo(() => {
+    if (!currentUser) return [];
+    return getUsersForAccount(currentUser.accountId || 'acc_ali', currentUser.username);
+  }, [currentUser, allUsers]);
+
+  // Shared Excel state (Supports viewing Ali's Excel or teammates' Excels e.g. Hamed, Reza)
+  const [activeSharedUserId, setActiveSharedUserId] = useState<string | null>(null);
+
+  const activeSharedUser = useMemo(() => {
+    if (!activeSharedUserId) return null;
+    return allUsers.find((u) => u.id === activeSharedUserId) || null;
+  }, [activeSharedUserId, allUsers]);
+
+  const activeSharedDashboard = useMemo(() => {
+    if (!activeSharedUserId) return null;
+    return getUserPrimaryDashboard(activeSharedUserId);
+  }, [activeSharedUserId, allUsers]);
+
+  // Active dashboard instance (either personal dashboard or shared user's dashboard)
   const activeDashboard = useMemo(() => {
+    if (activeSharedUserId && activeSharedDashboard) {
+      return activeSharedDashboard;
+    }
     return (
       userDashboards.find((d) => d.id === activeDashboardId) ||
       userDashboards[0] ||
       null
     );
-  }, [userDashboards, activeDashboardId]);
+  }, [activeSharedUserId, activeSharedDashboard, userDashboards, activeDashboardId]);
 
   // Load dashboards whenever workspaceUser changes
   const reloadDashboards = useCallback((userId: string, targetDashId?: string) => {
@@ -169,9 +211,20 @@ export default function App() {
     }
   }, [activeDashboard?.id]);
 
-  // Save current dashboard state to storage
+  // Save current dashboard state to storage (routes to shared user dashboard if viewing shared Excel)
   const persistActiveDashboard = useCallback(
     (updates: Partial<UserDashboard>) => {
+      if (activeSharedUserId && activeSharedDashboard) {
+        const updated: UserDashboard = {
+          ...activeSharedDashboard,
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        };
+        saveSingleDashboard(activeSharedUserId, updated);
+        refreshAllUsers();
+        return;
+      }
+
       if (!workspaceUser || !activeDashboard) return;
       const updated: UserDashboard = {
         ...activeDashboard,
@@ -183,7 +236,7 @@ export default function App() {
         prev.map((d) => (d.id === updated.id ? updated : d))
       );
     },
-    [workspaceUser, activeDashboard]
+    [workspaceUser, activeDashboard, activeSharedUserId, activeSharedDashboard, refreshAllUsers]
   );
 
   // Property Form Modal for Excel CRUD
@@ -194,7 +247,7 @@ export default function App() {
   const [filter, setFilter] = useState<FilterState>(INITIAL_FILTER);
   const [sortField, setSortField] = useState<SortField>('rowNumber');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [activeView, setActiveView] = useState<'table' | 'cards'>('cards');
+  const [activeView, setActiveView] = useState<'table' | 'cards' | 'map'>('cards');
   const [usePersianDigits, setUsePersianDigits] = useState<boolean>(true);
   const [selectedItem, setSelectedItem] = useState<RealEstateItem | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -285,6 +338,7 @@ export default function App() {
 
   // Dashboard Management Handlers
   const handleSelectDashboard = (dashboardId: string) => {
+    setActiveSharedUserId(null);
     if (!workspaceUser) return;
     setActiveDashboardId(workspaceUser.id, dashboardId);
     setActiveDashId(dashboardId);
@@ -294,6 +348,140 @@ export default function App() {
       showToast(`داشبورد «${target.title}» بارگذاری شد.`, 'success');
     }
   };
+
+  const handleSelectSharedExcel = (userId: string) => {
+    setActiveSharedUserId(userId);
+    setCurrentMode('excel');
+    setCurrentPage(1);
+    const target = allUsers.find((u) => u.id === userId);
+    showToast(`اکسل اشتراکی «${target?.displayName || 'همکار'}» بارگذاری شد.`, 'success');
+  };
+
+  const handleCreateAccountMember = (data: {
+    username: string;
+    password: string;
+    displayName: string;
+  }) => {
+    const res = createUser({
+      username: data.username,
+      password: data.password,
+      displayName: data.displayName,
+      accountId: currentUser?.accountId || 'acc_ali',
+      accountOwnerUsername: currentUser?.username,
+    });
+    refreshAllUsers();
+    showToast(res.message, res.success ? 'success' : 'error');
+  };
+
+  // Shared Excels available in this account for the logged-in user
+  const sharedExcels: SharedExcelOption[] = useMemo(() => {
+    if (!currentUser) return [];
+    const list: SharedExcelOption[] = [];
+
+    // 1. Account Owner's Excel (Ali's Excel) - available if user is not Ali and canViewAdminExcel is true
+    if (
+      accountOwner &&
+      accountOwner.id !== currentUser.id &&
+      currentUser.permissions?.canViewAdminExcel
+    ) {
+      const ownerDash = getUserPrimaryDashboard(accountOwner.id);
+      if (ownerDash) {
+        list.push({
+          userId: accountOwner.id,
+          ownerName: accountOwner.displayName,
+          title: ownerDash.title || `اکسل مدیر (${accountOwner.displayName})`,
+          itemCount: ownerDash.excelData?.length || 0,
+          isAccountAdmin: true,
+          canAdd: Boolean(currentUser.permissions?.canAddToAdminExcel),
+        });
+      }
+    }
+
+    // 2. Cross-Member Excels (Reza seeing Hamed's Excel, Hamed seeing Reza's Excel)
+    const allowedIds = currentUser.permissions?.allowedUserExcelIds || [];
+    allowedIds.forEach((teammateId) => {
+      if (teammateId !== currentUser.id && teammateId !== accountOwner?.id) {
+        const teammate = allUsers.find((u) => u.id === teammateId);
+        if (teammate) {
+          const teamDash = getUserPrimaryDashboard(teammate.id);
+          if (teamDash) {
+            list.push({
+              userId: teammate.id,
+              ownerName: teammate.displayName,
+              title: teamDash.title || `اکسل ${teammate.displayName}`,
+              itemCount: teamDash.excelData?.length || 0,
+              isAccountAdmin: false,
+              canAdd: false,
+            });
+          }
+        }
+      }
+    });
+
+    return list;
+  }, [currentUser, accountOwner, allUsers]);
+
+  const handleUpdateUser = useCallback(
+    (userId: string, updates: Partial<AppUser>) => {
+      const res = updateUser(userId, updates);
+      refreshAllUsers();
+      if (res.user && workspaceUser?.id === userId) {
+        setWorkspaceUser(res.user);
+      }
+      if (res.user && currentUser?.id === userId) {
+        setLoggedInUser(res.user);
+      }
+      showToast(res.message, res.success ? 'success' : 'error');
+    },
+    [workspaceUser, currentUser, refreshAllUsers, showToast]
+  );
+
+  // Permission checkers based on Admin customizations
+  const canSeeAdminPanel = Boolean(
+    currentUser?.role === 'superadmin' ||
+    currentUser?.role === 'account_admin' ||
+    currentUser?.username === 'ali' ||
+    currentUser?.username === 'hesam' ||
+    currentUser?.permissions?.canAccessAdminPanel
+  );
+
+  const canAddProperty = useMemo(() => {
+    if (!activeSharedUserId) return true; // personal dashboard
+    if (currentUser?.username === 'hesam') return true;
+    if (accountOwner && activeSharedUserId === accountOwner.id) {
+      if (currentUser?.id === accountOwner.id) return true;
+      return Boolean(currentUser?.permissions?.canAddToAdminExcel);
+    }
+    return false; // other teammate's excel is view-only
+  }, [activeSharedUserId, accountOwner, currentUser]);
+
+  const canEditProperty = useCallback(
+    (item: RealEstateItem): boolean => {
+      if (!activeSharedUserId) return true; // personal dashboard
+      if (currentUser?.username === 'hesam') return true;
+      if (accountOwner && activeSharedUserId === accountOwner.id) {
+        if (currentUser?.id === accountOwner.id) return true;
+        if (currentUser?.permissions?.canEditOthersItemsInAdminExcel) return true;
+        return Boolean(item.createdByUserId && item.createdByUserId === currentUser?.id);
+      }
+      return false;
+    },
+    [activeSharedUserId, accountOwner, currentUser]
+  );
+
+  const canDeleteProperty = useCallback(
+    (item: RealEstateItem): boolean => {
+      if (!activeSharedUserId) return true;
+      if (currentUser?.username === 'hesam') return true;
+      if (accountOwner && activeSharedUserId === accountOwner.id) {
+        if (currentUser?.id === accountOwner.id) return true;
+        if (currentUser?.permissions?.canDeleteFromAdminExcel) return true;
+        return Boolean(item.createdByUserId && item.createdByUserId === currentUser?.id);
+      }
+      return false;
+    },
+    [activeSharedUserId, accountOwner, currentUser]
+  );
 
   const handleCreateDashboard = (title?: string) => {
     if (!workspaceUser) return;
@@ -340,11 +528,19 @@ export default function App() {
   };
 
   const handleOpenAddPropertyModal = () => {
+    if (activeSharedUserId && !canAddProperty) {
+      showToast('شما مجوز افزودن ملک به این اکسل را ندارید.', 'error');
+      return;
+    }
     setPropertyToEdit(null);
     setIsPropertyFormOpen(true);
   };
 
   const handleOpenEditPropertyModal = (item: RealEstateItem) => {
+    if (!canEditProperty(item)) {
+      showToast('شما فقط مجاز به ویرایش املاکی هستید که خودتان ثبت کرده‌اید.', 'error');
+      return;
+    }
     setPropertyToEdit(item);
     setIsPropertyFormOpen(true);
   };
@@ -364,6 +560,8 @@ export default function App() {
         id: newId,
         rowNumber: newRowNumber,
         source: 'excel',
+        createdByUserId: currentUser?.id,
+        createdByUsername: currentUser?.displayName || currentUser?.username,
       } as RealEstateItem;
       updated = [newItem, ...excelData];
       showToast('ملک جدید به این داشبورد اضافه شد.', 'success');
@@ -378,6 +576,10 @@ export default function App() {
   };
 
   const handleDeleteProperty = (itemToDelete: RealEstateItem) => {
+    if (!canDeleteProperty(itemToDelete)) {
+      showToast('شما مجوز حذف این ملک را ندارید.', 'error');
+      return;
+    }
     setPropertyToDelete(itemToDelete);
   };
 
@@ -449,6 +651,48 @@ export default function App() {
       });
 
       showToast(`ملک «${item.title}» مستقیماً به جدول اکسل افزوده شد!`, 'success');
+    },
+    [excelData, persistActiveDashboard, showToast]
+  );
+
+  // Add multiple Divar items from an alert result directly into Excel sheet
+  const handleAddMultipleDivarItemsToExcel = useCallback(
+    (itemsToAdd: RealEstateItem[]) => {
+      const itemsToInsert: RealEstateItem[] = [];
+      for (const item of itemsToAdd) {
+        const alreadyExists = excelData.some(
+          (ex) =>
+            (ex.divarToken && item.divarToken && ex.divarToken === item.divarToken) ||
+            (ex.title === item.title && ex.address === item.address)
+        );
+        if (!alreadyExists) {
+          itemsToInsert.push(item);
+        }
+      }
+
+      if (itemsToInsert.length === 0) {
+        showToast('تمام این املاک قبلاً در جدول اکسل شما ذخیره شده‌اند.', 'alert');
+        return;
+      }
+
+      const startId = excelData.length > 0 ? Math.max(...excelData.map((i) => i.id)) : 0;
+      let curRow = excelData.length;
+      const formattedNew: RealEstateItem[] = itemsToInsert.map((item, idx) => ({
+        ...item,
+        id: startId + idx + 1,
+        rowNumber: curRow + idx + 1,
+        source: 'excel',
+      }));
+
+      const newExcelData = [...formattedNew, ...excelData];
+      setExcelData(newExcelData);
+      setHasExcelModifications(true);
+      persistActiveDashboard({
+        excelData: newExcelData,
+        hasExcelModifications: true,
+      });
+
+      showToast(`${toPersianDigits(itemsToInsert.length)} ملک با موفقیت به جدول اکسل اضافه شد!`, 'success');
     },
     [excelData, persistActiveDashboard, showToast]
   );
@@ -619,7 +863,10 @@ export default function App() {
       let valA: any = a[sortField];
       let valB: any = b[sortField];
 
-      if (sortField === 'pricePerMeter') {
+      if (sortField === 'age') {
+        valA = a.builtYear ?? (a.age !== undefined ? (a.age > 1300 ? a.age : a.age === 0 ? 1403 : 1403 - a.age) : 0);
+        valB = b.builtYear ?? (b.age !== undefined ? (b.age > 1300 ? b.age : b.age === 0 ? 1403 : 1403 - b.age) : 0);
+      } else if (sortField === 'pricePerMeter') {
         valA = a.price && a.area ? a.price / a.area : 0;
         valB = b.price && b.area ? b.price / b.area : 0;
       }
@@ -785,15 +1032,55 @@ export default function App() {
           setCurrentPage(1);
         }}
         onOpenHamburgerMenu={() => setIsHamburgerOpen(true)}
-        activeDashboardTitle={activeDashboard?.title}
+        activeDashboardTitle={
+          activeSharedUserId
+            ? (activeDashboard?.title || 'اکسل اشتراکی')
+            : activeDashboard?.title
+        }
         currentUserName={workspaceUser?.displayName}
-        isAdmin={currentUser?.role === 'admin' || currentUser?.username === 'hesam'}
-        onOpenAdminPanel={() => setCurrentScreen('admin')}
+        isAdmin={canSeeAdminPanel}
+        onOpenAdminPanel={canSeeAdminPanel ? () => setCurrentScreen('admin') : undefined}
         onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 sm:pb-8">
+        {/* Banner for Shared Excel viewing */}
+        {activeSharedUserId && currentMode === 'excel' && (
+          <div className="bg-amber-50/90 border border-amber-300 text-amber-950 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-bold mb-5 shadow-xs animate-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <FileSpreadsheet className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black text-amber-900">
+                    در حال مشاهده: {activeDashboard?.title}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-950 border border-amber-300">
+                    اکسل اشتراکی
+                  </span>
+                </div>
+                <div className="text-[11px] text-amber-800 font-normal mt-0.5">
+                  مالک فایل: {activeSharedUser?.displayName} (@{activeSharedUser?.username}) •
+                  {canAddProperty ? ' شما مجاز به ثبت ملک جدید در این اکسل هستید.' : ' فقط مشاهده املاک.'}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSharedUserId(null);
+                showToast('به داشبورد شخصی خود بازگشتید.', 'success');
+              }}
+              className="w-full sm:w-auto px-4 py-2 bg-white hover:bg-slate-100 active:scale-95 text-slate-800 rounded-xl text-xs font-bold border border-slate-300 cursor-pointer shadow-2xs transition-all text-center"
+            >
+              بازگشت به داشبورد شخصی من
+            </button>
+          </div>
+        )}
+
         {/* Banner */}
         {currentMode === 'divar' ? (
           <DivarSyncBanner
@@ -815,44 +1102,31 @@ export default function App() {
             matchedAlertsCount={matchedAlertItems.length}
           />
         ) : (
-          <>
-            <ExcelBanner
-              fileName={excelFileName}
-              totalItems={excelData.length}
-              filteredItemsCount={filteredAndSortedItems.length}
-              onUploadClick={() => setShowExcelDropzone((prev) => !prev)}
-              onExportExcel={handleExportFiltered}
-              onAddNewProperty={handleOpenAddPropertyModal}
-              usePersianDigits={usePersianDigits}
-              hasUnsavedChanges={hasExcelModifications}
-            />
-
-            {/* Expandable Excel File Upload Dropzone */}
-            {(showExcelDropzone || excelData.length === 0) && (
-              <div className="relative mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-slate-700">
-                    بارگذاری فایل اکسل در داشبورد فعلی ({activeDashboard?.title}):
-                  </span>
-                  {excelData.length > 0 && (
-                    <button
-                      onClick={() => setShowExcelDropzone(false)}
-                      className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
-                    >
-                      <ChevronUp className="w-4 h-4" />
-                      <span>بستن باکس آپلود</span>
-                    </button>
-                  )}
-                </div>
-                <UploadDropzone
-                  onDataLoaded={handleExcelDataLoaded}
-                  currentFileName={excelFileName}
-                  totalLoadedItems={excelData.length}
-                  usePersianDigits={usePersianDigits}
-                />
+          /* Expandable Excel File Upload Dropzone (shown on request or when dashboard is empty) */
+          (showExcelDropzone || excelData.length === 0) ? (
+            <div className="relative mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-700">
+                  بارگذاری فایل اکسل در داشبورد فعلی ({activeDashboard?.title}):
+                </span>
+                {excelData.length > 0 && (
+                  <button
+                    onClick={() => setShowExcelDropzone(false)}
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                    <span>بستن باکس آپلود</span>
+                  </button>
+                )}
               </div>
-            )}
-          </>
+              <UploadDropzone
+                onDataLoaded={handleExcelDataLoaded}
+                currentFileName={excelFileName}
+                totalLoadedItems={excelData.length}
+                usePersianDigits={usePersianDigits}
+              />
+            </div>
+          ) : null
         )}
 
         {/* Stats Overview */}
@@ -910,7 +1184,15 @@ export default function App() {
 
           {/* Main Results View */}
           <div className="lg:col-span-3 space-y-4">
-            {activeView === 'table' ? (
+            {activeView === 'map' ? (
+              <PropertyMap
+                items={filteredAndSortedItems}
+                onSelectProperty={setSelectedItem}
+                onAddToExcel={handleAddDivarItemToExcel}
+                isExcelMode={currentMode === 'excel'}
+                usePersianDigits={usePersianDigits}
+              />
+            ) : activeView === 'table' ? (
               <PropertyTable
                 items={paginatedItems}
                 sortField={sortField}
@@ -925,6 +1207,8 @@ export default function App() {
                 onEditItem={handleOpenEditPropertyModal}
                 onDeleteItem={handleDeleteProperty}
                 onAddToExcel={handleAddDivarItemToExcel}
+                canEditItem={canEditProperty}
+                canDeleteItem={canDeleteProperty}
               />
             ) : (
               <PropertyCardList
@@ -936,24 +1220,28 @@ export default function App() {
                 onDeleteItem={handleDeleteProperty}
                 onAddToExcel={handleAddDivarItemToExcel}
                 onAddToAlerts={handleOpenAlertsWithItem}
+                canEditItem={canEditProperty}
+                canDeleteItem={canDeleteProperty}
               />
             )}
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={currentPage}
-              totalItems={filteredAndSortedItems.length}
-              pageSize={pageSize}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={setPageSize}
-              usePersianDigits={usePersianDigits}
-            />
+            {/* Pagination: only displayed in table and cards view */}
+            {activeView !== 'map' && (
+              <Pagination
+                currentPage={currentPage}
+                totalItems={filteredAndSortedItems.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                usePersianDigits={usePersianDigits}
+              />
+            )}
           </div>
         </div>
       </main>
 
       {/* Authentic Telegram-style Floating Action Button (FAB) at the bottom corner */}
-      {currentMode === 'excel' ? (
+      {currentMode === 'excel' && canAddProperty ? (
         <div className="fixed bottom-6 left-6 z-40 animate-in zoom-in-75 duration-200">
           <button
             id="telegram-fab-add-property"
@@ -970,7 +1258,7 @@ export default function App() {
             </span>
           </button>
         </div>
-      ) : (
+      ) : currentMode === 'divar' ? (
         <div className="fixed bottom-6 left-6 z-40 animate-in zoom-in-75 duration-200">
           <button
             id="telegram-fab-divar-alerts"
@@ -990,14 +1278,16 @@ export default function App() {
             </span>
           </button>
         </div>
-      )}
+      ) : null}
 
       {/* Hamburger Menu Drawer */}
       {workspaceUser && (
         <HamburgerMenu
           isOpen={isHamburgerOpen}
           onClose={() => setIsHamburgerOpen(false)}
-          currentUser={workspaceUser}
+          currentUser={currentUser}
+          accountOwner={accountOwner}
+          accountMembers={accountMembers}
           currentMode={currentMode}
           onSelectMode={(m) => {
             setCurrentMode(m);
@@ -1009,8 +1299,24 @@ export default function App() {
           onCreateDashboard={handleCreateDashboard}
           onRenameDashboard={handleRenameDashboard}
           onDeleteDashboard={handleDeleteDashboard}
+          onUploadExcel={() => {
+            setIsHamburgerOpen(false);
+            setShowExcelDropzone(true);
+          }}
+          onExportExcel={() => {
+            setIsHamburgerOpen(false);
+            handleExportFiltered();
+          }}
+          excelItemCount={excelData.length}
+          hasExcelModifications={hasExcelModifications}
+          allUsers={allUsers}
+          onUpdateUser={handleUpdateUser}
+          onCreateAccountMember={handleCreateAccountMember}
+          sharedExcels={sharedExcels}
+          activeSharedUserId={activeSharedUserId}
+          onSelectSharedExcel={handleSelectSharedExcel}
           onOpenAdminPanel={
-            currentUser?.role === 'admin' || currentUser?.username === 'hesam'
+            canSeeAdminPanel
               ? () => {
                   setCurrentScreen('admin');
                   setIsHamburgerOpen(false);
@@ -1104,8 +1410,10 @@ export default function App() {
         usePersianDigits={usePersianDigits}
         divarItems={divarData}
         currentDivarItems={divarData}
+        excelItems={excelData}
         onSelectProperty={setSelectedItem}
         onAddToExcel={handleAddDivarItemToExcel}
+        onAddMultipleToExcel={handleAddMultipleDivarItemsToExcel}
         initialFilter={alertsInitialFilter}
         initialItem={alertsInitialItem}
       />
