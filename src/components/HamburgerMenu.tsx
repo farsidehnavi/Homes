@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   FileSpreadsheet,
@@ -118,6 +118,21 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [newMemberDisplayName, setNewMemberDisplayName] = useState('');
   const [memberError, setMemberError] = useState('');
 
+  // Close panel on Escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // If menu is closed, do not render anything
+  if (!isOpen) return null;
+
   const isAccountHead =
     currentUser.role === 'account_admin' ||
     currentUser.role === 'superadmin' ||
@@ -184,15 +199,19 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex font-['Vazirmatn',sans-serif]">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex justify-start font-['Vazirmatn',sans-serif]">
+      {/* Backdrop - Clicking closes the drawer */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 cursor-pointer"
         onClick={onClose}
+        aria-label="بستن منو"
       />
 
       {/* Drawer Container (Right side in RTL) */}
-      <div className="relative mr-auto w-full max-w-xs sm:max-w-sm bg-white h-full shadow-2xl z-10 flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-300">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-xs sm:max-w-sm bg-white h-full shadow-2xl z-10 flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-300"
+      >
         {/* Drawer Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-2.5">
@@ -210,9 +229,12 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
           </div>
 
           <button
+            id="close-hamburger-menu-btn"
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition-all cursor-pointer"
             title="بستن منو"
+            aria-label="بستن منو"
           >
             <X className="w-5 h-5" />
           </button>
@@ -837,6 +859,17 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
         {/* Drawer Footer Actions */}
         <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-2">
+          {/* Explicit Close Menu Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2.5 px-3 rounded-xl bg-slate-200/90 hover:bg-slate-300 active:scale-98 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+            title="بستن منوی سایدبار"
+          >
+            <X className="w-4 h-4 text-slate-600" />
+            <span>بستن منو</span>
+          </button>
+
           {/* Admin panel button if user has permission */}
           {canAccessAdmin && onOpenAdminPanel && (
             <button

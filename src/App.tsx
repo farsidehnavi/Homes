@@ -1217,7 +1217,7 @@ export default function App() {
       ) : null}
 
       {/* Hamburger Menu Drawer */}
-      {workspaceUser && (
+      {workspaceUser && isHamburgerOpen && (
         <HamburgerMenu
           isOpen={isHamburgerOpen}
           onClose={() => setIsHamburgerOpen(false)}
