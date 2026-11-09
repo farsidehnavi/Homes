@@ -237,9 +237,6 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
       {/* Title & basic info */}
       <div>
         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-            ردیف {fmt(item.rowNumber)}
-          </span>
           <span
             className={`px-2.5 py-0.5 rounded-full text-xs font-bold text-white shadow-2xs ${
               isRent ? 'bg-blue-600' : 'bg-emerald-600'
@@ -713,15 +710,15 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             </button>
 
             <div className="flex items-center gap-1.5 truncate max-w-[200px]">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 shrink-0">
-                ردیف {fmt(item.rowNumber)}
-              </span>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-bold text-white shrink-0 ${
                   isRent ? 'bg-blue-600' : 'bg-emerald-600'
                 }`}
               >
                 {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 truncate">
+                {item.propertyType}
               </span>
             </div>
 
@@ -756,9 +753,6 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           {/* Desktop Modal Header */}
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-800">
-                ردیف {fmt(item.rowNumber)}
-              </span>
               <span
                 className={`px-3 py-1 rounded-full text-xs font-bold text-white ${
                   isRent ? 'bg-blue-600' : 'bg-emerald-600'

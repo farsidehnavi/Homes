@@ -118,7 +118,11 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [newMemberDisplayName, setNewMemberDisplayName] = useState('');
   const [memberError, setMemberError] = useState('');
 
-  if (!isOpen) return null;
+  const isAccountHead =
+    currentUser.role === 'account_admin' ||
+    currentUser.role === 'superadmin' ||
+    currentUser.username === 'ali' ||
+    currentUser.username === 'hesam';
 
   // Only Hesam has the Admin Panel. Ali customizes members directly in the Hamburger menu.
   const canAccessAdmin =
@@ -668,18 +672,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   <Sliders className="w-4 h-4 text-amber-600" />
                   <span>مدیریت کاربران حساب (همکاران)</span>
                 </div>
-                {onOpenAdminPanel && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onOpenAdminPanel();
-                      onClose();
-                    }}
-                    className="text-[10px] text-amber-700 hover:text-amber-800 font-bold hover:underline cursor-pointer"
-                  >
-                    پنل کامل
-                  </button>
-                )}
               </div>
 
               <p className="text-[11px] text-slate-500 leading-relaxed px-1">
