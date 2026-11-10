@@ -39,6 +39,7 @@ import {
   getUsers,
   updateUser,
   createUser,
+  deleteUser,
   getUsersForAccount,
   getAccountOwner,
   getUserPrimaryDashboard,
@@ -104,7 +105,7 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<'login' | 'admin' | 'workspace'>(() => {
     const user = getCurrentUser();
     if (!user) return 'login';
-    if (user.role === 'admin' || user.username === 'hesam') return 'admin';
+    if (user.role === 'superadmin' || user.username === 'hesam') return 'admin';
     return 'workspace';
   });
 
@@ -308,9 +309,9 @@ export default function App() {
   const handleLoginSuccess = (user: AppUser) => {
     setLoggedInUser(user);
     setWorkspaceUser(user);
-    if (user.role === 'admin' || user.username === 'hesam') {
+    if (user.role === 'superadmin' || user.username === 'hesam') {
       setCurrentScreen('admin');
-      showToast(`خوش آمدید حسام عزیز! وارد پنل مدیریت شدید.`, 'success');
+      showToast(`خوش آمدید حسام عزیز! وارد پنل مدیریت کل شدید.`, 'success');
     } else {
       setCurrentScreen('workspace');
       setCurrentMode('excel');
@@ -367,7 +368,14 @@ export default function App() {
       displayName: data.displayName,
       accountId: currentUser?.accountId || 'acc_ali',
       accountOwnerUsername: currentUser?.username,
+      isAccountHead: false,
     });
+    refreshAllUsers();
+    showToast(res.message, res.success ? 'success' : 'error');
+  };
+
+  const handleDeleteAccountMember = (memberId: string) => {
+    const res = deleteUser(memberId);
     refreshAllUsers();
     showToast(res.message, res.success ? 'success' : 'error');
   };
@@ -1250,6 +1258,7 @@ export default function App() {
           allUsers={allUsers}
           onUpdateUser={handleUpdateUser}
           onCreateAccountMember={handleCreateAccountMember}
+          onDeleteAccountMember={handleDeleteAccountMember}
           sharedExcels={sharedExcels}
           activeSharedUserId={activeSharedUserId}
           onSelectSharedExcel={handleSelectSharedExcel}

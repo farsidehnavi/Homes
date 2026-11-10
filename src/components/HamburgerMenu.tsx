@@ -62,6 +62,7 @@ interface HamburgerMenuProps {
     password: string;
     displayName: string;
   }) => void;
+  onDeleteAccountMember?: (memberId: string) => void;
   adminDashboard?: UserDashboard | null;
   isViewingAdminSharedExcel?: boolean;
   onSelectAdminSharedExcel?: () => void;
@@ -95,6 +96,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   allUsers = [],
   onUpdateUser,
   onCreateAccountMember,
+  onDeleteAccountMember,
   adminDashboard,
   isViewingAdminSharedExcel = false,
   onSelectAdminSharedExcel,
@@ -110,6 +112,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [dashboardToDelete, setDashboardToDelete] = useState<UserDashboard | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<AppUser | null>(null);
 
   // New member creation form state inside Hamburger Menu
   const [showAddMemberForm, setShowAddMemberForm] = useState(false);
@@ -839,15 +842,31 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => setSelectedUserForCustomization(member)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-amber-50 active:scale-95 text-slate-800 hover:text-amber-900 border border-slate-200 hover:border-amber-300 rounded-xl text-2xs font-bold transition-all shadow-2xs shrink-0 cursor-pointer"
-                          title="تنظیم فهرست اختیارات و دسترسی‌های این کاربر"
-                        >
-                          <Sliders className="w-3.5 h-3.5 text-amber-600" />
-                          <span>تنظیم دسترسی</span>
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedUserForCustomization(member)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-amber-50 active:scale-95 text-slate-800 hover:text-amber-900 border border-slate-200 hover:border-amber-300 rounded-xl text-2xs font-bold transition-all shadow-2xs cursor-pointer"
+                            title="تنظیم فهرست اختیارات و دسترسی‌های این کاربر"
+                          >
+                            <Sliders className="w-3.5 h-3.5 text-amber-600" />
+                            <span>دسترسی</span>
+                          </button>
+
+                          {onDeleteAccountMember && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMemberToDelete(member);
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+                              title="حذف این کاربر از حساب"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })
@@ -953,6 +972,54 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               <button
                 type="button"
                 onClick={() => setDashboardToDelete(null)}
+                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
+              >
+                انصراف
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal to Delete Account Member */}
+      {memberToDelete && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setMemberToDelete(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-right animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-sm">
+              <Trash2 className="w-7 h-7 text-rose-500" />
+            </div>
+
+            <h3 className="text-base font-black text-slate-900 text-center mb-2">
+              حذف همکار «{memberToDelete.displayName}»
+            </h3>
+
+            <p className="text-xs text-slate-500 leading-relaxed text-center mb-6">
+              آیا از حذف این کاربر با نام کاربری «<strong>@{memberToDelete.username}</strong>» از حساب خود اطمینان دارید؟ تمامی دسترسی‌ها و اطلاعات داشبورد او پاکسازی خواهد شد.
+            </p>
+
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  const idToDelete = memberToDelete.id;
+                  setMemberToDelete(null);
+                  onDeleteAccountMember?.(idToDelete);
+                }}
+                className="flex-1 py-3 px-4 bg-rose-600 hover:bg-rose-700 active:scale-98 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md shadow-rose-600/30 flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>بله، حذف همکار</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMemberToDelete(null)}
                 className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
               >
                 انصراف

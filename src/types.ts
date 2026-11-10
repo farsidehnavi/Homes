@@ -177,6 +177,8 @@ export interface AppUser {
   createdAt: string;
   lastLoginAt?: string;
   maxDashboards?: number; // default 5
+  isSuspended?: boolean; // آیا کاربر توسط حسام مسدود/تعلیق شده است
+  suspendedAt?: string; // تاریخ و زمان تعلیق
   permissions?: UserPermissions;
 }
 

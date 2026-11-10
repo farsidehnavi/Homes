@@ -7,6 +7,7 @@ import {
   ADMIN_USER_PERMISSIONS,
 } from '../types';
 import { DIVAR_NAJAFABAD_24H_DATA } from '../data/divarNajafabadData';
+import { toPersianDigits } from './formatters';
 
 const USERS_STORAGE_KEY = 'najafabad_realestate_users_v2';
 const CURRENT_USER_KEY = 'najafabad_realestate_current_user_v2';
@@ -91,32 +92,43 @@ export function getUsers(): AppUser[] {
     let list: AppUser[] = [];
     if (!raw) {
       list = DEFAULT_USERS;
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
     } else {
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed) || parsed.length === 0) {
         list = DEFAULT_USERS;
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
       } else {
         list = parsed;
       }
     }
 
-    // Ensure all 4 core users (hesam, ali, reza, hamed) exist
-    for (const defUser of DEFAULT_USERS) {
-      if (!list.some((u) => u.username === defUser.username)) {
-        list.push(defUser);
-      }
+    // Ensure ONLY hesam (superadmin) always exists so admin access is never locked out
+    if (!list.some((u) => u.username === 'hesam')) {
+      const hesamDef = DEFAULT_USERS.find((u) => u.username === 'hesam') || {
+        id: 'user_hesam',
+        accountId: 'system',
+        username: 'hesam',
+        password: 'hesam',
+        displayName: 'حسام (مدیر کل ارشد سامانه)',
+        role: 'superadmin',
+        createdAt: new Date().toISOString(),
+        maxDashboards: 5,
+        permissions: ADMIN_USER_PERMISSIONS,
+      };
+      list.push(hesamDef);
     }
 
     // Guarantee full valid fields and permissions on all users
     const mapped: AppUser[] = list.map((u) => {
       const isSuper = u.role === 'superadmin' || u.username === 'hesam';
-      const isAccAdmin = u.role === 'account_admin' || u.username === 'ali';
+      const isAccAdmin = u.role === 'account_admin' || (!u.accountOwnerUsername && !isSuper);
       const role = isSuper ? 'superadmin' : isAccAdmin ? 'account_admin' : 'member';
       const basePerms = (isSuper || isAccAdmin) ? ADMIN_USER_PERMISSIONS : DEFAULT_USER_PERMISSIONS;
 
       return {
         ...u,
-        accountId: u.accountId || (isSuper ? 'system' : 'acc_ali'),
+        accountId: u.accountId || (isSuper ? 'system' : `acc_${u.username}`),
         accountOwnerUsername: u.accountOwnerUsername || (isAccAdmin ? undefined : 'ali'),
         role,
         maxDashboards: u.maxDashboards || 5,
@@ -134,6 +146,15 @@ export function getUsers(): AppUser[] {
     console.error('Failed to parse users from localStorage', e);
     return DEFAULT_USERS;
   }
+}
+
+// Returns ONLY account heads (each user/account that Hesam manages, e.g. Ali, and accounts created by Hesam)
+// Strictly excludes subusers (e.g. Reza, Hamed) and excludes Hesam himself
+export function getAccountHeads(): AppUser[] {
+  const users = getUsers();
+  return users.filter(
+    (u) => u.username !== 'hesam' && (u.role === 'account_admin' || (!u.accountOwnerUsername && u.role !== 'member'))
+  );
 }
 
 export function saveUsers(users: AppUser[]): void {
@@ -168,6 +189,7 @@ export function createUser(data: {
   displayName: string;
   accountId?: string;
   accountOwnerUsername?: string;
+  isAccountHead?: boolean;
   permissions?: Partial<UserPermissions>;
   maxDashboards?: number;
 }): { success: boolean; message: string; user?: AppUser } {
@@ -183,22 +205,25 @@ export function createUser(data: {
     return { success: false, message: 'این نام کاربری قبلاً در سامانه ثبت شده است.' };
   }
 
-  const accountId = data.accountId || 'acc_ali';
+  const isHead = Boolean(data.isAccountHead);
+  const accountId = isHead ? `acc_${trimmedUser}` : (data.accountId || 'acc_ali');
+  const role = isHead ? 'account_admin' : 'member';
+  const basePerms = isHead ? ADMIN_USER_PERMISSIONS : DEFAULT_USER_PERMISSIONS;
+
   const newUser: AppUser = {
     id: 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
     accountId,
-    accountOwnerUsername: data.accountOwnerUsername || 'ali',
+    accountOwnerUsername: isHead ? undefined : (data.accountOwnerUsername || 'ali'),
     username: trimmedUser,
     password: data.password.trim(),
     displayName: data.displayName.trim() || trimmedUser,
-    role: 'member',
+    role,
     createdAt: new Date().toISOString(),
     maxDashboards: data.maxDashboards || 5,
+    isSuspended: false,
     permissions: {
-      ...DEFAULT_USER_PERMISSIONS,
-      canAccessAdminPanel: false,
-      canViewAdminExcel: false,
-      canAddToAdminExcel: false,
+      ...basePerms,
+      canAccessAdminPanel: false, // Hesam only has admin panel
       allowedUserExcelIds: [],
       ...(data.permissions || {}),
     },
@@ -207,10 +232,19 @@ export function createUser(data: {
   users.push(newUser);
   saveUsers(users);
 
-  // Automatically seed first clean dashboard for the new user
-  createDashboard(newUser.id, `داشبورد ${newUser.displayName}`);
+  // Automatically seed first dashboard for the new user
+  createDashboard(
+    newUser.id,
+    isHead ? `اکسل املاک ${newUser.displayName}` : `داشبورد ${newUser.displayName}`
+  );
 
-  return { success: true, message: `کاربر «${newUser.displayName}» به حساب کاربری اضافه شد.`, user: newUser };
+  return {
+    success: true,
+    message: isHead
+      ? `مدیر حساب «${newUser.displayName}» با موفقیت تعریف شد. او به تمام امکانات و اکسل دسترسی دارد.`
+      : `همکار «${newUser.displayName}» به حساب اضافه شد.`,
+    user: newUser,
+  };
 }
 
 export function updateUser(
@@ -245,6 +279,15 @@ export function updateUser(
     target.maxDashboards = Math.max(1, Math.min(10, updates.maxDashboards));
   }
 
+  if (updates.isSuspended !== undefined) {
+    target.isSuspended = updates.isSuspended;
+    if (target.isSuspended) {
+      target.suspendedAt = new Date().toISOString();
+    } else {
+      delete target.suspendedAt;
+    }
+  }
+
   if (updates.permissions) {
     const base = target.permissions || DEFAULT_USER_PERMISSIONS;
     target.permissions = {
@@ -260,24 +303,99 @@ export function updateUser(
   // Sync current user session if it matches
   const current = getCurrentUser();
   if (current && current.id === userId) {
-    setCurrentUser(target);
+    if (target.isSuspended) {
+      logout();
+    } else {
+      setCurrentUser(target);
+    }
   }
 
   return { success: true, message: `تنظیمات کاربر «${target.displayName}» با موفقیت ذخیره شد.`, user: target };
+}
+
+export function toggleUserSuspension(userId: string): { success: boolean; message: string; user?: AppUser } {
+  const users = getUsers();
+  const target = users.find((u) => u.id === userId);
+  if (!target) {
+    return { success: false, message: 'کاربر یافت نشد.' };
+  }
+  if (target.username === 'hesam') {
+    return { success: false, message: 'امکان تعلیق حساب مدیر کل (حسام) وجود ندارد.' };
+  }
+
+  target.isSuspended = !target.isSuspended;
+  if (target.isSuspended) {
+    target.suspendedAt = new Date().toISOString();
+  } else {
+    delete target.suspendedAt;
+  }
+
+  saveUsers(users);
+
+  // If target user is currently logged in and was suspended, log them out
+  const current = getCurrentUser();
+  if (current && current.id === userId && target.isSuspended) {
+    logout();
+  }
+
+  const statusText = target.isSuspended ? 'مسدود و معلق' : 'فعال';
+  return {
+    success: true,
+    message: `حساب کاربری «${target.displayName}» با موفقیت ${statusText} شد.`,
+    user: target,
+  };
 }
 
 export function deleteUser(userId: string): { success: boolean; message: string } {
   const users = getUsers();
   const target = users.find((u) => u.id === userId);
   if (!target) {
-    return { success: false, message: 'کاربر یافت نشد.' };
+    return { success: false, message: 'کاربر مورد نظر یافت نشد.' };
   }
-  if (target.username === 'hesam' || target.username === 'ali') {
-    return { success: false, message: 'امکان حذف مدیر اصلی وجود ندارد.' };
+  if (target.username === 'hesam') {
+    return { success: false, message: 'امکان حذف حساب مدیر کل (حسام) وجود ندارد.' };
   }
 
-  const updated = users.filter((u) => u.id !== userId);
+  const isHead = target.role === 'account_admin' || !target.accountOwnerUsername;
+  const targetAccountId = target.accountId;
+
+  // Filter out the target user
+  let updated = users.filter((u) => u.id !== userId);
+
+  // If this user was an account head, also cascade-delete all their subusers!
+  let subusersCount = 0;
+  if (isHead && targetAccountId && targetAccountId !== 'system') {
+    const subusers = users.filter(
+      (u) =>
+        u.id !== userId &&
+        (u.accountId === targetAccountId || u.accountOwnerUsername === target.username)
+    );
+    subusersCount = subusers.length;
+    subusers.forEach((sub) => {
+      try {
+        localStorage.removeItem(DASHBOARDS_PREFIX + sub.id);
+        localStorage.removeItem(ACTIVE_DASHBOARD_PREFIX + sub.id);
+      } catch (e) {
+        // ignore
+      }
+    });
+    updated = updated.filter(
+      (u) =>
+        u.accountId !== targetAccountId && u.accountOwnerUsername !== target.username
+    );
+  }
+
   saveUsers(updated);
+
+  // If deleted user or one of their subusers was logged in, log out
+  const current = getCurrentUser();
+  if (
+    current &&
+    (current.id === userId ||
+      (isHead && targetAccountId && current.accountId === targetAccountId))
+  ) {
+    logout();
+  }
 
   try {
     localStorage.removeItem(DASHBOARDS_PREFIX + target.id);
@@ -286,7 +404,14 @@ export function deleteUser(userId: string): { success: boolean; message: string 
     // ignore
   }
 
-  return { success: true, message: `کاربر «${target.displayName}» با موفقیت حذف شد.` };
+  const subInfo =
+    subusersCount > 0
+      ? ` و ${toPersianDigits(subusersCount)} کاربر زیرمجموعه آن`
+      : '';
+  return {
+    success: true,
+    message: `حساب «${target.displayName}»${subInfo} با موفقیت حذف شد.`,
+  };
 }
 
 export function authenticate(
@@ -303,6 +428,14 @@ export function authenticate(
     return { success: false, message: 'نام کاربری یا رمز عبور اشتباه است.' };
   }
 
+  // Suspended users cannot log in, but their data stays preserved!
+  if (match.isSuspended) {
+    return {
+      success: false,
+      message: 'حساب کاربری شما توسط مدیر کل (حسام) تعلیق شده است. اطلاعات شما محفوظ است؛ جهت رفع تعلیق با مدیریت تماس بگیرید.',
+    };
+  }
+
   match.lastLoginAt = new Date().toISOString();
   saveUsers(users);
   setCurrentUser(match);
@@ -314,9 +447,9 @@ export function getCurrentUser(): AppUser | null {
   try {
     const raw = localStorage.getItem(CURRENT_USER_KEY);
     if (!raw) {
-      // Default auto-login to Ali (Head of account)
+      // Default auto-login to Ali (Head of account) if not suspended
       const users = getUsers();
-      const ali = users.find((u) => u.username === 'ali') || users[0];
+      const ali = users.find((u) => u.username === 'ali' && !u.isSuspended) || users.find((u) => !u.isSuspended);
       if (ali) {
         setCurrentUser(ali);
         return ali;
@@ -326,6 +459,10 @@ export function getCurrentUser(): AppUser | null {
     const user = JSON.parse(raw);
     const users = getUsers();
     const fresh = users.find((u) => u.id === user.id) || user;
+    if (fresh.isSuspended) {
+      logout();
+      return null;
+    }
     return fresh;
   } catch {
     return null;

@@ -6,49 +6,41 @@ import {
   Users,
   LogOut,
   Building2,
-  FileSpreadsheet,
   Layers,
   Calendar,
   CheckCircle2,
   AlertCircle,
-  ExternalLink,
   Search,
   Lock,
   User,
   Tag,
-  Eye,
-  RefreshCw,
-  Sliders,
+  Ban,
+  Check,
+  Power,
+  ShieldAlert,
 } from 'lucide-react';
-import { AppUser, UserDashboard } from '../types';
+import { AppUser } from '../types';
 import {
-  getUsersForAccount,
+  getAccountHeads,
   createUser,
   updateUser,
   deleteUser,
-  getUserDashboards,
-  getAccountOwner,
+  toggleUserSuspension,
 } from '../utils/userStorage';
 import { toPersianDigits } from '../utils/formatters';
-import { UserCustomizationModal } from './UserCustomizationModal';
 
 interface AdminPanelProps {
   currentUser: AppUser;
   onLogout: () => void;
-  onEnterUserWorkspace: (user: AppUser) => void;
+  onEnterUserWorkspace?: (user: AppUser) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   currentUser,
   onLogout,
-  onEnterUserWorkspace,
 }) => {
-  const isHesam = currentUser.username === 'hesam' || currentUser.role === 'superadmin';
-  const isAli = currentUser.username === 'ali' || currentUser.role === 'account_admin';
-
-  const [users, setUsers] = useState<AppUser[]>(() =>
-    getUsersForAccount(currentUser.accountId || 'acc_ali', currentUser.username)
-  );
+  // Hesam only sees account heads (each main user/account). Subusers of each user are completely hidden.
+  const [users, setUsers] = useState<AppUser[]>(() => getAccountHeads());
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newDisplayName, setNewDisplayName] = useState('');
@@ -58,10 +50,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
-  const [selectedUserForCustomization, setSelectedUserForCustomization] = useState<AppUser | null>(null);
+  const [userToToggleSuspend, setUserToToggleSuspend] = useState<AppUser | null>(null);
 
   const refreshUserList = () => {
-    setUsers(getUsersForAccount(currentUser.accountId || 'acc_ali', currentUser.username));
+    setUsers(getAccountHeads());
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -84,8 +76,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       username: newUsername,
       password: newPassword,
       displayName: newDisplayName.trim() || newUsername.trim(),
-      accountId: currentUser.accountId || 'acc_ali',
-      accountOwnerUsername: currentUser.username,
+      isAccountHead: true,
     });
 
     if (res.success) {
@@ -99,12 +90,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
-  const confirmDelete = () => {
-    if (!userToDelete) return;
-    const res = deleteUser(userToDelete.id);
+  const handleToggleSuspendConfirm = () => {
+    if (!userToToggleSuspend) return;
+    const res = toggleUserSuspension(userToToggleSuspend.id);
     if (res.success) {
       setStatusMessage({ text: res.message, type: 'success' });
       refreshUserList();
+    } else {
+      setStatusMessage({ text: res.message, type: 'error' });
+    }
+    setUserToToggleSuspend(null);
+  };
+
+  const confirmDelete = () => {
+    if (!userToDelete) return;
+    const targetId = userToDelete.id;
+    const res = deleteUser(targetId);
+    if (res.success) {
+      setStatusMessage({ text: res.message, type: 'success' });
+      setUsers(getAccountHeads());
     } else {
       setStatusMessage({ text: res.message, type: 'error' });
     }
@@ -129,7 +133,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     );
   });
 
-  const accountOwner = isHesam ? getAccountOwner('acc_ali') : currentUser;
+  const activeUsersCount = users.filter((u) => !u.isSuspended).length;
+  const suspendedUsersCount = users.filter((u) => u.isSuspended).length;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-['Vazirmatn',sans-serif]">
@@ -143,20 +148,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-sm sm:text-base font-black text-white">
-                  {isHesam
-                    ? 'پنل مدیریت کل سامانه (حسام)'
-                    : `پنل مدیریت حساب املاک (${currentUser.displayName})`}
+                  پنل مدیریت کل سامانه (حسام)
                 </h1>
-                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-2xs font-bold px-2 py-0.5 rounded-full">
-                  {isHesam
-                    ? 'مدیر ارشد کل سیستم'
-                    : `مدیر حساب (${currentUser.username})`}
+                <span className="bg-purple-500/20 text-purple-300 border border-purple-500/40 text-2xs font-bold px-2 py-0.5 rounded-full">
+                  مدیر ارشد سامانه
                 </span>
               </div>
               <p className="text-2xs text-slate-400 hidden sm:block">
-                {isHesam
-                  ? 'تعریف حساب‌های مدیران و کنترل ساختار چندمستاجری املاک نجف‌آباد'
-                  : 'تعریف اعضای حساب (رضا، حامد)، تعیین رمز عبور و سفارشی‌سازی دسترسی به اکسل شما و اکسل سایر همکاران'}
+                ایجاد، تعلیق، فعال‌سازی و حذف حساب‌های کاربران (همکاران هر حساب توسط خود کاربر مدیریت می‌شوند)
               </p>
             </div>
           </div>
@@ -169,7 +168,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               title="خروج از حساب مدیریت"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">خروج</span>
+              <span>خروج</span>
             </button>
           </div>
         </div>
@@ -204,29 +203,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         )}
 
         {/* Top Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-4.5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-2xs text-slate-400 font-medium">
-                {isHesam ? 'کل حساب‌های سامانه' : 'کاربران و همکاران این حساب'}
-              </div>
+              <div className="text-2xs text-slate-400 font-medium">کل حساب‌های ثبت‌شده</div>
               <div className="text-2xl font-black text-white">
-                {toPersianDigits(users.length)} <span className="text-xs font-normal text-slate-400">کاربر</span>
+                {toPersianDigits(users.length)} <span className="text-xs font-normal text-slate-400">حساب کاربر</span>
               </div>
             </div>
           </div>
 
           <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-4.5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-              <Layers className="w-6 h-6" />
+              <Check className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-2xs text-slate-400 font-medium">سقف داشبورد هر کاربر</div>
+              <div className="text-2xs text-slate-400 font-medium">حساب‌های فعال</div>
               <div className="text-2xl font-black text-emerald-400">
-                {toPersianDigits(5)} <span className="text-xs font-normal text-slate-400">داشبورد مستقل</span>
+                {toPersianDigits(activeUsersCount)} <span className="text-xs font-normal text-slate-400">حساب فعال</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-4.5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center justify-center">
+              <Ban className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="text-2xs text-slate-400 font-medium">حساب‌های مسدود / معلق</div>
+              <div className="text-2xl font-black text-rose-400">
+                {toPersianDigits(suspendedUsersCount)} <span className="text-xs font-normal text-slate-400">حساب معلق</span>
               </div>
             </div>
           </div>
@@ -234,26 +243,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         {/* Two Columns: Create User Form + Users List */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* Create User Form Box */}
+          {/* Create User Form Box (Account Head) */}
           <div className="lg:col-span-1 bg-slate-800/90 border border-slate-700 rounded-3xl p-5 sm:p-6 shadow-xl sticky top-22">
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-700/80 text-emerald-400 font-black text-sm">
               <UserPlus className="w-5 h-5 text-emerald-400" />
-              <span>
-                {isHesam ? 'تعریف حساب مدیر جدید' : 'افزودن همکار جدید به حساب'}
-              </span>
+              <span>تعریف کاربر جدید (ایجاد حساب)</span>
             </div>
+
+            <p className="text-2xs text-slate-400 mb-4 leading-relaxed">
+              کاربری که تعریف می‌کنید، <strong>مدیر حساب خود</strong> خواهد بود (مانند علی). او دسترسی کامل به فایل اکسل، نقشه، دیوار و افزودن و سفارشی‌سازی همکاران زیرمجموعه خود دارد.
+            </p>
 
             <form onSubmit={handleCreateUser} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  نام کاربری (جهت لاگین):
+                  نام کاربری (جهت ورود):
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
-                    placeholder="مثال: reza یا hamed"
+                    placeholder="مثال: ali یا mohammad"
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-emerald-500 transition-all text-right font-mono"
                   />
                   <User className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -278,14 +289,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  نام و عنوان کاربر (اختیاری):
+                  نام نمایشی و عنوان حساب:
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={newDisplayName}
                     onChange={(e) => setNewDisplayName(e.target.value)}
-                    placeholder="مثال: رضا (مشاور املاک)"
+                    placeholder="مثال: علی (املاک سپهر)"
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-emerald-500 transition-all text-right"
                   />
                   <Tag className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -293,7 +304,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 text-2xs text-slate-400 leading-relaxed">
-                💡 کاربر ایجاد شده فوراً می‌تواند لاگین کند. شما به عنوان مدیر می‌توانید دسترسی او به اکسل خود و همکاران را سفارشی‌سازی کنید.
+                💡 با ایجاد این حساب، داشبورد اختصاصی اکسل برای او فعال می‌گردد و می‌تواند فوراً لاگین نماید.
               </div>
 
               <button
@@ -301,7 +312,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/25 transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <UserPlus className="w-4 h-4" />
-                <span>ثبت و ایجاد کاربر در حساب</span>
+                <span>ایجاد کاربر جدید</span>
               </button>
             </form>
           </div>
@@ -313,10 +324,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="flex items-center gap-2 self-start sm:self-center">
                 <Users className="w-5 h-5 text-indigo-400" />
                 <h2 className="text-sm font-bold text-white">
-                  {isHesam ? 'لیست تمام کاربران' : 'لیست همکاران این حساب'}
+                  فهرست حساب‌های کاربری
                 </h2>
                 <span className="text-2xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full font-bold">
-                  {toPersianDigits(filteredUsers.length)} کاربر
+                  {toPersianDigits(filteredUsers.length)} حساب
                 </span>
               </div>
 
@@ -326,7 +337,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="جستجو در نام یا نام کاربری..."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl pr-8 pl-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-indigo-500 transition-all"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl pr-8 pl-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-indigo-500 transition-all text-right"
                 />
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
@@ -336,28 +347,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="divide-y divide-slate-700/80 overflow-x-auto">
               {filteredUsers.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-400">
-                  کاربری با این مشخصات در حساب یافت نشد.
+                  هیچ حساب کاربری در سامانه یافت نشد. با استفاده از فرم بالا می‌توانید یک حساب جدید تعریف کنید.
                 </div>
               ) : (
                 filteredUsers.map((user) => {
-                  const userDashboards = getUserDashboards(user.id);
-                  const isThisUserHesam = user.username === 'hesam';
-                  const isThisUserAli = user.username === 'ali' || user.role === 'account_admin';
-
                   return (
                     <div
                       key={user.id}
-                      className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-750 transition-colors"
+                      className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+                        user.isSuspended ? 'bg-rose-950/20 hover:bg-rose-950/30' : 'hover:bg-slate-750'
+                      }`}
                     >
                       {/* User Info */}
                       <div className="flex items-start gap-3">
                         <div
                           className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 shadow-sm ${
-                            isThisUserHesam
-                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                              : isThisUserAli
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            user.isSuspended
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                           }`}
                         >
                           {user.displayName.charAt(0) || user.username.charAt(0)}
@@ -371,19 +378,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             <span className="font-mono text-2xs px-2 py-0.5 rounded-md bg-slate-900 text-slate-300 border border-slate-700">
                               @{user.username}
                             </span>
-                            {isThisUserHesam ? (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                                مدیر کل ارشد سامانه
-                              </span>
-                            ) : isThisUserAli ? (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                                مدیر حساب (مالک)
+
+                            {/* Status Badge */}
+                            {user.isSuspended ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/25 text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                                <Ban className="w-3 h-3 text-rose-400" />
+                                <span>معلق / مسدود</span>
                               </span>
                             ) : (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
-                                همکار / مشاور املاک
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                                <Check className="w-3 h-3 text-emerald-400" />
+                                <span>فعال</span>
                               </span>
                             )}
+
+                            {/* Role Badge */}
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                              مدیر حساب املاک
+                            </span>
                           </div>
 
                           <div className="flex flex-wrap items-center gap-3 text-2xs text-slate-400">
@@ -391,6 +403,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               <Lock className="w-3 h-3 text-slate-500" />
                               رمز: {user.password}
                             </span>
+
+                            {/* Max Dashboards Control */}
                             <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700/80">
                               <Layers className="w-3.5 h-3.5 text-slate-400" />
                               <span className="text-slate-300">سقف داشبورد:</span>
@@ -405,13 +419,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                         ? 'bg-emerald-600 text-white shadow-xs'
                                         : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                                     }`}
-                                    title={`تنظیم سقف داشبورد این کاربر به ${limit}`}
+                                    title={`تنظیم سقف مجاز داشبورد به ${limit}`}
                                   >
                                     {toPersianDigits(limit)}
                                   </button>
                                 ))}
                               </div>
                             </div>
+
                             {user.lastLoginAt && (
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3 text-slate-500" />
@@ -420,69 +435,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               </span>
                             )}
                           </div>
-
-                          {/* Quick Permission Badges */}
-                          {!isThisUserAli && !isThisUserHesam && (
-                            <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                              {user.permissions?.canViewAdminExcel ? (
-                                <span className="text-[10px] bg-emerald-950/60 text-emerald-300 border border-emerald-800/80 px-2 py-0.5 rounded-md font-medium">
-                                  ✓ مشاهده اکسل مدیر ({accountOwner?.displayName || 'علی'})
-                                </span>
-                              ) : (
-                                <span className="text-[10px] bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-md">
-                                  ✕ بدون اکسل مدیر
-                                </span>
-                              )}
-                              {(user.permissions?.allowedUserExcelIds?.length || 0) > 0 && (
-                                <span className="text-[10px] bg-indigo-950/60 text-indigo-300 border border-indigo-800/80 px-2 py-0.5 rounded-md font-medium">
-                                  ✓ اکسل {toPersianDigits(user.permissions!.allowedUserExcelIds!.length)} همکار
-                                </span>
-                              )}
-                              {user.permissions?.canAccessAdminPanel && (
-                                <span className="text-[10px] bg-amber-950/60 text-amber-300 border border-amber-800/80 px-2 py-0.5 rounded-md font-medium">
-                                  ✓ دسترسی به پنل ادمین
-                                </span>
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
 
-                      {/* Action buttons */}
+                      {/* Action buttons for Hesam: Suspend/Unsuspend + Remove */}
                       <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                        {/* Customize user permissions */}
+                        {/* Suspend / Unsuspend Button */}
                         <button
                           type="button"
-                          onClick={() => setSelectedUserForCustomization(user)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/25 active:scale-95 text-amber-300 border border-amber-500/40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
-                          title="سفارشی‌سازی تنظیمات و سطوح دسترسی این کاربر"
+                          onClick={() => setUserToToggleSuspend(user)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs ${
+                            user.isSuspended
+                              ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
+                              : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40'
+                          }`}
+                          title={
+                            user.isSuspended
+                              ? 'رفع تعلیق و فعال‌سازی مجدد حساب کاربر'
+                              : 'تعلیق و مسدودسازی موقت ورود کاربر (اطلاعات او محفوظ می‌ماند)'
+                          }
                         >
-                          <Sliders className="w-3.5 h-3.5 text-amber-400" />
-                          <span>سفارشی‌سازی دسترسی‌ها</span>
+                          {user.isSuspended ? (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>رفع تعلیق</span>
+                            </>
+                          ) : (
+                            <>
+                              <Ban className="w-3.5 h-3.5" />
+                              <span>تعلیق حساب</span>
+                            </>
+                          )}
                         </button>
 
-                        {/* Switch / View this user's workspace */}
+                        {/* Delete user */}
                         <button
+                          id={`delete-account-btn-${user.username}`}
                           type="button"
-                          onClick={() => onEnterUserWorkspace(user)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-indigo-600 active:scale-95 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs"
-                          title="ورود به فضای کار این کاربر"
+                          onClick={() => setUserToDelete(user)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-600 active:scale-95 rounded-xl transition-all cursor-pointer border border-rose-500/30 text-xs font-bold shadow-2xs"
+                          title="حذف کامل این حساب از سامانه"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>ورود به داشبورد</span>
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>حذف</span>
                         </button>
-
-                        {/* Delete user (disabled for account owner and hesam) */}
-                        {!isThisUserAli && !isThisUserHesam && (
-                          <button
-                            type="button"
-                            onClick={() => setUserToDelete(user)}
-                            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-rose-500/30"
-                            title="حذف این کاربر"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
                       </div>
                     </div>
                   );
@@ -493,18 +489,85 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       </main>
 
+      {/* Confirmation Modal for Suspend / Unsuspend */}
+      {userToToggleSuspend && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setUserToToggleSuspend(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto ${
+                userToToggleSuspend.isSuspended
+                  ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
+                  : 'bg-amber-500/20 border border-amber-500/40 text-amber-400'
+              }`}
+            >
+              {userToToggleSuspend.isSuspended ? (
+                <CheckCircle2 className="w-6 h-6" />
+              ) : (
+                <ShieldAlert className="w-6 h-6" />
+              )}
+            </div>
+
+            <div className="text-center space-y-2">
+              <h3 className="text-base font-bold text-white">
+                {userToToggleSuspend.isSuspended
+                  ? `رفع تعلیق حساب «${userToToggleSuspend.displayName}»`
+                  : `تعلیق حساب «${userToToggleSuspend.displayName}»`}
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {userToToggleSuspend.isSuspended
+                  ? `با رفع تعلیق، کاربر می‌تواند مجدداً با نام کاربری «${userToToggleSuspend.username}» وارد سامانه شود و به تمام داشبوردها و داده‌های قبلی خود دسترسی خواهد داشت.`
+                  : `با تعلیق حساب، ورود کاربر با نام کاربری «${userToToggleSuspend.username}» مسدود می‌شود. داده‌ها و داشبوردهای او در سامانه باقی مانده و پس از رفع تعلیق مجدداً در دسترس وی خواهد بود.`}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setUserToToggleSuspend(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-700 text-xs font-semibold cursor-pointer"
+              >
+                انصراف
+              </button>
+              <button
+                type="button"
+                onClick={handleToggleSuspendConfirm}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-white text-xs font-bold shadow-lg cursor-pointer ${
+                  userToToggleSuspend.isSuspended
+                    ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30'
+                    : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/30'
+                }`}
+              >
+                {userToToggleSuspend.isSuspended ? 'بله، فعال‌سازی شود' : 'بله، تعلیق شود'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirmation Modal for Delete User */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setUserToDelete(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-slate-800 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
 
             <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-white">حذف کاربر</h3>
+              <h3 className="text-base font-bold text-white">حذف کامل حساب</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                آیا از حذف کاربر «<strong>{userToDelete.displayName}</strong>» با نام کاربری «<strong>{userToDelete.username}</strong>» و تمام داشبوردهای او مطمئن هستید؟ این عمل غیرقابل بازگشت است.
+                آیا از حذف کامل حساب «<strong>{userToDelete.displayName}</strong>» با نام کاربری «<strong>{userToDelete.username}</strong>» اطمینان دارید؟ با حذف این حساب، اطلاعات اکسل و همکاران زیرمجموعه آن نیز به صورت کامل از سامانه پاکسازی خواهند شد.
               </p>
             </div>
 
@@ -517,36 +580,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 انصراف
               </button>
               <button
+                id="confirm-delete-user-btn"
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 cursor-pointer"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-98 text-white text-xs font-bold shadow-lg shadow-rose-600/30 cursor-pointer flex items-center justify-center gap-1.5"
               >
-                بله، حذف کاربر
+                <Trash2 className="w-4 h-4" />
+                <span>بله، حذف حساب</span>
               </button>
             </div>
           </div>
         </div>
-      )}
-
-      {/* User Customization Modal */}
-      {selectedUserForCustomization && (
-        <UserCustomizationModal
-          isOpen={Boolean(selectedUserForCustomization)}
-          onClose={() => setSelectedUserForCustomization(null)}
-          user={selectedUserForCustomization}
-          accountOwner={accountOwner}
-          accountTeammates={users}
-          onSave={(userId, updates) => {
-            const res = updateUser(userId, updates);
-            if (res.success) {
-              setStatusMessage({ text: res.message, type: 'success' });
-              refreshUserList();
-            } else {
-              setStatusMessage({ text: res.message, type: 'error' });
-            }
-            setSelectedUserForCustomization(null);
-          }}
-        />
       )}
     </div>
   );
