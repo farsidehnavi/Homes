@@ -219,12 +219,21 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         {/* Drawer Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/95">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-bold shadow-sm border border-transparent dark:border-slate-700">
-              <Building2 className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-2xl overflow-hidden bg-[#FAF7F0] dark:bg-[#0F1A30] border border-[#B8924A]/35 dark:border-[#C9A45C]/40 shadow-sm shrink-0 flex items-center justify-center">
+              <img
+                src="/assets/aistudio/mansio-mark-light_36c00c16.svg"
+                alt="Mansio"
+                className="w-full h-full object-contain p-1 dark:hidden"
+              />
+              <img
+                src="/assets/aistudio/mansio-mark-dark_a14f9c49.svg"
+                alt="Mansio"
+                className="w-full h-full object-cover hidden dark:block"
+              />
             </div>
             <div>
               <div className="text-sm font-black text-slate-900 dark:text-slate-100">
-                منوی مدیریت و دسترسی
+                Mansio • منوی مدیریت
               </div>
               <div className="text-2xs text-slate-500 dark:text-slate-400">
                 املاک نجف‌آباد • پنل یکپارچه

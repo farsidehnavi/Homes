@@ -1,8 +1,6 @@
 import React from 'react';
 import {
   SlidersHorizontal,
-  Building2,
-  FileSpreadsheet,
   Search,
   X,
   Menu,
@@ -61,19 +59,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
 
             {/* Brand Title */}
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white shadow-xs shrink-0 ${
-                  currentMode === 'excel'
-                    ? 'bg-linear-to-br from-emerald-600 to-teal-700 shadow-emerald-600/20'
-                    : 'bg-linear-to-br from-red-600 to-rose-700 shadow-red-600/20'
-                }`}
-              >
-                {currentMode === 'excel' ? (
-                  <FileSpreadsheet className="w-4 h-4 sm:w-5 sm:h-5" />
-                ) : (
-                  <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                )}
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl overflow-hidden bg-[#FAF7F0] dark:bg-[#0F1A30] border border-[#B8924A]/35 dark:border-[#C9A45C]/40 shadow-xs shrink-0 flex items-center justify-center">
+                <img
+                  src="/assets/aistudio/mansio-mark-light_36c00c16.svg"
+                  alt="Mansio"
+                  className="w-full h-full object-contain p-1 dark:hidden"
+                />
+                <img
+                  src="/assets/aistudio/mansio-mark-dark_a14f9c49.svg"
+                  alt="Mansio"
+                  className="w-full h-full object-cover hidden dark:block"
+                />
               </div>
 
               <div>

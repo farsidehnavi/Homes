@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ShieldCheck,
   UserPlus,
   Trash2,
   Users,
@@ -143,13 +142,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       <header className="sticky top-0 z-30 bg-slate-800/95 backdrop-blur-md border-b border-slate-700/80 shadow-md">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-linear-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-md shadow-amber-500/20">
-              <ShieldCheck className="w-6 h-6 text-slate-950 stroke-[2.5]" />
+            <div className="w-10 h-10 rounded-2xl overflow-hidden bg-[#0F1A30] border border-[#C9A45C]/40 shadow-md shrink-0">
+              <img
+                src="/assets/aistudio/mansio-mark-dark_a14f9c49.svg"
+                alt="Mansio"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-sm sm:text-base font-black text-white">
-                  پنل مدیریت کل سامانه (حسام)
+                  Mansio • پنل مدیریت کل سامانه (حسام)
                 </h1>
                 <span className="bg-purple-500/20 text-purple-300 border border-purple-500/40 text-2xs font-bold px-2 py-0.5 rounded-full">
                   مدیر ارشد سامانه

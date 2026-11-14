@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import {
-  Building2,
   Lock,
   User,
   Eye,
   EyeOff,
   ArrowLeft,
-  KeyRound,
   AlertCircle,
   Shield,
 } from 'lucide-react';
@@ -59,17 +57,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       {/* Main Login Card */}
       <div className="w-full max-w-md bg-slate-800/90 border border-slate-700/80 rounded-3xl shadow-2xl p-6 sm:p-8 backdrop-blur-xl relative z-10 animate-in fade-in zoom-in-95 duration-300">
         {/* Brand Header */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="relative mb-3">
-            <div className="w-16 h-16 rounded-2xl bg-linear-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-              <Building2 className="w-8 h-8" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-700 text-emerald-400 flex items-center justify-center text-xs shadow-md border-2 border-slate-800">
-              <KeyRound className="w-3 h-3" />
-            </div>
+        <div className="flex flex-col items-center text-center mb-7">
+          <div className="mb-4 rounded-2xl overflow-hidden border border-[#C9A45C]/30 shadow-xl bg-[#0F1A30] px-3 py-1">
+            <img
+              src="/assets/aistudio/mansio-logo-dark_ae518543.svg"
+              alt="Mansio Real Estate Workspace"
+              className="h-24 sm:h-28 w-auto object-contain"
+            />
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h1 className="text-lg sm:text-xl font-black text-white tracking-tight">
             سامانه املاک شهرستان نجف‌آباد
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1.5 leading-relaxed">
