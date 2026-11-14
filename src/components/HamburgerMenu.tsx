@@ -21,6 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   MapPin,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import { AppUser, UserDashboard } from '../types';
 import { toPersianDigits } from '../utils/formatters';
@@ -71,6 +73,8 @@ interface HamburgerMenuProps {
   onSelectSharedExcel?: (userId: string) => void;
   activeView?: 'cards' | 'map';
   onSelectView?: (view: 'cards' | 'map') => void;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
 }
 
 export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
@@ -105,6 +109,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   onSelectSharedExcel,
   activeView = 'cards',
   onSelectView,
+  isDarkMode = false,
+  onToggleDarkMode,
 }) => {
   const [selectedUserForCustomization, setSelectedUserForCustomization] = useState<AppUser | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -213,19 +219,19 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
       {/* Drawer Container (Right side in RTL) */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-xs sm:max-w-sm bg-white h-full shadow-2xl z-10 flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-300"
+        className="relative w-full max-w-xs sm:max-w-sm bg-white dark:bg-slate-900 h-full shadow-2xl z-10 flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-300 border-l border-transparent dark:border-slate-800"
       >
         {/* Drawer Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/95">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold shadow-sm">
+            <div className="w-10 h-10 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-bold shadow-sm border border-transparent dark:border-slate-700">
               <Building2 className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
-              <div className="text-sm font-black text-slate-900">
+              <div className="text-sm font-black text-slate-900 dark:text-slate-100">
                 منوی مدیریت و دسترسی
               </div>
-              <div className="text-2xs text-slate-500">
+              <div className="text-2xs text-slate-500 dark:text-slate-400">
                 املاک نجف‌آباد • پنل یکپارچه
               </div>
             </div>
@@ -235,7 +241,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
             id="close-hamburger-menu-btn"
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200 active:bg-slate-300 active:scale-95 transition-all cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 active:bg-slate-300 active:scale-95 transition-all cursor-pointer"
             title="بستن منو"
             aria-label="بستن منو"
           >
@@ -246,7 +252,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {/* User Profile Card */}
-          <div className="p-4 rounded-2xl bg-linear-to-br from-slate-900 to-slate-800 text-white shadow-md relative overflow-hidden">
+          <div className="p-4 rounded-2xl bg-linear-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-950 text-white shadow-md relative overflow-hidden border border-transparent dark:border-slate-700/80">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center justify-center font-black text-lg">
                 {currentUser.displayName.charAt(0) || currentUser.username.charAt(0)}
@@ -279,9 +285,54 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
             </div>
           </div>
 
+          {/* Dark Mode Toggle Option */}
+          {onToggleDarkMode && (
+            <button
+              id="dark-mode-toggle-btn"
+              type="button"
+              onClick={onToggleDarkMode}
+              role="switch"
+              aria-checked={isDarkMode}
+              className={`w-full flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+                isDarkMode
+                  ? 'bg-slate-800/90 border-indigo-500/50 text-slate-100 hover:bg-slate-800'
+                  : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    isDarkMode
+                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                      : 'bg-amber-100 text-amber-600'
+                  }`}
+                >
+                  {isDarkMode ? <Moon className="w-4.5 h-4.5" /> : <Sun className="w-4.5 h-4.5" />}
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-bold">
+                    {isDarkMode ? 'حالت شب (Dark Mode)' : 'حالت شب (Dark Mode)'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {isDarkMode ? 'پوسته تیره فعال است' : 'تغییر به پوسته تیره'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Switch Pill */}
+              <div
+                className={`w-11 h-6 rounded-full p-0.5 transition-colors flex items-center shrink-0 ${
+                  isDarkMode ? 'bg-indigo-600 justify-start' : 'bg-slate-300 justify-end'
+                }`}
+              >
+                <span className="w-5 h-5 rounded-full bg-white shadow-sm transition-transform" />
+              </div>
+            </button>
+          )}
+
           {/* Section 1: Main Panel Mode (Excel vs Divar) */}
           <div className="space-y-2">
-            <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5 px-1">
+            <div className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 px-1">
               <span>محیط کاری فعال:</span>
             </div>
 
@@ -295,8 +346,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 }}
                 className={`w-full flex items-center justify-between p-3 rounded-2xl border text-right transition-all cursor-pointer ${
                   currentMode === 'excel'
-                    ? 'bg-emerald-50/90 border-emerald-500 text-emerald-950 shadow-xs'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                    ? 'bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-500 text-emerald-950 dark:text-emerald-200 shadow-xs'
+                    : 'bg-white dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -304,7 +355,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                       currentMode === 'excel'
                         ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-500'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
                     }`}
                   >
                     <FileSpreadsheet className="w-5 h-5" />
@@ -312,7 +363,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   <div className="text-xs font-bold">داشبورد من (اکسل)</div>
                 </div>
                 {currentMode === 'excel' && (
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
                 )}
               </button>
 
@@ -325,8 +376,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 }}
                 className={`w-full flex items-center justify-between p-3 rounded-2xl border text-right transition-all cursor-pointer ${
                   currentMode === 'divar'
-                    ? 'bg-red-50/90 border-red-500 text-red-950 shadow-xs'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                    ? 'bg-red-50/90 dark:bg-red-950/50 border-red-500 text-red-950 dark:text-red-200 shadow-xs'
+                    : 'bg-white dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -334,18 +385,18 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                       currentMode === 'divar'
                         ? 'bg-red-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-500'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
                     }`}
                   >
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div className="text-xs font-bold flex items-center gap-1.5">
                     <span>پنل دیوار (divar.ir)</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-600 dark:bg-red-400 animate-pulse" />
                   </div>
                 </div>
                 {currentMode === 'divar' && (
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-600" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-600 dark:bg-red-400" />
                 )}
               </button>
 
@@ -361,8 +412,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 }}
                 className={`w-full flex items-center justify-between p-3 rounded-2xl border text-right transition-all cursor-pointer ${
                   activeView === 'map'
-                    ? 'bg-indigo-50/90 border-indigo-500 text-indigo-950 shadow-xs ring-1 ring-indigo-500/30'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                    ? 'bg-indigo-50/90 dark:bg-indigo-950/50 border-indigo-500 text-indigo-950 dark:text-indigo-200 shadow-xs ring-1 ring-indigo-500/30'
+                    : 'bg-white dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -370,36 +421,36 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                       activeView === 'map'
                         ? 'bg-indigo-600 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-500'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
                     }`}
                   >
-                    <MapPin className="w-5 h-5 text-red-500" />
+                    <MapPin className="w-5 h-5 text-red-500 dark:text-red-400" />
                   </div>
                   <div className="text-xs font-bold flex items-center gap-1.5">
                     <span>نقشه املاک نجف‌آباد</span>
                     {activeView === 'map' && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-bold">
+                      <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/70 text-indigo-700 dark:text-indigo-200 rounded-full font-bold">
                         فعال
                       </span>
                     )}
                   </div>
                 </div>
                 {activeView === 'map' && (
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
                 )}
               </button>
             </div>
           </div>
 
           {/* Section: Excel Operations (Import & Export inside Hamburger for clean view) */}
-          <div className="space-y-2.5 pt-3 border-t border-slate-100">
+          <div className="space-y-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>عملیات فایل اکسل</span>
               </div>
               {excelItemCount !== undefined && excelItemCount > 0 && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
                   {toPersianDigits(excelItemCount)} ملک ثبت شده
                 </span>
               )}
@@ -412,7 +463,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   onUploadExcel?.();
                   onClose();
                 }}
-                className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-emerald-50/90 hover:bg-emerald-100/90 active:scale-98 text-emerald-900 border border-emerald-200 text-xs font-bold transition-all cursor-pointer shadow-2xs group"
+                className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/40 hover:bg-emerald-100/90 dark:hover:bg-emerald-900/50 active:scale-98 text-emerald-900 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold transition-all cursor-pointer shadow-2xs group"
                 title="بارگذاری فایل اکسل جدید در این داشبورد"
               >
                 <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
@@ -427,7 +478,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                   onExportExcel?.();
                   onClose();
                 }}
-                className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-teal-50/90 hover:bg-teal-100/90 active:scale-98 text-teal-900 border border-teal-200 text-xs font-bold transition-all cursor-pointer shadow-2xs group"
+                className="flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl bg-teal-50/90 dark:bg-teal-950/40 hover:bg-teal-100/90 dark:hover:bg-teal-900/50 active:scale-98 text-teal-900 dark:text-teal-200 border border-teal-200 dark:border-teal-800/60 text-xs font-bold transition-all cursor-pointer shadow-2xs group"
                 title="دانلود فایل اکسل بروزرسانی شده با آخرین تغییرات"
               >
                 <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center shadow-2xs group-hover:scale-105 transition-transform">
@@ -438,20 +489,20 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
             </div>
 
             {hasExcelModifications && (
-              <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200/80 rounded-xl px-2.5 py-1.5 text-center font-medium animate-pulse">
+              <p className="text-[10px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/60 rounded-xl px-2.5 py-1.5 text-center font-medium animate-pulse">
                 تغییرات جدید در این داشبورد آماده خروجی گرفتن است
               </p>
             )}
           </div>
 
           {/* Section 2: User Dashboards (Max 5, separated) */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
+          <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                <Layers className="w-4 h-4 text-emerald-600" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>داشبوردهای شخصی من</span>
               </div>
-              <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+              <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 {toPersianDigits(dashboards.length)} از {toPersianDigits(maxDashboards)}
               </span>
             </div>
@@ -467,8 +518,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     key={dash.id}
                     className={`p-3 rounded-2xl border transition-all text-right ${
                       isActive
-                        ? 'bg-emerald-50/80 border-emerald-500 ring-1 ring-emerald-500/20 shadow-xs'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
+                        ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 ring-1 ring-emerald-500/20 shadow-xs'
+                        : 'bg-white dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600'
                     }`}
                   >
                     {isEditing ? (
@@ -477,7 +528,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                           type="text"
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
-                          className="flex-1 text-xs border border-emerald-500 rounded-lg px-2 py-1 focus:outline-hidden text-right"
+                          className="flex-1 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-emerald-500 rounded-lg px-2 py-1 focus:outline-hidden text-right"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveRename(dash.id);
@@ -513,22 +564,22 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                             className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
                               isActive
                                 ? 'bg-emerald-600 text-white shadow-xs'
-                                : 'bg-slate-100 text-slate-600'
+                                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                             }`}
                           >
                             {toPersianDigits(idx + 1)}
                           </span>
 
                           <div className="min-w-0 flex-1">
-                            <div className="text-xs font-bold text-slate-800 truncate flex items-center gap-1.5">
+                            <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate flex items-center gap-1.5">
                               <span>{dash.title}</span>
                               {isActive && (
-                                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-semibold">
+                                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/70 text-emerald-800 dark:text-emerald-200 px-1.5 py-0.2 rounded font-semibold">
                                   فعال
                                 </span>
                               )}
                             </div>
-                            <div className="text-2xs text-slate-500">
+                            <div className="text-2xs text-slate-500 dark:text-slate-400">
                               {toPersianDigits(dash.excelData?.length || 0)} ملک ثبت شده
                             </div>
                           </div>
@@ -538,7 +589,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                           <button
                             type="button"
                             onClick={() => handleStartRename(dash)}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                             title="تغییر نام داشبورد"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -550,7 +601,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                               e.stopPropagation();
                               setDashboardToDelete(dash);
                             }}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
                             title="حذف این داشبورد"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -568,9 +619,9 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               isCreatingNew ? (
                 <form
                   onSubmit={handleCreateNewSubmit}
-                  className="p-3 bg-slate-50 rounded-2xl border border-dashed border-emerald-400 space-y-2"
+                  className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-dashed border-emerald-400 dark:border-emerald-600 space-y-2"
                 >
-                  <label className="block text-2xs font-bold text-slate-700">
+                  <label className="block text-2xs font-bold text-slate-700 dark:text-slate-300">
                     عنوان داشبورد جدید (حداکثر ۵ داشبورد):
                   </label>
                   <div className="flex items-center gap-1.5">
@@ -579,7 +630,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                       placeholder={`داشبورد ${toPersianDigits(dashboards.length + 1)}`}
-                      className="flex-1 text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden"
+                      className="flex-1 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden"
                       autoFocus
                     />
                     <button
@@ -591,7 +642,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsCreatingNew(false)}
-                      className="p-1.5 text-slate-500 hover:bg-slate-200 rounded-xl"
+                      className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -601,14 +652,14 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCreatingNew(true)}
-                  className="w-full py-2.5 px-3 border-2 border-dashed border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-2xl text-xs font-bold text-slate-700 hover:text-emerald-800 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 px-3 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-emerald-300 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Plus className="w-4 h-4 text-emerald-600" />
+                  <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>ایجاد داشبورد جدید ({toPersianDigits(dashboards.length + 1)})</span>
                 </button>
               )
             ) : (
-              <div className="p-2.5 bg-slate-100 rounded-xl text-center text-2xs text-slate-500 font-medium">
+              <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-center text-2xs text-slate-500 dark:text-slate-400 font-medium">
                 سقف مجاز ({toPersianDigits(maxDashboards)} داشبورد مجزا) برای این حساب تکمیل شده است.
               </div>
             )}
@@ -616,13 +667,13 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
           {/* Section 2.5: Shared Excels in this Account (For Members like Reza, Hamed) */}
           {sharedExcels.length > 0 && (
-            <div className="space-y-2.5 pt-3 border-t border-slate-100">
+            <div className="space-y-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                  <FileSpreadsheet className="w-4 h-4 text-amber-600" />
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
+                  <FileSpreadsheet className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   <span>اکسل‌های اشتراکی در حساب</span>
                 </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                   {toPersianDigits(sharedExcels.length)} فایل اشتراکی
                 </span>
               </div>
@@ -640,8 +691,8 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                       }}
                       className={`p-3 rounded-2xl border transition-all text-right cursor-pointer flex items-center justify-between gap-2.5 ${
                         isCurrent
-                          ? 'bg-amber-50/90 border-amber-500 ring-2 ring-amber-400/30 shadow-xs'
-                          : 'bg-white border-slate-200 hover:bg-amber-50/40'
+                          ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-400/30 shadow-xs'
+                          : 'bg-white dark:bg-slate-800/70 border-slate-200 dark:border-slate-700/80 hover:bg-amber-50/40 dark:hover:bg-slate-800'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -650,37 +701,37 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                             isCurrent
                               ? 'bg-amber-600 text-white'
                               : shared.isAccountAdmin
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-indigo-100 text-indigo-800'
+                              ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300'
+                              : 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300'
                           }`}
                         >
                           <FileSpreadsheet className="w-4.5 h-4.5" />
                         </div>
                         <div className="min-w-0">
-                          <div className="text-xs font-black text-slate-900 flex items-center gap-1.5 truncate">
+                          <div className="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center gap-1.5 truncate">
                             <span className="truncate">{shared.title}</span>
                             <span
                               className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold shrink-0 ${
                                 shared.isAccountAdmin
-                                  ? 'bg-amber-200 text-amber-900'
-                                  : 'bg-indigo-100 text-indigo-800'
+                                  ? 'bg-amber-200 dark:bg-amber-900/70 text-amber-900 dark:text-amber-200'
+                                  : 'bg-indigo-100 dark:bg-indigo-900/70 text-indigo-800 dark:text-indigo-200'
                               }`}
                             >
                               {shared.isAccountAdmin ? 'اکسل مدیر' : 'اکسل همکار'}
                             </span>
                           </div>
-                          <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
                             <span>مالک: {shared.ownerName}</span>
                             <span>•</span>
                             <span>{toPersianDigits(shared.itemCount)} ملک</span>
                             {shared.canAdd && (
-                              <span className="text-emerald-700 font-bold mr-1">• افزودن مجاز</span>
+                              <span className="text-emerald-700 dark:text-emerald-400 font-bold mr-1">• افزودن مجاز</span>
                             )}
                           </div>
                         </div>
                       </div>
                       {isCurrent && (
-                        <Check className="w-5 h-5 text-amber-600 stroke-[3] shrink-0" />
+                        <Check className="w-5 h-5 text-amber-600 dark:text-amber-400 stroke-[3] shrink-0" />
                       )}
                     </div>
                   );
@@ -691,15 +742,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
           {/* Section 3: ACCOUNT ADMIN (Ali) - Teammates List & User Customization */}
           {isAccountHead && (
-            <div className="space-y-3 pt-3 border-t border-slate-100">
+            <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                  <Sliders className="w-4 h-4 text-amber-600" />
+                <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-slate-100">
+                  <Sliders className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   <span>مدیریت کاربران حساب (همکاران)</span>
                 </div>
               </div>
 
-              <p className="text-[11px] text-slate-500 leading-relaxed px-1">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed px-1">
                 به عنوان مدیر این حساب، کاربران جدید تعریف کنید و دسترسی هر کاربر به اکسل خود، اکسل همکاران یا پنل را سفارشی‌سازی کنید:
               </p>
 
@@ -710,31 +761,31 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowAddMemberForm(true)}
-                      className="w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2 px-3 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/70 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <UserPlus className="w-4 h-4 text-emerald-600" />
+                      <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                       <span>+ افزودن همکار / کاربر جدید به حساب</span>
                     </button>
                   ) : (
                     <form
                       onSubmit={handleAddMemberSubmit}
-                      className="p-3 bg-slate-50 border border-emerald-400 rounded-2xl space-y-2.5 animate-in fade-in"
+                      className="p-3 bg-slate-50 dark:bg-slate-800/80 border border-emerald-400 dark:border-emerald-700 rounded-2xl space-y-2.5 animate-in fade-in"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                           مشخصات کاربر جدید در حساب شما:
                         </span>
                         <button
                           type="button"
                           onClick={() => setShowAddMemberForm(false)}
-                          className="text-slate-400 hover:text-slate-600 p-0.5"
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
 
                       {memberError && (
-                        <div className="text-2xs text-rose-600 font-bold bg-rose-50 p-1.5 rounded-lg border border-rose-200">
+                        <div className="text-2xs text-rose-600 dark:text-rose-300 font-bold bg-rose-50 dark:bg-rose-950/60 p-1.5 rounded-lg border border-rose-200 dark:border-rose-800">
                           {memberError}
                         </div>
                       )}
@@ -745,7 +796,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                           value={newMemberUsername}
                           onChange={(e) => setNewMemberUsername(e.target.value)}
                           placeholder="نام کاربری (مثال: reza)"
-                          className="w-full text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden text-right"
+                          className="w-full text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden text-right"
                         />
                       </div>
 
@@ -755,7 +806,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                           value={newMemberPassword}
                           onChange={(e) => setNewMemberPassword(e.target.value)}
                           placeholder="رمز عبور (مثال: reza)"
-                          className="w-full text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden text-right font-mono"
+                          className="w-full text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden text-right font-mono"
                         />
                       </div>
 
@@ -765,7 +816,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                           value={newMemberDisplayName}
                           onChange={(e) => setNewMemberDisplayName(e.target.value)}
                           placeholder="نام و نشان (مثال: رضا - مشاور)"
-                          className="w-full text-xs bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden text-right"
+                          className="w-full text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden text-right"
                         />
                       </div>
 
@@ -779,7 +830,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                         <button
                           type="button"
                           onClick={() => setShowAddMemberForm(false)}
-                          className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-xl text-xs"
+                          className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs"
                         >
                           انصراف
                         </button>
@@ -792,7 +843,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               {/* Members List */}
               <div className="space-y-2">
                 {teamList.length === 0 ? (
-                  <div className="p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-2xs text-slate-500">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center text-2xs text-slate-500 dark:text-slate-400">
                     هنوز کاربری به حساب شما اضافه نشده است. با دکمه بالا همکارانی مانند رضا یا حامد را ثبت کنید.
                   </div>
                 ) : (
@@ -805,36 +856,36 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                     return (
                       <div
                         key={member.id}
-                        className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 transition-all flex items-center justify-between gap-2"
+                        className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 transition-all flex items-center justify-between gap-2"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center font-bold text-xs shrink-0">
                             {member.displayName.charAt(0) || member.username.charAt(0)}
                           </div>
                           <div className="min-w-0">
-                            <div className="text-xs font-bold text-slate-900 truncate">
+                            <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                               {member.displayName}
                             </div>
-                            <div className="text-[10px] text-slate-500 font-mono truncate">
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">
                               @{member.username}
                             </div>
                             <div className="flex flex-wrap items-center gap-1 mt-0.5">
                               {canSeeAdminExcel ? (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-medium">
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 font-medium">
                                   اکسل شما: مجاز
                                 </span>
                               ) : (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-200 text-slate-600 font-medium">
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium">
                                   اکسل شما: قفل
                                 </span>
                               )}
                               {allowedTeammatesCount > 0 && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 font-medium">
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 font-medium">
                                   اکسل {toPersianDigits(allowedTeammatesCount)} همکار
                                 </span>
                               )}
                               {hasAdminPanel && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-medium">
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 font-medium">
                                   پنل ادمین
                                 </span>
                               )}
@@ -846,10 +897,10 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                           <button
                             type="button"
                             onClick={() => setSelectedUserForCustomization(member)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-amber-50 active:scale-95 text-slate-800 hover:text-amber-900 border border-slate-200 hover:border-amber-300 rounded-xl text-2xs font-bold transition-all shadow-2xs cursor-pointer"
+                            className="flex items-center gap-1 px-2.5 py-1.5 bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-amber-950/50 active:scale-95 text-slate-800 dark:text-slate-200 hover:text-amber-900 dark:hover:text-amber-300 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700 rounded-xl text-2xs font-bold transition-all shadow-2xs cursor-pointer"
                             title="تنظیم فهرست اختیارات و دسترسی‌های این کاربر"
                           >
-                            <Sliders className="w-3.5 h-3.5 text-amber-600" />
+                            <Sliders className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                             <span>دسترسی</span>
                           </button>
 
@@ -860,7 +911,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                                 e.stopPropagation();
                                 setMemberToDelete(member);
                               }}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-rose-200 dark:hover:border-rose-800"
                               title="حذف این کاربر از حساب"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -877,15 +928,15 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
         </div>
 
         {/* Drawer Footer Actions */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50 space-y-2">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/95 space-y-2">
           {/* Explicit Close Menu Button */}
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-2.5 px-3 rounded-xl bg-slate-200/90 hover:bg-slate-300 active:scale-98 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+            className="w-full py-2.5 px-3 rounded-xl bg-slate-200/90 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 active:scale-98 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
             title="بستن منوی سایدبار"
           >
-            <X className="w-4 h-4 text-slate-600" />
+            <X className="w-4 h-4 text-slate-600 dark:text-slate-400" />
             <span>بستن منو</span>
           </button>
 
@@ -897,9 +948,9 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 onOpenAdminPanel();
                 onClose();
               }}
-              className="w-full py-2.5 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 border border-amber-300 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full py-2.5 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <ShieldCheck className="w-4 h-4 text-amber-600" />
+              <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               <span>ورود به پنل مدیریت حساب (Admin Panel)</span>
             </button>
           )}
@@ -908,9 +959,9 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
           <button
             type="button"
             onClick={onLogout}
-            className="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            <LogOut className="w-4 h-4 text-rose-600" />
+            <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             <span>خروج از حساب کاربری</span>
           </button>
         </div>
@@ -938,18 +989,18 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
           onClick={() => setDashboardToDelete(null)}
         >
           <div
-            className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-right animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 text-right animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-4 border border-rose-100 dark:border-rose-800/60 shadow-sm">
               <AlertTriangle className="w-7 h-7 text-rose-500" />
             </div>
 
-            <h3 className="text-base font-black text-slate-900 text-center mb-2">
+            <h3 className="text-base font-black text-slate-900 dark:text-slate-100 text-center mb-2">
               حذف داشبورد «{dashboardToDelete.title}»
             </h3>
 
-            <p className="text-xs text-slate-500 leading-relaxed text-center mb-6">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-center mb-6">
               {dashboards.length <= 1
                 ? 'این تنها داشبورد شماست. با تایید، تمامی املاک و فایل اکسل این داشبورد به صورت کامل پاکسازی شده و یک داشبورد خالی جایگزین آن می‌شود.'
                 : 'آیا از حذف این داشبورد اطمینان دارید؟ تمامی اطلاعات املاک و فایل اکسل ذخیره شده در آن به صورت کامل حذف خواهند شد.'}
@@ -972,7 +1023,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               <button
                 type="button"
                 onClick={() => setDashboardToDelete(null)}
-                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
+                className="flex-1 py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-98 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
               >
                 انصراف
               </button>
@@ -988,18 +1039,18 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
           onClick={() => setMemberToDelete(null)}
         >
           <div
-            className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-right animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 text-right animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-4 border border-rose-100 dark:border-rose-800/60 shadow-sm">
               <Trash2 className="w-7 h-7 text-rose-500" />
             </div>
 
-            <h3 className="text-base font-black text-slate-900 text-center mb-2">
+            <h3 className="text-base font-black text-slate-900 dark:text-slate-100 text-center mb-2">
               حذف همکار «{memberToDelete.displayName}»
             </h3>
 
-            <p className="text-xs text-slate-500 leading-relaxed text-center mb-6">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-center mb-6">
               آیا از حذف این کاربر با نام کاربری «<strong>@{memberToDelete.username}</strong>» از حساب خود اطمینان دارید؟ تمامی دسترسی‌ها و اطلاعات داشبورد او پاکسازی خواهد شد.
             </p>
 
@@ -1020,7 +1071,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               <button
                 type="button"
                 onClick={() => setMemberToDelete(null)}
-                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
+                className="flex-1 py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-98 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
               >
                 انصراف
               </button>

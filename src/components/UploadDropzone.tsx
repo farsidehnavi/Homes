@@ -84,7 +84,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-xs p-6 sm:p-8 mb-6">
+    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6 sm:p-8 mb-6 transition-colors">
       {/* Hidden File Input */}
       <input
         ref={fileInputRef}
@@ -103,29 +103,29 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         onClick={() => fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
           isDragging
-            ? 'border-emerald-500 bg-emerald-50/50 scale-[1.01]'
-            : 'border-slate-300 hover:border-emerald-500 hover:bg-slate-50/60'
+            ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 scale-[1.01]'
+            : 'border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:bg-slate-50/60 dark:hover:bg-slate-800/50'
         }`}
       >
-        <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 mb-4 shadow-xs">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/70 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4 shadow-xs">
           {isLoading ? (
             <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
           ) : (
-            <FileSpreadsheet className="w-8 h-8 text-emerald-600" />
+            <FileSpreadsheet className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
           )}
         </div>
 
-        <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-2">
+        <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
           {isLoading ? 'در حال پردازش و استخراج اطلاعات اکسل...' : 'فایل اکسل املاک را اینجا رها کنید'}
         </h3>
 
-        <p className="text-sm text-slate-500 max-w-md mb-6 leading-relaxed">
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6 leading-relaxed">
           یا برای انتخاب فایل از کامپیوتر خود کلیک کنید. از پسوندهای{' '}
-          <span className="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+          <span className="font-mono font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
             .xlsx
           </span>{' '}
           و{' '}
-          <span className="font-mono font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+          <span className="font-mono font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
             .xls
           </span>{' '}
           پشتیبانی می‌شود.
@@ -147,8 +147,8 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+        <div className="mt-4 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800/70 text-rose-800 dark:text-rose-200 text-sm flex items-center gap-3">
+          <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}

@@ -45,12 +45,12 @@ export const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 sm:px-5 rounded-xl border border-slate-200 shadow-xs mt-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3.5 sm:px-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs mt-4 transition-colors">
       {/* Items info */}
-      <div className="text-xs text-slate-500 font-medium">
-        نمایش <strong className="text-slate-800">{fmt(startItem)}</strong> تا{' '}
-        <strong className="text-slate-800">{fmt(endItem)}</strong> از{' '}
-        <strong className="text-slate-800">{fmt(totalItems)}</strong> مورد
+      <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+        نمایش <strong className="text-slate-800 dark:text-slate-100">{fmt(startItem)}</strong> تا{' '}
+        <strong className="text-slate-800 dark:text-slate-100">{fmt(endItem)}</strong> از{' '}
+        <strong className="text-slate-800 dark:text-slate-100">{fmt(totalItems)}</strong> مورد
       </div>
 
       {/* Page controls */}
@@ -59,7 +59,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="p-2 sm:p-1.5 rounded-xl sm:rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1 text-xs"
+          className="p-2 sm:p-1.5 rounded-xl sm:rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1 text-xs"
           title="صفحه قبل"
         >
           <ChevronRight className="w-4 h-4" />
@@ -67,7 +67,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         </button>
 
         {/* Mobile current page indicator */}
-        <div className="sm:hidden text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+        <div className="sm:hidden text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
           صفحه {fmt(currentPage)} از {fmt(totalPages)}
         </div>
 
@@ -89,7 +89,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   isCurrent
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-slate-700 hover:bg-slate-100'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 {fmt(Number(p))}
@@ -101,7 +101,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="p-2 sm:p-1.5 rounded-xl sm:rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1 text-xs"
+          className="p-2 sm:p-1.5 rounded-xl sm:rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer flex items-center gap-1 text-xs"
           title="صفحه بعد"
         >
           <span className="sm:hidden font-semibold">بعدی</span>
@@ -110,7 +110,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       </div>
 
       {/* Page size selector */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
+      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
         <span>تعداد در هر صفحه:</span>
         <select
           value={pageSize}
@@ -118,7 +118,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             onPageSizeChange(Number(e.target.value));
             onPageChange(1);
           }}
-          className="bg-slate-50 border border-slate-300 text-slate-700 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+          className="bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none"
         >
           <option value={10}>۱۰</option>
           <option value={25}>۲۵</option>

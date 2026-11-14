@@ -116,7 +116,7 @@ const PropertyMiniMap: React.FC<{
   return (
     <div
       ref={containerRef}
-      className="w-full h-52 sm:h-64 rounded-2xl overflow-hidden border border-slate-200 z-10 shadow-inner"
+      className="w-full h-52 sm:h-64 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 z-10 shadow-inner"
     />
   );
 };
@@ -244,23 +244,23 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           >
             {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
           </span>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70">
             {item.propertyType}
           </span>
           {item.district && (
-            <span className="text-2xs text-slate-500 flex items-center gap-1 font-semibold">
+            <span className="text-2xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-semibold">
               <MapPin className="w-3 h-3 text-red-500" />
               <span>{item.district}</span>
             </span>
           )}
           {item.relativeTime && (
-            <span className="text-2xs text-slate-400 flex items-center gap-1">
-              <Clock className="w-3 h-3 text-slate-400" />
+            <span className="text-2xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+              <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
               <span>{item.relativeTime}</span>
             </span>
           )}
         </div>
-        <h3 className="text-lg font-black text-slate-900 leading-snug">
+        <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 leading-snug">
           {item.title || item.address}
         </h3>
       </div>
@@ -268,28 +268,30 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
       {/* Pricing Highlight Card */}
       <div
         className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-          isRent ? 'bg-blue-50/70 border-blue-200' : 'bg-emerald-50/70 border-emerald-200'
+          isRent
+            ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/60'
+            : 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60'
         }`}
       >
         {isRent ? (
           <>
             <div className="space-y-1">
-              <span className="text-2xs font-semibold text-blue-700 uppercase tracking-wide">
+              <span className="text-2xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
                 شرایط رهن و اجاره در دیوار:
               </span>
               <div className="flex flex-wrap items-center gap-3">
                 <div>
-                  <span className="text-xs text-slate-500 block">مبلغ ودیعه / رهن:</span>
-                  <span className="text-lg sm:text-xl font-black text-blue-900">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">مبلغ ودیعه / رهن:</span>
+                  <span className="text-lg sm:text-xl font-black text-blue-900 dark:text-blue-200">
                     {item.deposit && item.deposit > 0
                       ? `${formatPrice(item.deposit)} تومان`
                       : item.depositText || 'توافقی'}
                   </span>
                 </div>
-                <div className="h-8 w-px bg-blue-200 hidden sm:block" />
+                <div className="h-8 w-px bg-blue-200 dark:bg-blue-800 hidden sm:block" />
                 <div>
-                  <span className="text-xs text-slate-500 block">اجاره ماهیانه:</span>
-                  <span className="text-lg sm:text-xl font-black text-blue-900">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">اجاره ماهیانه:</span>
+                  <span className="text-lg sm:text-xl font-black text-blue-900 dark:text-blue-200">
                     {item.rent && item.rent > 0
                       ? `${formatPrice(item.rent)} تومان`
                       : item.rentText || 'توافقی'}
@@ -298,13 +300,13 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               </div>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-blue-100 text-right space-y-0.5">
-              <span className="text-2xs text-slate-500 block">متراژ ملک:</span>
-              <span className="text-base font-bold text-slate-900">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-blue-100 dark:border-blue-800/60 text-right space-y-0.5">
+              <span className="text-2xs text-slate-500 dark:text-slate-400 block">متراژ ملک:</span>
+              <span className="text-base font-bold text-slate-900 dark:text-slate-100">
                 {item.area && item.area > 0 ? `${fmt(item.area)} متر مربع` : 'نامشخص'}
               </span>
               {item.buildingArea && item.landArea && item.buildingArea !== item.landArea && (
-                <span className="text-2xs text-slate-500 block mt-0.5 font-medium">
+                <span className="text-2xs text-slate-500 dark:text-slate-400 block mt-0.5 font-medium">
                   زیربنا: {fmt(item.buildingArea)} متر مربع
                 </span>
               )}
@@ -313,31 +315,31 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         ) : (
           <>
             <div className="space-y-0.5">
-              <span className="text-2xs font-semibold text-emerald-700 uppercase tracking-wide">
+              <span className="text-2xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
                 قیمت کل در دیوار:
               </span>
-              <div className="text-xl sm:text-2xl font-black text-emerald-900">
+              <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-200">
                 {item.price > 0 ? `${formatPrice(item.price)} تومان` : item.priceText || 'توافقی'}
               </div>
               {item.price > 0 && (
-                <div className="text-xs text-emerald-700 font-semibold">
+                <div className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
                   معادل {formatPriceShort(item.price, usePersianDigits)}
                 </div>
               )}
             </div>
 
             {(item.pricePerMeter || (item.price && item.area && item.area > 0)) && (
-              <div className="bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-emerald-100 text-right space-y-0.5">
-                <span className="text-2xs text-slate-500 block">
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xs px-4 py-2.5 rounded-xl border border-emerald-100 dark:border-emerald-800/60 text-right space-y-0.5">
+                <span className="text-2xs text-slate-500 dark:text-slate-400 block">
                   قیمت هر متر مربع:
                 </span>
-                <span className="text-base font-bold text-slate-900">
+                <span className="text-base font-bold text-slate-900 dark:text-slate-100">
                   {item.pricePerMeter && item.pricePerMeter > 0
                     ? `${formatPrice(item.pricePerMeter)} تومان`
                     : `${formatPrice(Math.round(item.price! / item.area!))} تومان`}
                 </span>
                 {item.area && item.area > 0 && (
-                  <span className="text-2xs text-slate-500 block">
+                  <span className="text-2xs text-slate-500 dark:text-slate-400 block">
                     متراژ کل: {fmt(item.area)} متر
                   </span>
                 )}
@@ -349,89 +351,89 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
       {/* Key Specifications Grid */}
       <div>
-        <h4 className="text-xs font-bold text-slate-700 mb-3 flex items-center gap-1.5">
-          <Building2 className="w-4 h-4 text-slate-500" />
+        <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
+          <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           <span>مشخصات فنی و ساختمانی ملک:</span>
         </h4>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <span className="text-slate-400 text-2xs block mb-1">
+          <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+            <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">
               {item.landArea && item.buildingArea && item.landArea !== item.buildingArea
                 ? 'متراژ کل / زمین'
                 : 'متراژ'}
             </span>
-            <span className="font-bold text-slate-900">
+            <span className="font-bold text-slate-900 dark:text-slate-100">
               {item.area && item.area > 0 ? `${fmt(item.area)} متر مربع` : 'ذکر نشده در آگهی'}
             </span>
             {item.buildingArea && item.landArea && item.buildingArea !== item.landArea && (
-              <span className="text-2xs text-slate-500 block mt-0.5">
+              <span className="text-2xs text-slate-500 dark:text-slate-400 block mt-0.5">
                 زیربنا: {fmt(item.buildingArea)} متر مربع
               </span>
             )}
           </div>
 
           {item.rooms !== undefined && item.rooms > 0 && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span className="text-slate-400 text-2xs block mb-1">تعداد اتاق</span>
-              <span className="font-bold text-slate-900">{fmt(item.rooms)} خوابه</span>
+            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">تعداد اتاق</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{fmt(item.rooms)} خوابه</span>
             </div>
           )}
 
           {item.floor !== undefined && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span className="text-slate-400 text-2xs block mb-1">طبقه</span>
-              <span className="font-bold text-slate-900">
+            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">طبقه</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">
                 {item.floor === 0 ? 'همکف' : fmt(item.floor)} {item.totalFloors ? `از ${fmt(item.totalFloors)}` : ''}
               </span>
             </div>
           )}
 
           {(item.builtYear !== undefined || item.age !== undefined) && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span className="text-slate-400 text-2xs block mb-1">سال ساخت</span>
-              <span className="font-bold text-slate-900">
+            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">سال ساخت</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">
                 {formatBuiltYear(item, usePersianDigits)}
               </span>
             </div>
           )}
 
           {item.orientation && item.orientation.trim() !== '' && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span className="text-slate-400 text-2xs block mb-1">جهت ساختمان</span>
-              <span className="font-bold text-slate-900">{item.orientation}</span>
+            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">جهت ساختمان</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{item.orientation}</span>
             </div>
           )}
 
           {item.facade && item.facade.trim() !== '' && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span className="text-slate-400 text-2xs block mb-1">نمای ساختمان</span>
-              <span className="font-bold text-slate-900">{item.facade}</span>
+            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">نمای ساختمان</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{item.facade}</span>
             </div>
           )}
 
           {item.documentType && item.documentType.trim() !== '' && (
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-              <span className="text-slate-400 text-2xs block mb-1">نوع سند</span>
-              <span className="font-bold text-slate-900">{item.documentType}</span>
+            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">نوع سند</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{item.documentType}</span>
             </div>
           )}
 
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <span className="text-slate-400 text-2xs block mb-1">نوع ملک</span>
-            <span className="font-bold text-slate-900">{item.propertyType}</span>
+          <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
+            <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">نوع ملک</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{item.propertyType}</span>
           </div>
         </div>
       </div>
 
       {/* Description from Divar or Excel */}
       {item.description && item.description.trim() !== '' && (
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs">
-          <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-slate-500" />
+        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 text-xs">
+          <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+            <FileText className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>توضیحات تکمیلی آگهی‌دهنده:</span>
           </h4>
-          <p className="text-slate-700 leading-relaxed whitespace-pre-line text-xs font-normal">
+          <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line text-xs font-normal">
             {item.description}
           </p>
         </div>
@@ -440,14 +442,14 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
       {/* Amenities Badges - only rendered if actually mentioned */}
       {(item.hasParking !== undefined || item.hasElevator !== undefined || item.hasStorage !== undefined) && (
         <div>
-          <h4 className="text-xs font-bold text-slate-700 mb-3">امکانات رفاهی:</h4>
+          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">امکانات رفاهی:</h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {item.hasParking !== undefined && (
               <div
                 className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
                   item.hasParking
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -462,8 +464,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <div
                 className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
                   item.hasElevator
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -478,8 +480,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <div
                 className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
                   item.hasStorage
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-400'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800/70 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -496,8 +498,8 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
       {/* Address & Divar Map Section */}
       <div className="space-y-3 pt-1">
         {/* Address bar written on top of map */}
-        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-2 text-xs text-slate-800 font-bold min-w-0">
+        <div className="bg-slate-50 dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2 text-xs text-slate-800 dark:text-slate-200 font-bold min-w-0">
             <MapPin className="w-4 h-4 text-red-500 shrink-0" />
             <span className="truncate">{effectiveAddress}</span>
           </div>
@@ -505,9 +507,9 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           <button
             type="button"
             onClick={handleCopyAddress}
-            className="flex items-center gap-1 text-2xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors shrink-0 cursor-pointer shadow-2xs"
+            className="flex items-center gap-1 text-2xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors shrink-0 cursor-pointer shadow-2xs"
           >
-            {copied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'کپی شد' : 'کپی آدرس'}</span>
           </button>
         </div>
@@ -528,33 +530,33 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                 href={`https://neshan.org/maps/@${effectiveLat},${effectiveLng},16z`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold transition-all shadow-2xs"
+                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70 font-bold transition-all shadow-2xs"
               >
-                <Navigation className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <Navigation className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span>مسیریابی نشان</span>
               </a>
               <a
                 href={`https://balad.ir/location?latitude=${effectiveLat}&longitude=${effectiveLng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition-all shadow-2xs"
+                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70 font-bold transition-all shadow-2xs"
               >
-                <Navigation className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <Navigation className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>مسیریابی بلد</span>
               </a>
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${effectiveLat},${effectiveLng}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-bold transition-all shadow-2xs"
+                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold transition-all shadow-2xs"
               >
-                <ExternalLink className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                <ExternalLink className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400 shrink-0" />
                 <span>Google Maps</span>
               </a>
             </div>
           </div>
         ) : effectiveMapImage ? (
-          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
+          <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
             <img src={effectiveMapImage} alt="نقشه دیوار" className="w-full h-52 sm:h-64 object-cover" />
           </div>
         ) : null}
@@ -579,10 +581,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           href={item.divarUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-all"
+          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all"
         >
           <span>مشاهده این آگهی در وب‌سایت دیوار</span>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+          <ExternalLink className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
         </a>
       )}
     </div>
@@ -686,11 +688,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-white md:bg-black/80 md:backdrop-blur-xs md:flex md:items-center md:justify-center md:p-6 overflow-hidden animate-in fade-in duration-200 font-['Vazirmatn',sans-serif]"
+      className="fixed inset-0 z-50 bg-white dark:bg-slate-900 md:bg-black/80 md:backdrop-blur-xs md:flex md:items-center md:justify-center md:p-6 overflow-hidden animate-in fade-in duration-200 font-['Vazirmatn',sans-serif]"
       onClick={onClose}
     >
       <div
-        className="w-full h-full md:h-auto md:max-h-[92vh] md:max-w-6xl md:rounded-3xl bg-white md:border md:border-slate-200 md:shadow-2xl flex flex-col overflow-hidden text-right"
+        className="w-full h-full md:h-auto md:max-h-[92vh] md:max-w-6xl md:rounded-3xl bg-white dark:bg-slate-900 md:border md:border-slate-200 dark:md:border-slate-800 md:shadow-2xl flex flex-col overflow-hidden text-right"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ========================================================= */}
@@ -699,11 +701,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         {/* ========================================================= */}
         <div className="flex flex-col h-full md:hidden">
           {/* Mobile Top Navigation Bar */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-white shrink-0 z-20 shadow-2xs">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 z-20 shadow-2xs">
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-95 py-1.5 px-3 rounded-xl transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 py-1.5 px-3 rounded-xl transition-all cursor-pointer"
             >
               <ArrowRight className="w-4 h-4" />
               <span>بازگشت</span>
@@ -717,7 +719,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               >
                 {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 truncate">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70 truncate">
                 {item.propertyType}
               </span>
             </div>
@@ -725,7 +727,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500 cursor-pointer"
+              className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-pointer"
               title="بستن"
             >
               <X className="w-5 h-5" />
@@ -751,7 +753,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
         {/* ========================================================= */}
         <div className="hidden md:flex flex-col h-full overflow-hidden">
           {/* Desktop Modal Header */}
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <span
                 className={`px-3 py-1 rounded-full text-xs font-bold text-white ${
@@ -760,10 +762,10 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               >
                 {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300">
                 {item.propertyType}
               </span>
-              <h3 className="text-base font-black text-slate-900 truncate max-w-md">
+              <h3 className="text-base font-black text-slate-900 dark:text-slate-100 truncate max-w-md">
                 {item.title || item.address}
               </h3>
             </div>
@@ -786,7 +788,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 transition-colors cursor-pointer"
                 title="بستن پنجره"
               >
                 <X className="w-5 h-5" />
@@ -808,7 +810,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           </div>
 
           {/* Desktop Footer */}
-          <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+          <div className="px-6 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               {!isExcelMode && onAddToExcel && item.source !== 'excel' && (
                 <button
@@ -826,7 +828,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
                   href={item.divarUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-bold transition-all"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold transition-all"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>مشاهده در دیوار</span>
@@ -837,7 +839,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs transition-colors cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-semibold text-xs transition-colors cursor-pointer"
             >
               بستن
             </button>

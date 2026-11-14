@@ -182,13 +182,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col h-full overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col h-full overflow-hidden transition-colors">
       {/* Panel Header */}
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+      <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/70">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-700" />
-          <h2 className="text-sm font-bold text-slate-900">فیلترهای پیشرفته</h2>
-          <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
+          <Filter className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">فیلترهای پیشرفته</h2>
+          <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-200/80 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
             {fmt(totalFiltered)} از {fmt(totalAvailable)}
           </span>
         </div>
@@ -197,7 +197,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {isFiltered && (
             <button
               onClick={onResetFilters}
-              className="text-xs text-rose-600 hover:text-rose-700 flex items-center gap-1 font-semibold hover:bg-rose-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
+              className="text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 flex items-center gap-1 font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/50 px-2 py-1 rounded-md transition-colors cursor-pointer"
               title="پاک کردن همه فیلترها"
             >
               <RotateCcw className="w-3 h-3" />
@@ -208,7 +208,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {isMobileDrawer && onCloseMobileDrawer && (
             <button
               onClick={onCloseMobileDrawer}
-              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               <X className="w-5 h-5" />
             </button>
@@ -217,23 +217,23 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       </div>
 
       {/* Filter Sections Scrollable Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5 text-right divide-y divide-slate-100">
+      <div className="flex-1 overflow-y-auto p-4 space-y-5 text-right divide-y divide-slate-100 dark:divide-slate-800">
         {/* 1. Search Query */}
         <div className="space-y-1.5 pt-0">
-          <label className="text-xs font-bold text-slate-700 block">جستجوی متنی:</label>
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">جستجوی متنی:</label>
           <div className="relative">
             <input
               type="text"
               value={filter.searchQuery}
               onChange={(e) => onFilterChange({ ...filter, searchQuery: e.target.value })}
               placeholder="جستجو در محله، آدرس، خیابان، نوع ملک..."
-              className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl pr-8 pl-8 py-2.5 focus:bg-white focus:border-indigo-500 focus:outline-hidden transition-all"
+              className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl pr-8 pl-8 py-2.5 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 dark:focus:border-indigo-400 focus:outline-hidden transition-all"
             />
-            <Search className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             {filter.searchQuery && (
               <button
                 onClick={() => onFilterChange({ ...filter, searchQuery: '' })}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -247,9 +247,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <button
               type="button"
               onClick={() => toggleSection('timeRange')}
-              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
             >
-              <div className="flex items-center gap-1.5 text-red-700">
+              <div className="flex items-center gap-1.5 text-red-700 dark:text-red-400">
                 <Clock className="w-4 h-4" />
                 <span>زمان انتشار آگهی دیوار:</span>
               </div>
@@ -261,10 +261,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 <select
                   value={currentTimeRange}
                   onChange={(e) => onTimeRangeChange(e.target.value as DivarTimeRange)}
-                  className="w-full text-xs font-bold bg-red-50/60 border border-red-200 text-red-900 rounded-xl px-3 py-2.5 focus:outline-hidden cursor-pointer"
+                  className="w-full text-xs font-bold bg-red-50/60 dark:bg-red-950/40 border border-red-200 dark:border-red-800/70 text-red-900 dark:text-red-200 rounded-xl px-3 py-2.5 focus:outline-hidden cursor-pointer"
                 >
                   {timeOptions.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
+                    <option key={opt.id} value={opt.id} className="dark:bg-slate-900 dark:text-slate-100">
                       ⏱ {opt.label} ({opt.desc})
                     </option>
                   ))}
@@ -279,7 +279,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       className={`py-1.5 px-2 rounded-lg text-2xs font-semibold text-center border transition-all cursor-pointer ${
                         currentTimeRange === opt.id
                           ? 'bg-red-600 text-white border-red-600 shadow-xs'
-                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                       }`}
                     >
                       {opt.label}
@@ -296,10 +296,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <button
             type="button"
             onClick={() => toggleSection('transaction')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
           >
             <div className="flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5 text-slate-500" />
+              <Tag className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
               <span>نوع معامله (خرید / اجاره):</span>
             </div>
             {openSections.transaction ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -312,8 +312,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 onClick={() => onFilterChange({ ...filter, transactionType: 'all' })}
                 className={`py-2 px-2 text-2xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
                   filter.transactionType === 'all'
-                    ? 'bg-slate-800 text-white border-slate-800 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    ? 'bg-slate-800 dark:bg-indigo-600 text-white border-slate-800 dark:border-indigo-600 shadow-xs'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 همه
@@ -325,7 +325,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 className={`py-2 px-2 text-2xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
                   filter.transactionType === 'خرید و فروش'
                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 خرید و فروش
@@ -337,7 +337,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 className={`py-2 px-2 text-2xs font-bold rounded-xl border text-center transition-all cursor-pointer ${
                   filter.transactionType === 'رهن و اجاره'
                     ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 رهن و اجاره
@@ -351,7 +351,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <button
             type="button"
             onClick={() => toggleSection('propertyType')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
           >
             <span>نوع ملک:</span>
             {openSections.propertyType ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -369,7 +369,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     className={`text-2xs font-semibold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
                       active
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     {type}
@@ -386,7 +386,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <button
               type="button"
               onClick={() => toggleSection('price')}
-              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
             >
               <span>قیمت خرید (تومان):</span>
               {openSections.price ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -396,7 +396,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <div className="space-y-2 pt-1">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-2xs text-slate-400 block mb-0.5">از:</label>
+                    <label className="text-2xs text-slate-400 dark:text-slate-500 block mb-0.5">از:</label>
                     <input
                       type="number"
                       value={filter.minPrice ?? ''}
@@ -407,12 +407,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         })
                       }
                       placeholder="حداقل قیمت"
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                      className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <label className="text-2xs text-slate-400 block mb-0.5">تا:</label>
+                    <label className="text-2xs text-slate-400 dark:text-slate-500 block mb-0.5">تا:</label>
                     <input
                       type="number"
                       value={filter.maxPrice ?? ''}
@@ -423,7 +423,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         })
                       }
                       placeholder="حداکثر قیمت"
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                      className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -440,7 +440,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                           maxPrice: preset.max,
                         })
                       }
-                      className="text-2xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                      className="text-2xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                     >
                       {preset.label}
                     </button>
@@ -457,9 +457,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <button
               type="button"
               onClick={() => toggleSection('rent')}
-              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+              className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
             >
-              <div className="flex items-center gap-1.5 text-blue-700">
+              <div className="flex items-center gap-1.5 text-blue-700 dark:text-blue-400">
                 <Key className="w-3.5 h-3.5" />
                 <span>رهن و اجاره ماهیانه:</span>
               </div>
@@ -470,7 +470,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <div className="space-y-3 pt-1">
                 {/* Deposit */}
                 <div className="space-y-1">
-                  <span className="text-2xs font-semibold text-slate-600 block">سقف مبلغ ودیعه (رهن):</span>
+                  <span className="text-2xs font-semibold text-slate-600 dark:text-slate-400 block">سقف مبلغ ودیعه (رهن):</span>
                   <div className="grid grid-cols-2 gap-2">
                     <input
                       type="number"
@@ -482,7 +482,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         })
                       }
                       placeholder="حداقل ودیعه"
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                      className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                     />
                     <input
                       type="number"
@@ -494,7 +494,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         })
                       }
                       placeholder="حداکثر ودیعه"
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                      className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                     />
                   </div>
                   <div className="flex flex-wrap gap-1 pt-0.5">
@@ -509,7 +509,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                             maxDeposit: preset.max,
                           })
                         }
-                        className="text-2xs px-2 py-0.5 rounded bg-blue-50 text-blue-800 hover:bg-blue-100"
+                        className="text-2xs px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 cursor-pointer"
                       >
                         {preset.label}
                       </button>
@@ -519,7 +519,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
                 {/* Rent */}
                 <div className="space-y-1">
-                  <span className="text-2xs font-semibold text-slate-600 block">سقف اجاره ماهیانه:</span>
+                  <span className="text-2xs font-semibold text-slate-600 dark:text-slate-400 block">سقف اجاره ماهیانه:</span>
                   <div className="grid grid-cols-2 gap-2">
                     <input
                       type="number"
@@ -531,7 +531,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         })
                       }
                       placeholder="حداقل اجاره"
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                      className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                     />
                     <input
                       type="number"
@@ -543,7 +543,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         })
                       }
                       placeholder="حداکثر اجاره"
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                      className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                     />
                   </div>
                   <div className="flex flex-wrap gap-1 pt-0.5">
@@ -558,7 +558,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                             maxRent: preset.max,
                           })
                         }
-                        className="text-2xs px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 hover:bg-indigo-100"
+                        className="text-2xs px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 cursor-pointer"
                       >
                         {preset.label}
                       </button>
@@ -575,7 +575,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <button
             type="button"
             onClick={() => toggleSection('area')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
           >
             <span>متراژ (متر مربع):</span>
             {openSections.area ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -594,7 +594,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     })
                   }
                   placeholder="حداقل متراژ"
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                 />
                 <input
                   type="number"
@@ -606,7 +606,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     })
                   }
                   placeholder="حداکثر متراژ"
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-indigo-500"
                 />
               </div>
 
@@ -622,7 +622,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         maxArea: preset.max,
                       })
                     }
-                    className="text-2xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                    className="text-2xs px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                   >
                     {preset.label}
                   </button>
@@ -637,7 +637,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <button
             type="button"
             onClick={() => toggleSection('rooms')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
           >
             <span>تعداد اتاق:</span>
             {openSections.rooms ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -655,7 +655,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     className={`py-1.5 text-xs font-bold rounded-lg border text-center transition-all cursor-pointer ${
                       active
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
                     {r === 4 ? '+۴ خواب' : `${fmt(r)} خواب`}
@@ -671,7 +671,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <button
             type="button"
             onClick={() => toggleSection('amenities')}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer"
+            className="w-full flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer"
           >
             <span>امکانات رفاهی:</span>
             {openSections.amenities ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -680,26 +680,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {openSections.amenities && (
             <div className="space-y-2 pt-1 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">پارکینگ:</span>
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-2xs">
+                <span className="text-slate-600 dark:text-slate-400">پارکینگ:</span>
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-2xs">
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, parking: 'all' })}
-                    className={`px-2 py-1 rounded ${filter.parking === 'all' ? 'bg-white font-bold shadow-xs' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.parking === 'all' ? 'bg-white dark:bg-slate-700 dark:text-slate-100 font-bold shadow-xs' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     همه
                   </button>
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, parking: 'yes' })}
-                    className={`px-2 py-1 rounded ${filter.parking === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.parking === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     دارد
                   </button>
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, parking: 'no' })}
-                    className={`px-2 py-1 rounded ${filter.parking === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.parking === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     ندارد
                   </button>
@@ -707,26 +707,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">آسانسور:</span>
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-2xs">
+                <span className="text-slate-600 dark:text-slate-400">آسانسور:</span>
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-2xs">
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, elevator: 'all' })}
-                    className={`px-2 py-1 rounded ${filter.elevator === 'all' ? 'bg-white font-bold shadow-xs' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.elevator === 'all' ? 'bg-white dark:bg-slate-700 dark:text-slate-100 font-bold shadow-xs' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     همه
                   </button>
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, elevator: 'yes' })}
-                    className={`px-2 py-1 rounded ${filter.elevator === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.elevator === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     دارد
                   </button>
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, elevator: 'no' })}
-                    className={`px-2 py-1 rounded ${filter.elevator === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.elevator === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     ندارد
                   </button>
@@ -734,26 +734,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">انباری:</span>
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-2xs">
+                <span className="text-slate-600 dark:text-slate-400">انباری:</span>
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 text-2xs">
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, storage: 'all' })}
-                    className={`px-2 py-1 rounded ${filter.storage === 'all' ? 'bg-white font-bold shadow-xs' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.storage === 'all' ? 'bg-white dark:bg-slate-700 dark:text-slate-100 font-bold shadow-xs' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     همه
                   </button>
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, storage: 'yes' })}
-                    className={`px-2 py-1 rounded ${filter.storage === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.storage === 'yes' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     دارد
                   </button>
                   <button
                     type="button"
                     onClick={() => onFilterChange({ ...filter, storage: 'no' })}
-                    className={`px-2 py-1 rounded ${filter.storage === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500'}`}
+                    className={`px-2 py-1 rounded cursor-pointer ${filter.storage === 'no' ? 'bg-rose-600 text-white font-bold' : 'text-slate-500 dark:text-slate-400'}`}
                   >
                     ندارد
                   </button>
@@ -764,20 +764,20 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
           {/* Divar Alert Trigger directly under filter menu */}
           {isDivarMode && onSaveFiltersAsAlert && (
-            <div className="pt-4 pb-2 border-t border-slate-200">
-              <div className="p-3.5 bg-linear-to-br from-amber-50 via-rose-50 to-orange-50 border border-amber-200/90 rounded-2xl shadow-xs space-y-2 text-right">
+            <div className="pt-4 pb-2 border-t border-slate-200 dark:border-slate-800">
+              <div className="p-3.5 bg-linear-to-br from-amber-50 via-rose-50 to-orange-50 dark:from-amber-950/40 dark:via-rose-950/30 dark:to-orange-950/30 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl shadow-xs space-y-2 text-right">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-amber-900 font-black text-xs">
+                  <div className="flex items-center gap-1.5 text-amber-900 dark:text-amber-200 font-black text-xs">
                     <BellRing className="w-4 h-4 text-red-500 animate-bounce" />
                     <span>گوش‌به‌زنگ با فیلترهای انتخابی</span>
                   </div>
                   {isFiltered && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 dark:bg-amber-900/70 text-amber-900 dark:text-amber-200">
                       فیلترهای فعال
                     </span>
                   )}
                 </div>
-                <p className="text-2xs text-slate-600 leading-relaxed">
+                <p className="text-2xs text-slate-600 dark:text-slate-300 leading-relaxed">
                   با ثبت فیلترهای بالا در «گوش‌به‌زنگ»، به محض انتشار هر ملک جدید در دیوار نجف‌آباد، فوراً اعلان دریافت کنید.
                 </p>
                 <button
@@ -797,7 +797,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
       {/* Mobile Drawer Footer Actions */}
       {isMobileDrawer && (
-        <div className="p-3 border-t border-slate-200 bg-slate-50/95 backdrop-blur-xs flex items-center gap-2 shrink-0">
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-xs flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={onCloseMobileDrawer}
@@ -809,7 +809,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <button
               type="button"
               onClick={onResetFilters}
-              className="py-3 px-3.5 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0"
+              className="py-3 px-3.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0"
               title="پاک‌سازی همه فیلترها"
             >
               پاک‌سازی

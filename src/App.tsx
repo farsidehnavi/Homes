@@ -116,6 +116,26 @@ export default function App() {
   const [userDashboards, setUserDashboards] = useState<UserDashboard[]>([]);
   const [activeDashboardId, setActiveDashId] = useState<string>('');
   const [isHamburgerOpen, setIsHamburgerOpen] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('najafabad_dark_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('najafabad_dark_mode', String(isDarkMode));
+    } catch {
+      // ignore
+    }
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   // User Management & Permissions (Admin controls user customizations)
   const [allUsers, setAllUsers] = useState<AppUser[]>(() => getUsers());
@@ -1002,7 +1022,7 @@ export default function App() {
 
   // SCREEN 3: WORKSPACE (Straightforward into Excel mode, Divar in hamburger menu)
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-['Vazirmatn',sans-serif] overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-['Vazirmatn',sans-serif] overflow-x-hidden w-full max-w-full transition-colors duration-200">
       {/* Top Navigation Bar */}
       <Navbar
         currentMode={currentMode}
@@ -1030,21 +1050,21 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 sm:pb-8">
         {/* Banner for Shared Excel viewing */}
         {activeSharedUserId && currentMode === 'excel' && (
-          <div className="bg-amber-50/90 border border-amber-300 text-amber-950 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-bold mb-5 shadow-xs animate-in slide-in-from-top-2">
+          <div className="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/70 text-amber-950 dark:text-amber-100 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-bold mb-5 shadow-xs animate-in slide-in-from-top-2">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-black text-amber-900">
+                  <span className="text-sm font-black text-amber-900 dark:text-amber-200">
                     در حال مشاهده: {activeDashboard?.title}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-950 border border-amber-300">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 dark:bg-amber-900/70 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
                     اکسل اشتراکی
                   </span>
                 </div>
-                <div className="text-[11px] text-amber-800 font-normal mt-0.5">
+                <div className="text-[11px] text-amber-800 dark:text-amber-300/90 font-normal mt-0.5">
                   مالک فایل: {activeSharedUser?.displayName} (@{activeSharedUser?.username}) •
                   {canAddProperty ? ' شما مجاز به ثبت ملک جدید در این اکسل هستید.' : ' فقط مشاهده املاک.'}
                 </div>
@@ -1057,7 +1077,7 @@ export default function App() {
                 setActiveSharedUserId(null);
                 showToast('به داشبورد شخصی خود بازگشتید.', 'success');
               }}
-              className="w-full sm:w-auto px-4 py-2 bg-white hover:bg-slate-100 active:scale-95 text-slate-800 rounded-xl text-xs font-bold border border-slate-300 cursor-pointer shadow-2xs transition-all text-center"
+              className="w-full sm:w-auto px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 cursor-pointer shadow-2xs transition-all text-center"
             >
               بازگشت به داشبورد شخصی من
             </button>
@@ -1089,13 +1109,13 @@ export default function App() {
           (showExcelDropzone || excelData.length === 0) ? (
             <div className="relative mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-700">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   بارگذاری فایل اکسل در داشبورد فعلی ({activeDashboard?.title}):
                 </span>
                 {excelData.length > 0 && (
                   <button
                     onClick={() => setShowExcelDropzone(false)}
-                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 cursor-pointer"
+                    className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer"
                   >
                     <ChevronUp className="w-4 h-4" />
                     <span>بستن باکس آپلود</span>
@@ -1272,6 +1292,8 @@ export default function App() {
               : undefined
           }
           onLogout={handleLogout}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
         />
       )}
 
@@ -1282,7 +1304,7 @@ export default function App() {
             className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
             onClick={() => setIsMobileFilterOpen(false)}
           />
-          <div className="relative w-4/5 max-w-sm bg-white h-full shadow-2xl z-10 flex flex-col animate-in slide-in-from-right duration-250">
+          <div className="relative w-4/5 max-w-sm bg-white dark:bg-slate-900 h-full shadow-2xl z-10 flex flex-col animate-in slide-in-from-right duration-250">
             <FilterPanel
               filter={filter}
               onFilterChange={(newF) => {
@@ -1373,18 +1395,18 @@ export default function App() {
           onClick={() => setPropertyToDelete(null)}
         >
           <div
-            className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-right animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 text-right animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-4 border border-rose-100 dark:border-rose-800/60 shadow-sm">
               <AlertTriangle className="w-7 h-7 text-rose-500" />
             </div>
 
-            <h3 className="text-base font-black text-slate-900 text-center mb-2">
+            <h3 className="text-base font-black text-slate-900 dark:text-slate-100 text-center mb-2">
               حذف ملک ردیف {toPersianDigits(propertyToDelete.rowNumber)}
             </h3>
 
-            <p className="text-xs text-slate-500 leading-relaxed text-center mb-6">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-center mb-6">
               آیا از حذف ملک «{propertyToDelete.title || propertyToDelete.propertyType || `ردیف ${toPersianDigits(propertyToDelete.rowNumber)}`}» از این داشبورد اطمینان دارید؟
             </p>
 
@@ -1401,7 +1423,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setPropertyToDelete(null)}
-                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
+                className="flex-1 py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-98 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-all cursor-pointer text-center"
               >
                 انصراف
               </button>

@@ -377,25 +377,25 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full h-[95vh] sm:h-auto sm:max-h-[92vh] flex flex-col overflow-hidden text-right"
+        className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-4xl w-full h-[95vh] sm:h-auto sm:max-h-[92vh] flex flex-col overflow-hidden text-right"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 bg-red-50/60 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 dark:border-slate-800 bg-red-50/60 dark:bg-red-950/30 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-xs shrink-0">
               <BellRing className="w-5 h-5 animate-bounce" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base sm:text-lg font-black text-slate-900">
+                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100">
                   گوش‌به‌زنگ دیوار نجف‌آباد (تفکیک نتایج و انتقال به اکسل)
                 </h2>
-                <span className="text-2xs font-bold text-red-700 bg-red-100 border border-red-200 px-2 py-0.5 rounded-full">
+                <span className="text-2xs font-bold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-950/70 border border-red-200 dark:border-red-800/70 px-2 py-0.5 rounded-full">
                   رصد زنده
                 </span>
               </div>
-              <p className="text-2xs text-slate-500">
+              <p className="text-2xs text-slate-500 dark:text-slate-400">
                 مشخصات ملک و اطلاعات مشتری را ثبت کنید؛ برای هر هشدار بخش نتایج جداگانه با دکمه انتقال مستقیم به اکسل ایجاد می‌شود.
               </p>
             </div>
@@ -403,25 +403,25 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Action / Banner Strip */}
-        <div className="px-4 sm:px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
-          <div className="flex items-center gap-2 text-slate-600">
-            <span className="text-slate-400">اعلان مرورگر:</span>
+        <div className="px-4 sm:px-6 py-2.5 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+            <span className="text-slate-400 dark:text-slate-500">اعلان مرورگر:</span>
             {browserNotificationStatus === 'granted' ? (
-              <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-2xs">
+              <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/70 text-2xs">
                 <Check className="w-3 h-3" /> فعال است
               </span>
             ) : (
               <button
                 type="button"
                 onClick={requestNotificationPermission}
-                className="inline-flex items-center gap-1 text-red-700 font-bold bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-lg border border-red-200 transition-colors cursor-pointer text-2xs"
+                className="inline-flex items-center gap-1 text-red-700 dark:text-red-300 font-bold bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900/50 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-800/70 transition-colors cursor-pointer text-2xs"
               >
                 <Bell className="w-3 h-3" /> فعال‌سازی زنگ مرورگر
               </button>
@@ -435,10 +435,10 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
               className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 testTriggered
                   ? 'bg-emerald-600 text-white border-emerald-600 shadow-md scale-105'
-                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                  : 'bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
               }`}
             >
-              <Volume2 className="w-3.5 h-3.5 text-indigo-600" />
+              <Volume2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               <span>{testTriggered ? 'زنگ نواخته شد!' : 'تست صدا'}</span>
             </button>
 
@@ -459,11 +459,11 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
           {showCreateForm && (
             <form
               onSubmit={handleCreateAlert}
-              className="bg-linear-to-br from-red-50/60 via-amber-50/40 to-slate-50 border border-red-200 rounded-3xl p-5 space-y-4 animate-in slide-in-from-top-2 shadow-xs"
+              className="bg-linear-to-br from-red-50/60 via-amber-50/40 to-slate-50 dark:from-red-950/30 dark:via-amber-950/20 dark:to-slate-800/70 border border-red-200 dark:border-red-800/60 rounded-3xl p-5 space-y-4 animate-in slide-in-from-top-2 shadow-xs"
             >
-              <div className="flex items-center justify-between pb-2 border-b border-red-100">
-                <h3 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-red-600" />
+              <div className="flex items-center justify-between pb-2 border-b border-red-100 dark:border-red-900/60">
+                <h3 className="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-red-600 dark:text-red-400" />
                   <span>ثبت گوش‌به‌زنگ جدید (معیار ملک + اطلاعات متقاضی):</span>
                 </h3>
               </div>
@@ -471,22 +471,22 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
               {/* Title & Transaction Type */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
-                  <label className="text-2xs font-semibold text-slate-700">نام یا عنوان هشدار:</label>
+                  <label className="text-2xs font-semibold text-slate-700 dark:text-slate-300">نام یا عنوان هشدار:</label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="مثلاً: آپارتمان ۱۰۰ متری شریعتی یا ویلایی ۵۰۰ متری"
-                    className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 focus:border-red-500 focus:outline-hidden"
+                    className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:border-red-500 focus:outline-hidden"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-2xs font-semibold text-slate-700">نوع معامله:</label>
+                  <label className="text-2xs font-semibold text-slate-700 dark:text-slate-300">نوع معامله:</label>
                   <select
                     value={transactionType}
                     onChange={(e) => setTransactionType(e.target.value as any)}
-                    className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer"
+                    className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 cursor-pointer"
                   >
                     <option value="all">همه معامله‌ها (خرید، فروش، رهن و اجاره)</option>
                     <option value="خرید و فروش">فقط خرید و فروش</option>
@@ -498,7 +498,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
               {/* Property Type, Area, Neighborhood */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div className="space-y-1">
-                  <label className="text-2xs font-semibold text-slate-700">نوع ملک:</label>
+                  <label className="text-2xs font-semibold text-slate-700 dark:text-slate-300">نوع ملک:</label>
                   <select
                     value={propertyType}
                     onChange={(e) => {
@@ -512,7 +512,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                         setAreaTolerance(15);
                       }
                     }}
-                    className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 cursor-pointer font-bold text-red-800"
+                    className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 cursor-pointer font-bold text-red-800 dark:text-red-300"
                   >
                     <option value="آپارتمان">آپارتمان</option>
                     <option value="ویلایی">ویلایی / باغ ویلا</option>
@@ -524,7 +524,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-2xs font-semibold text-slate-700">متراژ مدنظر (متر مربع):</label>
+                  <label className="text-2xs font-semibold text-slate-700 dark:text-slate-300">متراژ مدنظر (متر مربع):</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -537,40 +537,40 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                         }
                       }}
                       placeholder="مثلاً: 100 یا 500"
-                      className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-center font-bold"
+                      className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 text-center font-bold"
                     />
-                    <span className="text-2xs text-slate-400 whitespace-nowrap">متر (±{fmt(areaTolerance)})</span>
+                    <span className="text-2xs text-slate-400 dark:text-slate-500 whitespace-nowrap">متر (±{fmt(areaTolerance)})</span>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-2xs font-semibold text-slate-700">خیابان یا محله نجف‌آباد:</label>
+                  <label className="text-2xs font-semibold text-slate-700 dark:text-slate-300">خیابان یا محله نجف‌آباد:</label>
                   <input
                     type="text"
                     value={streetOrNeighborhood}
                     onChange={(e) => setStreetOrNeighborhood(e.target.value)}
                     placeholder="مثلاً: خیابان شریعتی، ویلاشهر، فردوسی..."
-                    className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5"
+                    className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5"
                   />
                 </div>
               </div>
 
               {/* Customer Information Section (Name and Phone starting with 09) */}
-              <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-amber-950 font-bold text-xs">
-                    <UserCheck className="w-4 h-4 text-amber-600" />
+              <div className="bg-amber-50/80 dark:bg-amber-950/35 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5 text-amber-950 dark:text-amber-200 font-bold text-xs">
+                    <UserCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     <span>مشخصات مشتری متقاضی این ملک (اختیاری):</span>
                   </div>
-                  <span className="text-3xs text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-3xs text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 rounded-full font-medium">
                     برای تماس سریع هنگام انتشار آگهی در دیوار
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div className="space-y-1">
-                    <label className="text-2xs font-semibold text-slate-700 flex items-center gap-1">
-                      <User className="w-3 h-3 text-slate-400" />
+                    <label className="text-2xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      <User className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                       <span>نام و نام خانوادگی مشتری:</span>
                     </label>
                     <input
@@ -578,13 +578,13 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                       placeholder="مثلاً: آقای محمدی / خانم رضایی"
-                      className="w-full text-xs bg-white border border-slate-200 rounded-xl px-3 py-2.5 focus:border-amber-500 focus:outline-hidden"
+                      className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:border-amber-500 focus:outline-hidden"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-2xs font-semibold text-slate-700 flex items-center gap-1">
-                      <Phone className="w-3 h-3 text-slate-400" />
+                    <label className="text-2xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                      <Phone className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                       <span>شماره همراه مشتری (شروع با ۰۹):</span>
                     </label>
                     <input
@@ -593,21 +593,21 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                       value={customerPhone}
                       onChange={(e) => handlePhoneInputChange(e.target.value)}
                       placeholder="09xxxxxxxxx"
-                      className={`w-full text-xs bg-white border rounded-xl px-3 py-2.5 font-mono text-left focus:outline-hidden ${
-                        phoneError ? 'border-rose-400 focus:border-rose-500 bg-rose-50/40' : 'border-slate-200 focus:border-amber-500'
+                      className={`w-full text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border rounded-xl px-3 py-2.5 font-mono text-left focus:outline-hidden ${
+                        phoneError ? 'border-rose-400 focus:border-rose-500 bg-rose-50/40 dark:bg-rose-950/30' : 'border-slate-200 dark:border-slate-700 focus:border-amber-500'
                       }`}
                     />
                     {phoneError ? (
-                      <span className="text-3xs text-rose-600 font-bold block">{phoneError}</span>
+                      <span className="text-3xs text-rose-600 dark:text-rose-400 font-bold block">{phoneError}</span>
                     ) : (
-                      <span className="text-3xs text-slate-400 block">شماره تلفن حتماً با ۰۹ شروع شود (۱۱ رقم)</span>
+                      <span className="text-3xs text-slate-400 dark:text-slate-500 block">شماره تلفن حتماً با ۰۹ شروع شود (۱۱ رقم)</span>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Auto add to Excel toggle */}
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-start gap-3">
+              <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-3.5 flex items-start gap-3">
                 <input
                   type="checkbox"
                   id="auto-add-excel-cb"
@@ -615,12 +615,12 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                   onChange={(e) => setAutoAddToExcel(e.target.checked)}
                   className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 mt-0.5 cursor-pointer"
                 />
-                <label htmlFor="auto-add-excel-cb" className="cursor-pointer text-xs text-slate-800 space-y-0.5">
-                  <div className="font-bold flex items-center gap-1.5 text-emerald-900">
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                <label htmlFor="auto-add-excel-cb" className="cursor-pointer text-xs text-slate-800 dark:text-slate-200 space-y-0.5">
+                  <div className="font-bold flex items-center gap-1.5 text-emerald-900 dark:text-emerald-300">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                     <span>افزودن خودکار به جدول اکسل من به محض انتشار ملک منطبق</span>
                   </div>
-                  <p className="text-2xs text-slate-600 leading-normal">
+                  <p className="text-2xs text-slate-600 dark:text-slate-400 leading-normal">
                     هر ملکی که در دیوار نجف‌آباد منتشر شود و با این مشخصات تطابق داشته باشد، علاوه بر ارسال هشدار، خودکار در فایل اکسل شما ثبت می‌شود.
                   </p>
                 </label>
@@ -628,7 +628,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
 
               {/* Amenities & Buttons */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-                <div className="flex items-center gap-4 text-xs text-slate-700">
+                <div className="flex items-center gap-4 text-xs text-slate-700 dark:text-slate-300">
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <input
                       type="checkbox"
@@ -654,7 +654,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(false)}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                    className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     انصراف
                   </button>
@@ -673,20 +673,20 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
           {/* Active Alerts List - Each Alert has a dedicated section for Results */}
           <div className="space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <h3 className="text-xs font-black text-slate-800 flex items-center gap-2">
-                <BellRing className="w-4 h-4 text-red-600" />
+              <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <BellRing className="w-4 h-4 text-red-600 dark:text-red-400" />
                 <span>هشدارهای ثبت‌شده شما ({fmt(alerts.length)} مورد):</span>
               </h3>
-              <span className="text-2xs text-slate-500 font-medium">
+              <span className="text-2xs text-slate-500 dark:text-slate-400 font-medium">
                 برای هر مورد، بخش اختصاصی نتایج دیوار با دکمه انتقال به اکسل قرار دارد.
               </span>
             </div>
 
             {alerts.length === 0 ? (
-              <div className="p-8 text-center bg-slate-50 rounded-3xl border border-slate-200">
-                <Bell className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm font-bold text-slate-700">هیچ گوش‌به‌زنگی هنوز ثبت نشده است</p>
-                <p className="text-xs text-slate-400 mt-1 mb-4">
+              <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700">
+                <Bell className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">هیچ گوش‌به‌زنگی هنوز ثبت نشده است</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 mb-4">
                   مثلاً: «آپارتمان ۱۰۰ متری» یا «ویلایی ۵۰۰ متری» همراه با مشخصات مشتری را اضافه کنید.
                 </p>
                 <button
@@ -707,42 +707,42 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                   return (
                     <div
                       key={al.id}
-                      className={`bg-white rounded-3xl border transition-all overflow-hidden ${
-                        al.enabled ? 'border-red-200 shadow-md' : 'border-slate-200 opacity-60'
+                      className={`bg-white dark:bg-slate-900 rounded-3xl border transition-all overflow-hidden ${
+                        al.enabled ? 'border-red-200 dark:border-red-800/60 shadow-md' : 'border-slate-200 dark:border-slate-800 opacity-60'
                       }`}
                     >
                       {/* Top Header Card */}
-                      <div className="p-4 sm:p-5 space-y-3 bg-white">
+                      <div className="p-4 sm:p-5 space-y-3 bg-white dark:bg-slate-900">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           {/* Alert Title & Tags */}
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span
                                 className={`w-3 h-3 rounded-full shrink-0 ${
-                                  al.enabled ? 'bg-red-600 animate-pulse' : 'bg-slate-300'
+                                  al.enabled ? 'bg-red-600 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'
                                 }`}
                               />
-                              <h4 className="text-sm font-black text-slate-900">{al.title}</h4>
+                              <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">{al.title}</h4>
 
-                              <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                              <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                 {al.propertyType === 'all' ? 'همه انواع ملک' : al.propertyType}
                               </span>
 
                               {al.targetArea && (
-                                <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70">
                                   متراژ: حدود {fmt(al.targetArea)} متر (±{fmt(al.areaTolerance || 15)})
                                 </span>
                               )}
 
                               {al.streetOrNeighborhood && (
-                                <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1">
+                                <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70 flex items-center gap-1">
                                   <MapPin className="w-3 h-3 text-red-500" />
                                   {al.streetOrNeighborhood}
                                 </span>
                               )}
 
                               {al.transactionType && al.transactionType !== 'all' && (
-                                <span className="text-2xs px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                <span className="text-2xs px-2 py-0.5 rounded-full font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
                                   {al.transactionType}
                                 </span>
                               )}
@@ -757,12 +757,12 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                               onClick={() => handleToggleAutoExcel(al.id)}
                               className={`px-2.5 py-1.5 rounded-xl text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 border ${
                                 al.autoAddToExcel
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                  : 'bg-slate-50 text-slate-400 border-slate-200'
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700'
+                                  : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
                               }`}
                               title="تغییر وضعیت ثبت خودکار در اکسل"
                             >
-                              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                               <span>{al.autoAddToExcel ? 'اکسل خودکار: روشن' : 'اکسل خودکار: خاموش'}</span>
                             </button>
 
@@ -772,8 +772,8 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                               onClick={() => handleToggle(al.id)}
                               className={`px-3 py-1.5 rounded-xl text-2xs font-bold transition-colors cursor-pointer border ${
                                 al.enabled
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                  : 'bg-slate-100 text-slate-500 border-slate-200'
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
                               }`}
                             >
                               {al.enabled ? 'رصد فعال' : 'غیرفعال'}
@@ -783,7 +783,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                             <button
                               type="button"
                               onClick={() => handleDelete(al.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition-colors cursor-pointer"
                               title="حذف این هشدار"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -793,14 +793,14 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
 
                         {/* Customer Information Badge (If user entered customer name or phone) */}
                         {(al.customerName || al.customerPhone) && (
-                          <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+                          <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs">
                             <div className="flex items-center gap-2">
                               <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-3xs shrink-0 shadow-2xs">
                                 <User className="w-3.5 h-3.5" />
                               </div>
                               <div className="flex items-center gap-1.5">
-                                <span className="text-slate-500 text-2xs">مشتری متقاضی:</span>
-                                <strong className="text-amber-950 font-bold">{al.customerName || 'مشتری بدون نام'}</strong>
+                                <span className="text-slate-500 dark:text-slate-400 text-2xs">مشتری متقاضی:</span>
+                                <strong className="text-amber-950 dark:text-amber-200 font-bold">{al.customerName || 'مشتری بدون نام'}</strong>
                               </div>
                             </div>
 
@@ -822,11 +822,11 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                                     setCopiedPhoneId(al.id);
                                     setTimeout(() => setCopiedPhoneId(null), 2500);
                                   }}
-                                  className="p-1.5 rounded-lg text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer"
                                   title="کپی شماره تلفن"
                                 >
                                   {copiedPhoneId === al.id ? (
-                                    <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                    <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                   ) : (
                                     <Copy className="w-3.5 h-3.5" />
                                   )}
@@ -838,18 +838,18 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                       </div>
 
                       {/* DEDICATED RESULTS SECTION FOR THIS ALERT */}
-                      <div className="border-t border-slate-100 bg-slate-50/80 p-4 sm:p-5">
+                      <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 p-4 sm:p-5">
                         <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
                           <div className="flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-amber-500" />
-                            <h5 className="text-xs font-bold text-slate-800">
+                            <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">
                               نتایج و املاک یافت‌شده در دیوار نجف‌آباد:
                             </h5>
                             <span
                               className={`text-2xs px-2.5 py-0.5 rounded-full font-bold ${
                                 matchedItems.length > 0
-                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                  : 'bg-slate-200 text-slate-600'
+                                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
+                                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                               }`}
                             >
                               {matchedItems.length > 0
@@ -864,10 +864,10 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                               <button
                                 type="button"
                                 onClick={() => onAddMultipleToExcel(matchedItems)}
-                                className="px-3 py-1.5 text-2xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95 shadow-2xs"
+                                className="px-3 py-1.5 text-2xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-700 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95 shadow-2xs"
                                 title="انتقال یکجای تمام این نتایج به جدول اکسل من"
                               >
-                                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700" />
+                                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                                 <span>انتقال همه ({fmt(matchedItems.length)} ملک) به اکسل</span>
                               </button>
                             )}
@@ -876,7 +876,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                             <button
                               type="button"
                               onClick={() => toggleCollapseResults(al.id)}
-                              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                               title={isCollapsed ? 'نمایش نتایج' : 'بستن نتایج'}
                             >
                               {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -898,7 +898,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                                         if (onSelectProperty) onSelectProperty(m);
                                         onClose();
                                       }}
-                                      className="bg-white p-3.5 rounded-2xl border border-slate-200 hover:border-red-400 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between gap-3 cursor-pointer group"
+                                      className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-red-400 dark:hover:border-red-500 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between gap-3 cursor-pointer group"
                                     >
                                       {/* Top Row: Thumbnail + Title & Price */}
                                       <div className="flex gap-3 items-start">
@@ -907,60 +907,60 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                                             src={m.imageUrl}
                                             alt={m.title}
                                             referrerPolicy="no-referrer"
-                                            className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-100 shadow-2xs group-hover:scale-105 transition-transform"
+                                            className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-100 dark:border-slate-800 shadow-2xs group-hover:scale-105 transition-transform"
                                           />
                                         ) : (
-                                          <div className="w-16 h-16 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-400">
+                                          <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-slate-400 dark:text-slate-500">
                                             <Building2 className="w-6 h-6" />
                                           </div>
                                         )}
 
                                         <div className="min-w-0 flex-1">
-                                          <h6 className="text-xs font-bold text-slate-900 group-hover:text-red-700 transition-colors line-clamp-1">
+                                          <h6 className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors line-clamp-1">
                                             {m.title || m.address}
                                           </h6>
 
-                                          <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5 truncate">
+                                          <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                                             <MapPin className="w-3 h-3 text-red-500 shrink-0" />
                                             <span>{m.district ? `نجف‌آباد، ${m.district}` : m.address}</span>
                                           </div>
 
-                                          <div className="mt-1 text-xs font-bold text-emerald-700 truncate">
+                                          <div className="mt-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 truncate">
                                             {m.priceText || (m.price > 0 ? `${formatPriceShort(m.price, usePersianDigits)}` : 'توافقی')}
                                           </div>
                                         </div>
                                       </div>
 
                                       {/* Quick Specs Pill Row */}
-                                      <div className="grid grid-cols-3 gap-1 bg-slate-50 p-1.5 rounded-xl text-3xs text-slate-600 border border-slate-100">
+                                      <div className="grid grid-cols-3 gap-1 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl text-3xs text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700">
                                         <div className="flex items-center gap-1 truncate" title="متراژ">
-                                          <Maximize2 className="w-3 h-3 text-slate-400 shrink-0" />
+                                          <Maximize2 className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
                                           <span>{m.area ? `${fmt(m.area)} م²` : '—'}</span>
                                         </div>
                                         <div className="flex items-center gap-1 truncate" title="تعداد اتاق">
-                                          <BedDouble className="w-3 h-3 text-slate-400 shrink-0" />
+                                          <BedDouble className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
                                           <span>{m.rooms ? `${fmt(m.rooms)} خواب` : '—'}</span>
                                         </div>
                                         <div className="flex items-center gap-1 truncate" title="سال ساخت">
-                                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                                          <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
                                           <span>{formatBuiltYear(m, usePersianDigits)}</span>
                                         </div>
                                       </div>
 
                                       {/* Bottom Actions Row: Move to Excel & Details */}
                                       <div
-                                        className="flex items-center justify-between pt-1 border-t border-slate-100 text-2xs"
+                                        className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-2xs"
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <div className="flex items-center gap-1 text-[10px] text-slate-400">
-                                          <Clock className="w-3 h-3 text-slate-400" />
+                                        <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500">
+                                          <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                                           <span>{m.relativeTime || 'امروز'}</span>
                                         </div>
 
                                         <div className="flex items-center gap-1.5">
                                           {inExcel ? (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 text-3xs">
-                                              <Check className="w-3 h-3 text-emerald-600" />
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800/70 text-3xs">
+                                              <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
                                               <span>در اکسل موجود است</span>
                                             </span>
                                           ) : (
@@ -983,7 +983,7 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                                               if (onSelectProperty) onSelectProperty(m);
                                               onClose();
                                             }}
-                                            className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-600 font-bold text-3xs transition-colors cursor-pointer"
+                                            className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-300 text-slate-600 dark:text-slate-300 font-bold text-3xs transition-colors cursor-pointer"
                                           >
                                             مشاهده ↗
                                           </button>
@@ -994,11 +994,11 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
                                 })}
                               </div>
                             ) : (
-                              <div className="p-4 bg-white rounded-2xl border border-dashed border-slate-200 text-center space-y-1">
-                                <p className="text-xs font-semibold text-slate-700">
+                              <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center space-y-1">
+                                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                                   در حال حاضر ملکی با این مشخصات در دیوار نجف‌آباد یافت نشده است.
                                 </p>
-                                <p className="text-3xs text-slate-400">
+                                <p className="text-3xs text-slate-400 dark:text-slate-500">
                                   به محض انتشار هر ملک جدید با این معیارها در دیوار، زنگ هشدار به صدا درآمده و مستقیماً در این بخش قرار می‌گیرد.
                                 </p>
                               </div>
@@ -1015,14 +1015,14 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 sm:px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs shrink-0">
-          <span className="text-2xs text-slate-500 hidden xs:inline">
+        <div className="px-4 sm:px-6 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between text-xs shrink-0">
+          <span className="text-2xs text-slate-500 dark:text-slate-400 hidden xs:inline">
             هشدارهای گوش‌به‌زنگ به همراه نتایج و اطلاعات مشتری به طور خودکار در این داشبورد ذخیره می‌شوند.
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="w-full xs:w-auto px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer text-center"
+            className="w-full xs:w-auto px-6 py-2.5 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer text-center"
           >
             بستن
           </button>
