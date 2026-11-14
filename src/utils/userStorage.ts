@@ -86,24 +86,34 @@ const DEFAULT_USERS: AppUser[] = [
   },
 ];
 
+const INITIALIZED_KEY = 'najafabad_users_initialized_v3';
+
 export function getUsers(): AppUser[] {
   try {
+    const isInitialized = localStorage.getItem(INITIALIZED_KEY);
     const raw = localStorage.getItem(USERS_STORAGE_KEY);
     let list: AppUser[] = [];
-    if (!raw) {
+
+    if (!isInitialized || !raw) {
       list = DEFAULT_USERS;
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
+      localStorage.setItem(INITIALIZED_KEY, 'true');
     } else {
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed) || parsed.length === 0) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          list = parsed;
+        } else {
+          list = DEFAULT_USERS;
+          localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
+        }
+      } catch {
         list = DEFAULT_USERS;
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(DEFAULT_USERS));
-      } else {
-        list = parsed;
       }
     }
 
-    // Ensure ONLY hesam (superadmin) always exists so admin access is never locked out
+    // Ensure hesam (superadmin) always exists so admin access is never locked out
     if (!list.some((u) => u.username === 'hesam')) {
       const hesamDef = DEFAULT_USERS.find((u) => u.username === 'hesam') || {
         id: 'user_hesam',
@@ -276,7 +286,7 @@ export function updateUser(
   }
 
   if (updates.maxDashboards !== undefined) {
-    target.maxDashboards = Math.max(1, Math.min(10, updates.maxDashboards));
+    target.maxDashboards = Math.max(1, Math.min(100, updates.maxDashboards));
   }
 
   if (updates.isSuspended !== undefined) {
@@ -346,29 +356,40 @@ export function toggleUserSuspension(userId: string): { success: boolean; messag
   };
 }
 
-export function deleteUser(userId: string): { success: boolean; message: string } {
+export function deleteUser(userIdOrUsername: string): { success: boolean; message: string } {
   const users = getUsers();
-  const target = users.find((u) => u.id === userId);
+  const searchKey = userIdOrUsername.trim().toLowerCase();
+  const target = users.find(
+    (u) =>
+      u.id === userIdOrUsername ||
+      u.username.toLowerCase() === searchKey
+  );
   if (!target) {
     return { success: false, message: 'کاربر مورد نظر یافت نشد.' };
   }
-  if (target.username === 'hesam') {
+  if (target.username.toLowerCase() === 'hesam') {
     return { success: false, message: 'امکان حذف حساب مدیر کل (حسام) وجود ندارد.' };
   }
 
   const isHead = target.role === 'account_admin' || !target.accountOwnerUsername;
   const targetAccountId = target.accountId;
+  const targetUsername = target.username.toLowerCase();
 
-  // Filter out the target user
-  let updated = users.filter((u) => u.id !== userId);
+  // Filter out the target user by both id and username
+  let updated = users.filter(
+    (u) =>
+      u.id !== target.id &&
+      u.username.toLowerCase() !== targetUsername
+  );
 
   // If this user was an account head, also cascade-delete all their subusers!
   let subusersCount = 0;
   if (isHead && targetAccountId && targetAccountId !== 'system') {
     const subusers = users.filter(
       (u) =>
-        u.id !== userId &&
-        (u.accountId === targetAccountId || u.accountOwnerUsername === target.username)
+        u.id !== target.id &&
+        u.username.toLowerCase() !== targetUsername &&
+        (u.accountId === targetAccountId || (u.accountOwnerUsername && u.accountOwnerUsername.toLowerCase() === targetUsername))
     );
     subusersCount = subusers.length;
     subusers.forEach((sub) => {
@@ -381,22 +402,14 @@ export function deleteUser(userId: string): { success: boolean; message: string 
     });
     updated = updated.filter(
       (u) =>
-        u.accountId !== targetAccountId && u.accountOwnerUsername !== target.username
+        u.accountId !== targetAccountId &&
+        (!u.accountOwnerUsername || u.accountOwnerUsername.toLowerCase() !== targetUsername)
     );
   }
 
   saveUsers(updated);
 
-  // If deleted user or one of their subusers was logged in, log out
-  const current = getCurrentUser();
-  if (
-    current &&
-    (current.id === userId ||
-      (isHead && targetAccountId && current.accountId === targetAccountId))
-  ) {
-    logout();
-  }
-
+  // Clean up target user's dashboards
   try {
     localStorage.removeItem(DASHBOARDS_PREFIX + target.id);
     localStorage.removeItem(ACTIVE_DASHBOARD_PREFIX + target.id);
@@ -404,9 +417,21 @@ export function deleteUser(userId: string): { success: boolean; message: string 
     // ignore
   }
 
+  // If deleted user or one of their subusers was logged in, log out (NEVER log out hesam if he deletes someone else)
+  const current = getCurrentUser();
+  if (
+    current &&
+    current.username.toLowerCase() !== 'hesam' &&
+    (current.id === target.id ||
+      current.username.toLowerCase() === targetUsername ||
+      (isHead && targetAccountId && current.accountId === targetAccountId))
+  ) {
+    logout();
+  }
+
   const subInfo =
     subusersCount > 0
-      ? ` و ${toPersianDigits(subusersCount)} کاربر زیرمجموعه آن`
+      ? ` و ${subusersCount} کاربر زیرمجموعه آن`
       : '';
   return {
     success: true,

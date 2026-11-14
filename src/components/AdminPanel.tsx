@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck,
   UserPlus,
@@ -16,7 +16,6 @@ import {
   Tag,
   Ban,
   Check,
-  Power,
   ShieldAlert,
 } from 'lucide-react';
 import { AppUser } from '../types';
@@ -33,27 +32,105 @@ interface AdminPanelProps {
   currentUser: AppUser;
   onLogout: () => void;
   onEnterUserWorkspace?: (user: AppUser) => void;
+  onUsersChanged?: () => void;
 }
+
+interface MaxDashboardsInputProps {
+  userId: string;
+  currentValue: number;
+  onSave: (userId: string, newMax: number) => void;
+}
+
+const MaxDashboardsInput: React.FC<MaxDashboardsInputProps> = ({
+  userId,
+  currentValue,
+  onSave,
+}) => {
+  const [val, setVal] = useState<string>(String(currentValue || 5));
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setVal(String(currentValue || 5));
+  }, [currentValue]);
+
+  const doSave = () => {
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num >= 1) {
+      onSave(userId, num);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-xl border border-slate-700/80">
+      <Layers className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+      <span className="text-2xs text-slate-300 font-bold whitespace-nowrap">
+        سقف داشبورد:
+      </span>
+      <input
+        type="number"
+        min="1"
+        max="100"
+        value={val}
+        onChange={(e) => {
+          setVal(e.target.value);
+          setSaved(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            doSave();
+          }
+        }}
+        className="w-14 bg-slate-800 border border-slate-600 focus:border-emerald-500 rounded-lg px-2 py-1 text-center text-xs text-white font-black focus:outline-hidden"
+        title="تعداد سقف مجاز داشبورد را وارد کنید"
+        placeholder="عدد"
+      />
+      <button
+        type="button"
+        onClick={doSave}
+        className={`px-2 py-1 rounded-lg text-2xs font-bold transition-all cursor-pointer ${
+          saved
+            ? 'bg-emerald-600 text-white'
+            : 'bg-slate-700 hover:bg-emerald-600 text-slate-200 hover:text-white'
+        }`}
+        title="ثبت عدد سقف داشبورد"
+      >
+        {saved ? '✓ ثبت شد' : 'ثبت'}
+      </button>
+    </div>
+  );
+};
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   currentUser,
   onLogout,
+  onUsersChanged,
 }) => {
-  // Hesam only sees account heads (each main user/account). Subusers of each user are completely hidden.
+  // Hesam only sees account heads. Subusers of each user are completely hidden.
   const [users, setUsers] = useState<AppUser[]>(() => getAccountHeads());
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newDisplayName, setNewDisplayName] = useState('');
+  const [newMaxDashboards, setNewMaxDashboards] = useState<number>(5);
+
   const [statusMessage, setStatusMessage] = useState<{
     text: string;
     type: 'success' | 'error';
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Delete modal state
   const [userToDelete, setUserToDelete] = useState<AppUser | null>(null);
+  // Suspend modal state
   const [userToToggleSuspend, setUserToToggleSuspend] = useState<AppUser | null>(null);
 
   const refreshUserList = () => {
-    setUsers(getAccountHeads());
+    const heads = getAccountHeads();
+    setUsers(heads);
+    if (onUsersChanged) {
+      onUsersChanged();
+    }
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -76,6 +153,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       username: newUsername,
       password: newPassword,
       displayName: newDisplayName.trim() || newUsername.trim(),
+      maxDashboards: newMaxDashboards >= 1 ? newMaxDashboards : 5,
       isAccountHead: true,
     });
 
@@ -84,6 +162,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       setNewUsername('');
       setNewPassword('');
       setNewDisplayName('');
+      setNewMaxDashboards(5);
       refreshUserList();
     } else {
       setStatusMessage({ text: res.message, type: 'error' });
@@ -102,13 +181,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setUserToToggleSuspend(null);
   };
 
-  const confirmDelete = () => {
-    if (!userToDelete) return;
-    const targetId = userToDelete.id;
-    const res = deleteUser(targetId);
+  const executeDelete = (targetUser: AppUser) => {
+    const res = deleteUser(targetUser.id);
     if (res.success) {
       setStatusMessage({ text: res.message, type: 'success' });
-      setUsers(getAccountHeads());
+      // Update local state immediately from storage
+      const heads = getAccountHeads();
+      setUsers(heads);
+      if (onUsersChanged) {
+        onUsersChanged();
+      }
     } else {
       setStatusMessage({ text: res.message, type: 'error' });
     }
@@ -303,6 +385,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
+              {/* Place to write number for Saghf Dashboard */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  سقف مجاز داشبورد کاربر:
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={newMaxDashboards}
+                    onChange={(e) => setNewMaxDashboards(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    placeholder="عدد سقف داشبورد (پیش‌فرض: 5)"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-emerald-500 transition-all text-right font-mono"
+                  />
+                  <Layers className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">تعداد داشبوردهای مستقلی که این کاربر مجاز به ایجاد آن است</p>
+              </div>
+
               <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 text-2xs text-slate-400 leading-relaxed">
                 💡 با ایجاد این حساب، داشبورد اختصاصی اکسل برای او فعال می‌گردد و می‌تواند فوراً لاگین نماید.
               </div>
@@ -370,7 +472,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           {user.displayName.charAt(0) || user.username.charAt(0)}
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="space-y-1.5">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-sm font-bold text-white">
                               {user.displayName}
@@ -404,28 +506,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               رمز: {user.password}
                             </span>
 
-                            {/* Max Dashboards Control */}
-                            <div className="flex items-center gap-1.5 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700/80">
-                              <Layers className="w-3.5 h-3.5 text-slate-400" />
-                              <span className="text-slate-300">سقف داشبورد:</span>
-                              <div className="flex items-center gap-1 mr-1">
-                                {[1, 3, 5, 8, 10, 15].map((limit) => (
-                                  <button
-                                    key={limit}
-                                    type="button"
-                                    onClick={() => handleUpdateUserMaxDashboards(user.id, limit)}
-                                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
-                                      (user.maxDashboards || 5) === limit
-                                        ? 'bg-emerald-600 text-white shadow-xs'
-                                        : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-                                    }`}
-                                    title={`تنظیم سقف مجاز داشبورد به ${limit}`}
-                                  >
-                                    {toPersianDigits(limit)}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+                            {/* Place to write number: Saghf Dashboard Input */}
+                            <MaxDashboardsInput
+                              userId={user.id}
+                              currentValue={user.maxDashboards || 5}
+                              onSave={handleUpdateUserMaxDashboards}
+                            />
 
                             {user.lastLoginAt && (
                               <span className="flex items-center gap-1">
@@ -468,12 +554,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           )}
                         </button>
 
-                        {/* Delete user */}
+                        {/* Delete User Button - Opens explicit, clean confirmation modal */}
                         <button
                           id={`delete-account-btn-${user.username}`}
                           type="button"
                           onClick={() => setUserToDelete(user)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-rose-400 hover:text-white bg-rose-500/10 hover:bg-rose-600 active:scale-95 rounded-xl transition-all cursor-pointer border border-rose-500/30 text-xs font-bold shadow-2xs"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-rose-300 hover:text-white bg-rose-500/20 hover:bg-rose-600 active:scale-95 rounded-xl transition-all cursor-pointer border border-rose-500/40 text-xs font-bold shadow-2xs"
                           title="حذف کامل این حساب از سامانه"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -582,7 +668,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <button
                 id="confirm-delete-user-btn"
                 type="button"
-                onClick={confirmDelete}
+                onClick={() => executeDelete(userToDelete)}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-98 text-white text-xs font-bold shadow-lg shadow-rose-600/30 cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <Trash2 className="w-4 h-4" />

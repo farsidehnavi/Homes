@@ -995,6 +995,7 @@ export default function App() {
         currentUser={currentUser}
         onLogout={handleLogout}
         onEnterUserWorkspace={handleEnterWorkspace}
+        onUsersChanged={refreshAllUsers}
       />
     );
   }
