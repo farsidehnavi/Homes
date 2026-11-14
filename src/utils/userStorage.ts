@@ -3,6 +3,7 @@ import {
   UserDashboard,
   RealEstateItem,
   UserPermissions,
+  DivarAlert,
   DEFAULT_USER_PERMISSIONS,
   ADMIN_USER_PERMISSIONS,
 } from '../types';
@@ -29,7 +30,6 @@ const DEFAULT_USERS: AppUser[] = [
     role: 'superadmin',
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
-    maxDashboards: 5,
     permissions: ADMIN_USER_PERMISSIONS,
   },
   {
@@ -41,7 +41,6 @@ const DEFAULT_USERS: AppUser[] = [
     role: 'account_admin',
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
-    maxDashboards: 5,
     permissions: ADMIN_USER_PERMISSIONS,
   },
   {
@@ -54,13 +53,14 @@ const DEFAULT_USERS: AppUser[] = [
     role: 'member',
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
-    maxDashboards: 5,
     permissions: {
       ...DEFAULT_USER_PERMISSIONS,
       canAccessAdminPanel: false,
       canViewAdminExcel: true, // Ali allowed Reza to see Ali's excel
       canAddToAdminExcel: true, // Ali allowed Reza to add to Ali's excel
       canEditOthersItemsInAdminExcel: false, // Reza only edits his own items
+      canViewAdminDivarAlerts: false,
+      canViewAlertCustomerDetails: false,
       allowedUserExcelIds: ['user_hamed'], // Ali allowed Reza to also view Hamed's excel!
     },
   },
@@ -74,13 +74,14 @@ const DEFAULT_USERS: AppUser[] = [
     role: 'member',
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
-    maxDashboards: 5,
     permissions: {
       ...DEFAULT_USER_PERMISSIONS,
       canAccessAdminPanel: false,
       canViewAdminExcel: false, // Initially locked until Ali customizes Hamed
       canAddToAdminExcel: false,
       canEditOthersItemsInAdminExcel: false,
+      canViewAdminDivarAlerts: false,
+      canViewAlertCustomerDetails: false,
       allowedUserExcelIds: [],
     },
   },
@@ -123,7 +124,6 @@ export function getUsers(): AppUser[] {
         displayName: 'حسام (مدیر کل ارشد سامانه)',
         role: 'superadmin',
         createdAt: new Date().toISOString(),
-        maxDashboards: 5,
         permissions: ADMIN_USER_PERMISSIONS,
       };
       list.push(hesamDef);
@@ -141,7 +141,6 @@ export function getUsers(): AppUser[] {
         accountId: u.accountId || (isSuper ? 'system' : `acc_${u.username}`),
         accountOwnerUsername: u.accountOwnerUsername || (isAccAdmin ? undefined : 'ali'),
         role,
-        maxDashboards: u.maxDashboards || 5,
         permissions: {
           ...basePerms,
           ...(u.permissions || {}),
@@ -201,7 +200,6 @@ export function createUser(data: {
   accountOwnerUsername?: string;
   isAccountHead?: boolean;
   permissions?: Partial<UserPermissions>;
-  maxDashboards?: number;
 }): { success: boolean; message: string; user?: AppUser } {
   const users = getUsers();
   const trimmedUser = data.username.trim().toLowerCase();
@@ -229,7 +227,6 @@ export function createUser(data: {
     displayName: data.displayName.trim() || trimmedUser,
     role,
     createdAt: new Date().toISOString(),
-    maxDashboards: data.maxDashboards || 5,
     isSuspended: false,
     permissions: {
       ...basePerms,
@@ -283,10 +280,6 @@ export function updateUser(
 
   if (updates.displayName !== undefined) {
     target.displayName = updates.displayName.trim() || target.username;
-  }
-
-  if (updates.maxDashboards !== undefined) {
-    target.maxDashboards = Math.max(1, Math.min(100, updates.maxDashboards));
   }
 
   if (updates.isSuspended !== undefined) {
@@ -617,21 +610,30 @@ export function getAdminPrimaryDashboard(accountId = 'acc_ali'): UserDashboard |
   return getUserPrimaryDashboard(admin.id);
 }
 
+export function getAccountOwnerDivarAlerts(accountId: string): DivarAlert[] {
+  const owner = getAccountOwner(accountId);
+  if (!owner) return [];
+  const ownerDashboards = getUserDashboards(owner.id);
+  const seenIds = new Set<string>();
+  const alerts: DivarAlert[] = [];
+  for (const dash of ownerDashboards) {
+    if (Array.isArray(dash.divarAlerts)) {
+      for (const al of dash.divarAlerts) {
+        if (al && al.id && !seenIds.has(al.id)) {
+          seenIds.add(al.id);
+          alerts.push(al);
+        }
+      }
+    }
+  }
+  return alerts;
+}
+
 export function createDashboard(
   userId: string,
   title?: string
 ): { success: boolean; dashboard?: UserDashboard; message?: string } {
   const list = getUserDashboards(userId);
-  const users = getUsers();
-  const user = users.find((u) => u.id === userId);
-  const maxAllowed = user?.maxDashboards || 5;
-
-  if (list.length >= maxAllowed) {
-    return {
-      success: false,
-      message: `سقف مجاز تعداد داشبوردها (${maxAllowed}) برای این کاربر تکمیل شده است.`,
-    };
-  }
 
   const dashNumber = list.length + 1;
   const newDash: UserDashboard = {

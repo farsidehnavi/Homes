@@ -152,9 +152,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
   const canAccessAdmin =
     currentUser.username === 'hesam' || currentUser.role === 'superadmin';
 
-  const maxDashboards = currentUser.maxDashboards || 5;
-  const canCreateMore = dashboards.length < maxDashboards;
-
   // Teammates in current account (for Ali: Reza, Hamed, etc.)
   const teamList =
     accountMembers.length > 0
@@ -175,11 +172,9 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
   const handleCreateNewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (canCreateMore) {
-      onCreateDashboard(newTitle.trim() || undefined);
-      setNewTitle('');
-      setIsCreatingNew(false);
-    }
+    onCreateDashboard(newTitle.trim() || undefined);
+    setNewTitle('');
+    setIsCreatingNew(false);
   };
 
   const handleAddMemberSubmit = (e: React.FormEvent) => {
@@ -495,7 +490,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
             )}
           </div>
 
-          {/* Section 2: User Dashboards (Max 5, separated) */}
+          {/* Section 2: User Dashboards */}
           <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -503,7 +498,7 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                 <span>داشبوردهای شخصی من</span>
               </div>
               <span className="text-2xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                {toPersianDigits(dashboards.length)} از {toPersianDigits(maxDashboards)}
+                {toPersianDigits(dashboards.length)} داشبورد
               </span>
             </div>
 
@@ -614,54 +609,48 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
               })}
             </div>
 
-            {/* Create New Dashboard (if < 5) */}
-            {canCreateMore ? (
-              isCreatingNew ? (
-                <form
-                  onSubmit={handleCreateNewSubmit}
-                  className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-dashed border-emerald-400 dark:border-emerald-600 space-y-2"
-                >
-                  <label className="block text-2xs font-bold text-slate-700 dark:text-slate-300">
-                    عنوان داشبورد جدید (حداکثر ۵ داشبورد):
-                  </label>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="text"
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                      placeholder={`داشبورد ${toPersianDigits(dashboards.length + 1)}`}
-                      className="flex-1 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden"
-                      autoFocus
-                    />
-                    <button
-                      type="submit"
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"
-                    >
-                      افزودن
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsCreatingNew(false)}
-                      className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsCreatingNew(true)}
-                  className="w-full py-2.5 px-3 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-emerald-300 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>ایجاد داشبورد جدید ({toPersianDigits(dashboards.length + 1)})</span>
-                </button>
-              )
+            {/* Create New Dashboard */}
+            {isCreatingNew ? (
+              <form
+                onSubmit={handleCreateNewSubmit}
+                className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-dashed border-emerald-400 dark:border-emerald-600 space-y-2"
+              >
+                <label className="block text-2xs font-bold text-slate-700 dark:text-slate-300">
+                  عنوان داشبورد جدید:
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder={`داشبورد ${toPersianDigits(dashboards.length + 1)}`}
+                    className="flex-1 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700 rounded-xl px-2.5 py-1.5 focus:border-emerald-500 focus:outline-hidden"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold cursor-pointer"
+                  >
+                    افزودن
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingNew(false)}
+                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
             ) : (
-              <div className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-center text-2xs text-slate-500 dark:text-slate-400 font-medium">
-                سقف مجاز ({toPersianDigits(maxDashboards)} داشبورد مجزا) برای این حساب تکمیل شده است.
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreatingNew(true)}
+                className="w-full py-2.5 px-3 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-emerald-300 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>ایجاد داشبورد جدید ({toPersianDigits(dashboards.length + 1)})</span>
+              </button>
             )}
           </div>
 
@@ -884,6 +873,11 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
                                   اکسل {toPersianDigits(allowedTeammatesCount)} همکار
                                 </span>
                               )}
+                              {member.permissions?.canViewAdminDivarAlerts && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded bg-red-100 dark:bg-red-950/70 text-red-800 dark:text-red-300 font-medium">
+                                  گوش‌به‌زنگ شما: مجاز
+                                </span>
+                              )}
                               {hasAdminPanel && (
                                 <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 font-medium">
                                   پنل ادمین
@@ -929,17 +923,6 @@ export const HamburgerMenu: React.FC<HamburgerMenuProps> = ({
 
         {/* Drawer Footer Actions */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/95 space-y-2">
-          {/* Explicit Close Menu Button */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full py-2.5 px-3 rounded-xl bg-slate-200/90 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 active:scale-98 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
-            title="بستن منوی سایدبار"
-          >
-            <X className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-            <span>بستن منو</span>
-          </button>
-
           {/* Admin panel button if user has permission */}
           {canAccessAdmin && onOpenAdminPanel && (
             <button

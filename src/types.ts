@@ -137,6 +137,8 @@ export interface UserPermissions {
   canUploadExcel?: boolean; // آپلود فایل اکسل
   canAccessDivar?: boolean; // دسترسی به پنل دیوار
   canCreateDivarAlerts?: boolean; // دسترسی به گوش‌به‌زنگ
+  canViewAdminDivarAlerts?: boolean; // آیا می‌تواند موارد گوش‌به‌زنگ دیوار ثبت‌شده توسط مدیر حساب (علی) را ببیند
+  canViewAlertCustomerDetails?: boolean; // آیا می‌تواند نام و شماره تماس مشتری در گوش‌به‌زنگ را ببیند
   allowedUserExcelIds?: string[]; // شناسه‌های کاربری اعضای دیگر که این کاربر مجاز است اکسل آن‌ها را ببیند (مثلاً اکسل حامد برای رضا)
 }
 
@@ -150,6 +152,8 @@ export const DEFAULT_USER_PERMISSIONS: UserPermissions = {
   canUploadExcel: true,
   canAccessDivar: true,
   canCreateDivarAlerts: true,
+  canViewAdminDivarAlerts: false,
+  canViewAlertCustomerDetails: false,
   allowedUserExcelIds: [],
 };
 
@@ -163,6 +167,8 @@ export const ADMIN_USER_PERMISSIONS: UserPermissions = {
   canUploadExcel: true,
   canAccessDivar: true,
   canCreateDivarAlerts: true,
+  canViewAdminDivarAlerts: true,
+  canViewAlertCustomerDetails: true,
   allowedUserExcelIds: [],
 };
 
@@ -176,7 +182,6 @@ export interface AppUser {
   role: 'admin' | 'user' | 'superadmin' | 'account_admin' | 'member';
   createdAt: string;
   lastLoginAt?: string;
-  maxDashboards?: number; // default 5
   isSuspended?: boolean; // آیا کاربر توسط حسام مسدود/تعلیق شده است
   suspendedAt?: string; // تاریخ و زمان تعلیق
   permissions?: UserPermissions;

@@ -18,9 +18,9 @@ import {
   Key,
   Users,
   Eye,
+  Phone,
 } from 'lucide-react';
 import { AppUser, UserPermissions, DEFAULT_USER_PERMISSIONS } from '../types';
-import { toPersianDigits } from '../utils/formatters';
 
 interface UserCustomizationModalProps {
   isOpen: boolean;
@@ -39,17 +39,13 @@ export const UserCustomizationModal: React.FC<UserCustomizationModalProps> = ({
   accountOwner,
   accountTeammates = [],
   onSave,
-  usePersianDigits = true,
 }) => {
   if (!isOpen || !user) return null;
-
-  const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
   const ownerName = accountOwner?.displayName || accountOwner?.username || 'مدیر حساب';
 
   const [displayName, setDisplayName] = useState(user.displayName);
   const [password, setPassword] = useState(user.password);
-  const [maxDashboards, setMaxDashboards] = useState(user.maxDashboards || 5);
   const [permissions, setPermissions] = useState<UserPermissions>(() => {
     return {
       ...DEFAULT_USER_PERMISSIONS,
@@ -64,7 +60,6 @@ export const UserCustomizationModal: React.FC<UserCustomizationModalProps> = ({
     if (user) {
       setDisplayName(user.displayName);
       setPassword(user.password);
-      setMaxDashboards(user.maxDashboards || 5);
       setPermissions({
         ...DEFAULT_USER_PERMISSIONS,
         ...(user.permissions || {}),
@@ -102,7 +97,6 @@ export const UserCustomizationModal: React.FC<UserCustomizationModalProps> = ({
     onSave(user.id, {
       displayName: displayName.trim() || user.username,
       password: password.trim(),
-      maxDashboards,
       permissions,
     });
 
@@ -200,29 +194,6 @@ export const UserCustomizationModal: React.FC<UserCustomizationModalProps> = ({
                     {showPassword ? 'مخفی' : 'نمایش'}
                   </button>
                 </div>
-              </div>
-            </div>
-
-            {/* Max Dashboards Limit */}
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/60 dark:border-slate-700">
-              <div className="text-2xs text-slate-600 dark:text-slate-400 font-medium">
-                سقف مجاز تعداد داشبوردهای شخصی این کاربر:
-              </div>
-              <div className="flex items-center gap-2">
-                {[1, 3, 5, 8, 10].map((num) => (
-                  <button
-                    key={num}
-                    type="button"
-                    onClick={() => setMaxDashboards(num)}
-                    className={`px-2.5 py-1 text-2xs font-bold rounded-lg border transition-all cursor-pointer ${
-                      maxDashboards === num
-                        ? 'bg-slate-900 dark:bg-indigo-600 text-white border-slate-900 dark:border-indigo-600 shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {fmt(num)}
-                  </button>
-                ))}
               </div>
             </div>
           </div>
@@ -374,6 +345,112 @@ export const UserCustomizationModal: React.FC<UserCustomizationModalProps> = ({
                 className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
                   permissions.canEditOthersItemsInAdminExcel
                     ? 'bg-indigo-600 border-indigo-600 text-white'
+                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent'
+                }`}
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2.5: ACCESS TO ADMIN'S DIVAR ALERTS & CUSTOMER DETAILS */}
+          <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+              <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-slate-100">
+                <BellRing className="w-4 h-4 text-red-600 dark:text-red-400" />
+                <span>دسترسی به گوش‌به‌زنگ دیوار و مشخصات مشتریان ({ownerName})</span>
+              </div>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                نمایش موارد گوش‌به‌زنگ {ownerName} برای {user.displayName}
+              </span>
+            </div>
+
+            {/* Setting A: Can view items added by Ali in Divar Alerts */}
+            <div
+              id="perm-toggle-canViewAdminDivarAlerts"
+              onClick={() => togglePermission('canViewAdminDivarAlerts')}
+              className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                permissions.canViewAdminDivarAlerts
+                  ? 'bg-red-50/70 dark:bg-red-950/40 border-red-300 dark:border-red-700 ring-1 ring-red-400/20'
+                  : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <BellRing
+                    className={`w-4 h-4 ${
+                      permissions.canViewAdminDivarAlerts ? 'text-red-600 dark:text-red-400' : 'text-slate-400'
+                    }`}
+                  />
+                  <span className="text-xs font-black text-slate-900 dark:text-slate-100">
+                    مشاهده آیتم‌های گوش‌به‌زنگ دیوار ثبت‌شده توسط {ownerName}
+                  </span>
+                  {permissions.canViewAdminDivarAlerts ? (
+                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-red-200 dark:bg-red-900/70 text-red-900 dark:text-red-200">
+                      مجاز
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                      قفل / مخفی
+                    </span>
+                  )}
+                </div>
+                <p className="text-2xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  آیا {user.displayName} می‌تواند موارد و هشدارهای گوش‌به‌زنگ دیوار که توسط {ownerName} ثبت شده است را در پنجره گوش‌به‌زنگ دیوار ببیند؟
+                </p>
+              </div>
+
+              <div
+                className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                  permissions.canViewAdminDivarAlerts
+                    ? 'bg-red-600 border-red-600 text-white'
+                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent'
+                }`}
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+              </div>
+            </div>
+
+            {/* Setting B: Can view customer details (name & phone number) */}
+            <div
+              id="perm-toggle-canViewAlertCustomerDetails"
+              onClick={() => togglePermission('canViewAlertCustomerDetails')}
+              className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                permissions.canViewAlertCustomerDetails
+                  ? 'bg-amber-50/70 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 ring-1 ring-amber-400/20'
+                  : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Phone
+                    className={`w-4 h-4 ${
+                      permissions.canViewAlertCustomerDetails ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'
+                    }`}
+                  />
+                  <span className="text-xs font-black text-slate-900 dark:text-slate-100">
+                    مشاهده مشخصات مشتری (نام و شماره تماس) در گوش‌به‌زنگ دیوار
+                  </span>
+                  {permissions.canViewAlertCustomerDetails ? (
+                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-amber-200 dark:bg-amber-900/70 text-amber-900 dark:text-amber-200">
+                      نمایش نام و شماره مشتری
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                      مخفی (عدم نمایش)
+                    </span>
+                  )}
+                </div>
+                <p className="text-2xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  <strong>اگر تیک فعال باشد:</strong> {user.displayName} نام و شماره تماس مشتریان ثبت‌شده در گوش‌به‌زنگ {ownerName} را مشاهده می‌کند.{' '}
+                  <strong>اگر غیرفعال باشد:</strong> نام و شماره تلفن مشتریان برای {user.displayName} مخفی خواهد بود.
+                </p>
+              </div>
+
+              <div
+                className={`w-6 h-6 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                  permissions.canViewAlertCustomerDetails
+                    ? 'bg-amber-600 border-amber-600 text-white'
                     : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent'
                 }`}
               >

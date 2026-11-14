@@ -6,7 +6,6 @@ import {
   Users,
   LogOut,
   Building2,
-  Layers,
   Calendar,
   CheckCircle2,
   AlertCircle,
@@ -22,7 +21,6 @@ import { AppUser } from '../types';
 import {
   getAccountHeads,
   createUser,
-  updateUser,
   deleteUser,
   toggleUserSuspension,
 } from '../utils/userStorage';
@@ -35,73 +33,6 @@ interface AdminPanelProps {
   onUsersChanged?: () => void;
 }
 
-interface MaxDashboardsInputProps {
-  userId: string;
-  currentValue: number;
-  onSave: (userId: string, newMax: number) => void;
-}
-
-const MaxDashboardsInput: React.FC<MaxDashboardsInputProps> = ({
-  userId,
-  currentValue,
-  onSave,
-}) => {
-  const [val, setVal] = useState<string>(String(currentValue || 5));
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    setVal(String(currentValue || 5));
-  }, [currentValue]);
-
-  const doSave = () => {
-    const num = parseInt(val, 10);
-    if (!isNaN(num) && num >= 1) {
-      onSave(userId, num);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-1.5 bg-slate-900/90 px-2.5 py-1.5 rounded-xl border border-slate-700/80">
-      <Layers className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-      <span className="text-2xs text-slate-300 font-bold whitespace-nowrap">
-        سقف داشبورد:
-      </span>
-      <input
-        type="number"
-        min="1"
-        max="100"
-        value={val}
-        onChange={(e) => {
-          setVal(e.target.value);
-          setSaved(false);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            doSave();
-          }
-        }}
-        className="w-14 bg-slate-800 border border-slate-600 focus:border-emerald-500 rounded-lg px-2 py-1 text-center text-xs text-white font-black focus:outline-hidden"
-        title="تعداد سقف مجاز داشبورد را وارد کنید"
-        placeholder="عدد"
-      />
-      <button
-        type="button"
-        onClick={doSave}
-        className={`px-2 py-1 rounded-lg text-2xs font-bold transition-all cursor-pointer ${
-          saved
-            ? 'bg-emerald-600 text-white'
-            : 'bg-slate-700 hover:bg-emerald-600 text-slate-200 hover:text-white'
-        }`}
-        title="ثبت عدد سقف داشبورد"
-      >
-        {saved ? '✓ ثبت شد' : 'ثبت'}
-      </button>
-    </div>
-  );
-};
-
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   currentUser,
   onLogout,
@@ -112,7 +43,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newDisplayName, setNewDisplayName] = useState('');
-  const [newMaxDashboards, setNewMaxDashboards] = useState<number>(5);
 
   const [statusMessage, setStatusMessage] = useState<{
     text: string;
@@ -153,7 +83,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       username: newUsername,
       password: newPassword,
       displayName: newDisplayName.trim() || newUsername.trim(),
-      maxDashboards: newMaxDashboards >= 1 ? newMaxDashboards : 5,
       isAccountHead: true,
     });
 
@@ -162,7 +91,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       setNewUsername('');
       setNewPassword('');
       setNewDisplayName('');
-      setNewMaxDashboards(5);
       refreshUserList();
     } else {
       setStatusMessage({ text: res.message, type: 'error' });
@@ -195,15 +123,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       setStatusMessage({ text: res.message, type: 'error' });
     }
     setUserToDelete(null);
-  };
-
-  const handleUpdateUserMaxDashboards = (userId: string, newMax: number) => {
-    updateUser(userId, { maxDashboards: newMax });
-    refreshUserList();
-    setStatusMessage({
-      text: `سقف مجاز داشبورد کاربر با موفقیت به ${newMax} تغییر یافت.`,
-      type: 'success',
-    });
   };
 
   const filteredUsers = users.filter((u) => {
@@ -385,26 +304,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              {/* Place to write number for Saghf Dashboard */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  سقف مجاز داشبورد کاربر:
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={newMaxDashboards}
-                    onChange={(e) => setNewMaxDashboards(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                    placeholder="عدد سقف داشبورد (پیش‌فرض: 5)"
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:border-emerald-500 transition-all text-right font-mono"
-                  />
-                  <Layers className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
-                <p className="text-[10px] text-slate-500 mt-1">تعداد داشبوردهای مستقلی که این کاربر مجاز به ایجاد آن است</p>
-              </div>
-
               <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 text-2xs text-slate-400 leading-relaxed">
                 💡 با ایجاد این حساب، داشبورد اختصاصی اکسل برای او فعال می‌گردد و می‌تواند فوراً لاگین نماید.
               </div>
@@ -505,13 +404,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               <Lock className="w-3 h-3 text-slate-500" />
                               رمز: {user.password}
                             </span>
-
-                            {/* Place to write number: Saghf Dashboard Input */}
-                            <MaxDashboardsInput
-                              userId={user.id}
-                              currentValue={user.maxDashboards || 5}
-                              onSave={handleUpdateUserMaxDashboards}
-                            />
 
                             {user.lastLoginAt && (
                               <span className="flex items-center gap-1">

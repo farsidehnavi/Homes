@@ -46,6 +46,7 @@ import {
   getAdminUser,
   getAdminPrimaryDashboard,
   getUserDashboards,
+  getAccountOwnerDivarAlerts,
   saveSingleDashboard,
   createDashboard as createNewDashboard,
   deleteDashboard as deleteExistingDashboard,
@@ -167,17 +168,21 @@ export default function App() {
     return getUserPrimaryDashboard(activeSharedUserId);
   }, [activeSharedUserId, allUsers]);
 
-  // Active dashboard instance (either personal dashboard or shared user's dashboard)
-  const activeDashboard = useMemo(() => {
-    if (activeSharedUserId && activeSharedDashboard) {
-      return activeSharedDashboard;
-    }
+  const personalDashboard = useMemo(() => {
     return (
       userDashboards.find((d) => d.id === activeDashboardId) ||
       userDashboards[0] ||
       null
     );
-  }, [activeSharedUserId, activeSharedDashboard, userDashboards, activeDashboardId]);
+  }, [userDashboards, activeDashboardId]);
+
+  // Active dashboard instance (either personal dashboard or shared user's dashboard)
+  const activeDashboard = useMemo(() => {
+    if (activeSharedUserId && activeSharedDashboard) {
+      return activeSharedDashboard;
+    }
+    return personalDashboard;
+  }, [activeSharedUserId, activeSharedDashboard, personalDashboard]);
 
   // Load dashboards whenever workspaceUser changes
   const reloadDashboards = useCallback((userId: string, targetDashId?: string) => {
@@ -225,11 +230,15 @@ export default function App() {
       if (activeDashboard.divarTimeRange) {
         setDivarTimeRange(activeDashboard.divarTimeRange);
       }
-      if (activeDashboard.divarAlerts) {
-        setDivarAlerts(activeDashboard.divarAlerts);
-      }
     }
   }, [activeDashboard?.id]);
+
+  // Synchronize personal Divar alerts strictly from the user's own personal dashboard
+  useEffect(() => {
+    if (personalDashboard) {
+      setDivarAlerts(Array.isArray(personalDashboard.divarAlerts) ? personalDashboard.divarAlerts : []);
+    }
+  }, [personalDashboard?.id]);
 
   // Save current dashboard state to storage (routes to shared user dashboard if viewing shared Excel)
   const persistActiveDashboard = useCallback(
@@ -258,6 +267,47 @@ export default function App() {
     },
     [workspaceUser, activeDashboard, activeSharedUserId, activeSharedDashboard, refreshAllUsers]
   );
+
+  const persistPersonalDashboard = useCallback(
+    (updates: Partial<UserDashboard>) => {
+      if (!workspaceUser || !personalDashboard) return;
+      const updated: UserDashboard = {
+        ...personalDashboard,
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+      saveSingleDashboard(workspaceUser.id, updated);
+      setUserDashboards((prev) =>
+        prev.map((d) => (d.id === updated.id ? updated : d))
+      );
+    },
+    [workspaceUser, personalDashboard]
+  );
+
+  const isAccountHead = Boolean(
+    currentUser?.role === 'account_admin' ||
+      currentUser?.role === 'superadmin' ||
+      currentUser?.username === 'ali' ||
+      currentUser?.username === 'hesam' ||
+      (accountOwner && currentUser?.id === accountOwner.id)
+  );
+
+  const canViewAdminAlerts = Boolean(
+    isAccountHead || currentUser?.permissions?.canViewAdminDivarAlerts
+  );
+
+  const canViewCustomerDetails = Boolean(
+    isAccountHead || currentUser?.permissions?.canViewAlertCustomerDetails
+  );
+
+  const canCreateAlerts = Boolean(
+    isAccountHead || currentUser?.permissions?.canCreateDivarAlerts !== false
+  );
+
+  const adminDivarAlerts = useMemo(() => {
+    if (!currentUser || isAccountHead || !canViewAdminAlerts) return [];
+    return getAccountOwnerDivarAlerts(currentUser.accountId || 'acc_ali');
+  }, [currentUser, isAccountHead, canViewAdminAlerts, allUsers, isAlertsModalOpen]);
 
   // Property Form Modal for Excel CRUD
   const [isPropertyFormOpen, setIsPropertyFormOpen] = useState<boolean>(false);
@@ -923,12 +973,13 @@ export default function App() {
 
   // Alert matching (Divar)
   const matchedAlertItems = useMemo(() => {
-    if (divarAlerts.length === 0) return [];
-    const activeList = divarAlerts.filter((a) => a.enabled);
+    const combinedAlerts = [...divarAlerts, ...adminDivarAlerts];
+    if (combinedAlerts.length === 0) return [];
+    const activeList = combinedAlerts.filter((a) => a.enabled);
     if (activeList.length === 0) return [];
 
     return divarData.filter((item) => activeList.some((alert) => matchItemWithAlert(item, alert)));
-  }, [divarAlerts, divarData]);
+  }, [divarAlerts, adminDivarAlerts, divarData]);
 
   // Automated matching and auto-add to Excel for alerts with autoAddToExcel: true
   useEffect(() => {
@@ -981,11 +1032,21 @@ export default function App() {
       const newExcelData = [...formattedNewItems, ...excelData];
       setExcelData(newExcelData);
       setHasExcelModifications(true);
-      persistActiveDashboard({
-        excelData: newExcelData,
-        hasExcelModifications: true,
-        divarAlerts: updatedAlerts,
-      });
+      if (activeSharedUserId) {
+        persistActiveDashboard({
+          excelData: newExcelData,
+          hasExcelModifications: true,
+        });
+        persistPersonalDashboard({
+          divarAlerts: updatedAlerts,
+        });
+      } else {
+        persistActiveDashboard({
+          excelData: newExcelData,
+          hasExcelModifications: true,
+          divarAlerts: updatedAlerts,
+        });
+      }
 
       playNotificationChime();
       showToast(
@@ -999,9 +1060,9 @@ export default function App() {
         });
       }
     } else if (alertsUpdated) {
-      persistActiveDashboard({ divarAlerts: updatedAlerts });
+      persistPersonalDashboard({ divarAlerts: updatedAlerts });
     }
-  }, [divarData, divarAlerts, excelData, persistActiveDashboard, showToast]);
+  }, [divarData, divarAlerts, excelData, activeSharedUserId, persistActiveDashboard, persistPersonalDashboard, showToast]);
 
   // SCREEN 1: LOGIN PAGE (If user is not logged in)
   if (!currentUser || currentScreen === 'login') {
@@ -1375,7 +1436,7 @@ export default function App() {
         alerts={divarAlerts}
         onSaveAlerts={(updated) => {
           setDivarAlerts(updated);
-          persistActiveDashboard({ divarAlerts: updated });
+          persistPersonalDashboard({ divarAlerts: updated });
         }}
         usePersianDigits={usePersianDigits}
         divarItems={divarData}
@@ -1386,6 +1447,10 @@ export default function App() {
         onAddMultipleToExcel={handleAddMultipleDivarItemsToExcel}
         initialFilter={alertsInitialFilter}
         initialItem={alertsInitialItem}
+        adminAlerts={adminDivarAlerts}
+        adminOwnerName={accountOwner?.displayName || 'مدیر حساب'}
+        canViewCustomerDetails={canViewCustomerDetails}
+        canCreateAlerts={canCreateAlerts}
       />
 
       {/* Property Deletion Confirmation Modal (Prevents Accidental Touch) */}

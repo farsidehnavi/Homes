@@ -27,6 +27,8 @@ import {
   Clock,
   Calendar,
   UserCheck,
+  Lock,
+  ShieldCheck,
 } from 'lucide-react';
 import { DivarAlert, RealEstateItem, FilterState } from '../types';
 import { toPersianDigits, formatPriceShort, normalizePersianText, formatBuiltYear } from '../utils/formatters';
@@ -49,6 +51,10 @@ interface DivarAlertsModalProps {
   usePersianDigits: boolean;
   initialFilter?: FilterState | null;
   initialItem?: RealEstateItem | null;
+  adminAlerts?: DivarAlert[];
+  adminOwnerName?: string;
+  canViewCustomerDetails?: boolean;
+  canCreateAlerts?: boolean;
 }
 
 export function matchItemWithAlert(item: RealEstateItem, alert: DivarAlert): boolean {
@@ -149,9 +155,15 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
   usePersianDigits,
   initialFilter,
   initialItem,
+  adminAlerts = [],
+  adminOwnerName = 'مدیر حساب',
+  canViewCustomerDetails = true,
+  canCreateAlerts = true,
 }) => {
   const activeItems = divarItems.length > 0 ? divarItems : currentDivarItems;
-  const [showCreateForm, setShowCreateForm] = useState(alerts.length === 0);
+  const [showCreateForm, setShowCreateForm] = useState(
+    alerts.length === 0 && adminAlerts.length === 0 && canCreateAlerts
+  );
   const [title, setTitle] = useState('');
   const [transactionType, setTransactionType] = useState<'all' | 'خرید و فروش' | 'رهن و اجاره'>('all');
   const [propertyType, setPropertyType] = useState<string>('all');
@@ -223,8 +235,10 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
       setRequiresParking(initialItem.hasParking === true);
       setRequiresElevator(initialItem.hasElevator === true);
       setAutoAddToExcel(true);
+    } else {
+      setShowCreateForm(alerts.length === 0 && adminAlerts.length === 0 && canCreateAlerts);
     }
-  }, [isOpen, initialFilter, initialItem]);
+  }, [isOpen, initialFilter, initialItem, alerts.length, adminAlerts.length, canCreateAlerts]);
 
   if (!isOpen) return null;
 
@@ -442,21 +456,23 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
               <span>{testTriggered ? 'زنگ نواخته شد!' : 'تست صدا'}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setShowCreateForm(!showCreateForm)}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{showCreateForm ? 'بستن فرم' : '+ ثبت هشدار و مشتری جدید'}</span>
-            </button>
+            {canCreateAlerts && (
+              <button
+                type="button"
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{showCreateForm ? 'بستن فرم' : '+ ثبت هشدار و مشتری جدید'}</span>
+              </button>
+            )}
           </div>
         </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 pb-20 sm:pb-6">
           {/* Create Alert Form (Collapsible) */}
-          {showCreateForm && (
+          {canCreateAlerts && showCreateForm && (
             <form
               onSubmit={handleCreateAlert}
               className="bg-linear-to-br from-red-50/60 via-amber-50/40 to-slate-50 dark:from-red-950/30 dark:via-amber-950/20 dark:to-slate-800/70 border border-red-200 dark:border-red-800/60 rounded-3xl p-5 space-y-4 animate-in slide-in-from-top-2 shadow-xs"
@@ -670,348 +686,404 @@ export const DivarAlertsModal: React.FC<DivarAlertsModalProps> = ({
             </form>
           )}
 
-          {/* Active Alerts List - Each Alert has a dedicated section for Results */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <BellRing className="w-4 h-4 text-red-600 dark:text-red-400" />
-                <span>هشدارهای ثبت‌شده شما ({fmt(alerts.length)} مورد):</span>
-              </h3>
-              <span className="text-2xs text-slate-500 dark:text-slate-400 font-medium">
-                برای هر مورد، بخش اختصاصی نتایج دیوار با دکمه انتقال به اکسل قرار دارد.
-              </span>
-            </div>
+          {/* Active Alerts List - Helper renderer for both Admin-shared & Personal alerts */}
+          {(() => {
+            const renderAlertCard = (al: DivarAlert, isAdminShared: boolean) => {
+              const matchedItems = activeItems.filter((it) => matchItemWithAlert(it, al));
+              const isCollapsed = collapsedAlertIds[al.id] === true;
+              const showCustomerDetails = isAdminShared ? canViewCustomerDetails : true;
 
-            {alerts.length === 0 ? (
-              <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700">
-                <Bell className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">هیچ گوش‌به‌زنگی هنوز ثبت نشده است</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 mb-4">
-                  مثلاً: «آپارتمان ۱۰۰ متری» یا «ویلایی ۵۰۰ متری» همراه با مشخصات مشتری را اضافه کنید.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateForm(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer active:scale-95"
+              return (
+                <div
+                  key={`${isAdminShared ? 'admin-' : ''}${al.id}`}
+                  className={`bg-white dark:bg-slate-900 rounded-3xl border transition-all overflow-hidden ${
+                    al.enabled
+                      ? isAdminShared
+                        ? 'border-amber-300 dark:border-amber-800/70 shadow-md'
+                        : 'border-red-200 dark:border-red-800/60 shadow-md'
+                      : 'border-slate-200 dark:border-slate-800 opacity-60'
+                  }`}
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>ثبت اولین هشدار</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-5">
-                {alerts.map((al) => {
-                  const matchedItems = activeItems.filter((it) => matchItemWithAlert(it, al));
-                  const isCollapsed = collapsedAlertIds[al.id] === true;
+                  {/* Top Header Card */}
+                  <div className="p-4 sm:p-5 space-y-3 bg-white dark:bg-slate-900">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      {/* Alert Title & Tags */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`w-3 h-3 rounded-full shrink-0 ${
+                              al.enabled ? 'bg-red-600 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'
+                            }`}
+                          />
+                          <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">{al.title}</h4>
 
-                  return (
-                    <div
-                      key={al.id}
-                      className={`bg-white dark:bg-slate-900 rounded-3xl border transition-all overflow-hidden ${
-                        al.enabled ? 'border-red-200 dark:border-red-800/60 shadow-md' : 'border-slate-200 dark:border-slate-800 opacity-60'
-                      }`}
-                    >
-                      {/* Top Header Card */}
-                      <div className="p-4 sm:p-5 space-y-3 bg-white dark:bg-slate-900">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          {/* Alert Title & Tags */}
-                          <div className="space-y-1.5">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span
-                                className={`w-3 h-3 rounded-full shrink-0 ${
-                                  al.enabled ? 'bg-red-600 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'
-                                }`}
-                              />
-                              <h4 className="text-sm font-black text-slate-900 dark:text-slate-100">{al.title}</h4>
+                          {isAdminShared && (
+                            <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-800 flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>ثبت‌شده توسط {adminOwnerName}</span>
+                            </span>
+                          )}
 
-                              <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                {al.propertyType === 'all' ? 'همه انواع ملک' : al.propertyType}
-                              </span>
+                          <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            {al.propertyType === 'all' ? 'همه انواع ملک' : al.propertyType}
+                          </span>
 
-                              {al.targetArea && (
-                                <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70">
-                                  متراژ: حدود {fmt(al.targetArea)} متر (±{fmt(al.areaTolerance || 15)})
-                                </span>
-                              )}
+                          {al.targetArea && (
+                            <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70">
+                              متراژ: حدود {fmt(al.targetArea)} متر (±{fmt(al.areaTolerance || 15)})
+                            </span>
+                          )}
 
-                              {al.streetOrNeighborhood && (
-                                <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70 flex items-center gap-1">
-                                  <MapPin className="w-3 h-3 text-red-500" />
-                                  {al.streetOrNeighborhood}
-                                </span>
-                              )}
+                          {al.streetOrNeighborhood && (
+                            <span className="text-2xs px-2.5 py-0.5 rounded-full font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70 flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-red-500" />
+                              {al.streetOrNeighborhood}
+                            </span>
+                          )}
 
-                              {al.transactionType && al.transactionType !== 'all' && (
-                                <span className="text-2xs px-2 py-0.5 rounded-full font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
-                                  {al.transactionType}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-2 flex-wrap shrink-0">
-                            {/* Auto add to Excel toggle */}
-                            <button
-                              type="button"
-                              onClick={() => handleToggleAutoExcel(al.id)}
-                              className={`px-2.5 py-1.5 rounded-xl text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 border ${
-                                al.autoAddToExcel
-                                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700'
-                                  : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
-                              }`}
-                              title="تغییر وضعیت ثبت خودکار در اکسل"
-                            >
-                              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                              <span>{al.autoAddToExcel ? 'اکسل خودکار: روشن' : 'اکسل خودکار: خاموش'}</span>
-                            </button>
-
-                            {/* Toggle Active Switch */}
-                            <button
-                              type="button"
-                              onClick={() => handleToggle(al.id)}
-                              className={`px-3 py-1.5 rounded-xl text-2xs font-bold transition-colors cursor-pointer border ${
-                                al.enabled
-                                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700'
-                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                              }`}
-                            >
-                              {al.enabled ? 'رصد فعال' : 'غیرفعال'}
-                            </button>
-
-                            {/* Delete Alert Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(al.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition-colors cursor-pointer"
-                              title="حذف این هشدار"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          {al.transactionType && al.transactionType !== 'all' && (
+                            <span className="text-2xs px-2 py-0.5 rounded-full font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70">
+                              {al.transactionType}
+                            </span>
+                          )}
                         </div>
-
-                        {/* Customer Information Badge (If user entered customer name or phone) */}
-                        {(al.customerName || al.customerPhone) && (
-                          <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-3xs shrink-0 shadow-2xs">
-                                <User className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-slate-500 dark:text-slate-400 text-2xs">مشتری متقاضی:</span>
-                                <strong className="text-amber-950 dark:text-amber-200 font-bold">{al.customerName || 'مشتری بدون نام'}</strong>
-                              </div>
-                            </div>
-
-                            {al.customerPhone && (
-                              <div className="flex items-center gap-2">
-                                <a
-                                  href={`tel:${al.customerPhone}`}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-2xs transition-all shadow-2xs"
-                                  title="تماس مستقیم با مشتری متقاضی"
-                                >
-                                  <PhoneCall className="w-3 h-3" />
-                                  <span dir="ltr" className="font-mono">{al.customerPhone}</span>
-                                </a>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(al.customerPhone!);
-                                    setCopiedPhoneId(al.id);
-                                    setTimeout(() => setCopiedPhoneId(null), 2500);
-                                  }}
-                                  className="p-1.5 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer"
-                                  title="کپی شماره تلفن"
-                                >
-                                  {copiedPhoneId === al.id ? (
-                                    <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                                  ) : (
-                                    <Copy className="w-3.5 h-3.5" />
-                                  )}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
 
-                      {/* DEDICATED RESULTS SECTION FOR THIS ALERT */}
-                      <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 p-4 sm:p-5">
-                        <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
+                      {/* Action Buttons (Only for user's own alerts; Admin-shared alerts are read-only) */}
+                      {!isAdminShared && (
+                        <div className="flex items-center gap-2 flex-wrap shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleAutoExcel(al.id)}
+                            className={`px-2.5 py-1.5 rounded-xl text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 border ${
+                              al.autoAddToExcel
+                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700'
+                                : 'bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
+                            }`}
+                            title="تغییر وضعیت ثبت خودکار در اکسل"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            <span>{al.autoAddToExcel ? 'اکسل خودکار: روشن' : 'اکسل خودکار: خاموش'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggle(al.id)}
+                            className={`px-3 py-1.5 rounded-xl text-2xs font-bold transition-colors cursor-pointer border ${
+                              al.enabled
+                                ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            {al.enabled ? 'رصد فعال' : 'غیرفعال'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(al.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition-colors cursor-pointer"
+                            title="حذف این هشدار"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Customer Information Badge (Gated by canViewCustomerDetails for Admin alerts) */}
+                    {(al.customerName || al.customerPhone) && (
+                      showCustomerDetails ? (
+                        <div className="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl px-3.5 py-2 flex flex-wrap items-center justify-between gap-2.5 text-xs">
                           <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-amber-500" />
-                            <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                              نتایج و املاک یافت‌شده در دیوار نجف‌آباد:
-                            </h5>
-                            <span
-                              className={`text-2xs px-2.5 py-0.5 rounded-full font-bold ${
-                                matchedItems.length > 0
-                                  ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
-                                  : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                              }`}
-                            >
-                              {matchedItems.length > 0
-                                ? `${fmt(matchedItems.length)} ملک پیدا شد`
-                                : 'هنوز موردی ثبت نشده'}
-                            </span>
+                            <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-3xs shrink-0 shadow-2xs">
+                              <User className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-slate-500 dark:text-slate-400 text-2xs">مشتری متقاضی:</span>
+                              <strong className="text-amber-950 dark:text-amber-200 font-bold">
+                                {al.customerName || 'مشتری بدون نام'}
+                              </strong>
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            {/* Batch Move to Excel */}
-                            {matchedItems.length > 0 && onAddMultipleToExcel && (
+                          {al.customerPhone && (
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={`tel:${al.customerPhone}`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold text-2xs transition-all shadow-2xs"
+                                title="تماس مستقیم با مشتری متقاضی"
+                              >
+                                <PhoneCall className="w-3 h-3" />
+                                <span dir="ltr" className="font-mono">{al.customerPhone}</span>
+                              </a>
+
                               <button
                                 type="button"
-                                onClick={() => onAddMultipleToExcel(matchedItems)}
-                                className="px-3 py-1.5 text-2xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-700 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95 shadow-2xs"
-                                title="انتقال یکجای تمام این نتایج به جدول اکسل من"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(al.customerPhone!);
+                                  setCopiedPhoneId(al.id);
+                                  setTimeout(() => setCopiedPhoneId(null), 2500);
+                                }}
+                                className="p-1.5 rounded-lg text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer"
+                                title="کپی شماره تلفن"
                               >
-                                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-                                <span>انتقال همه ({fmt(matchedItems.length)} ملک) به اکسل</span>
+                                {copiedPhoneId === al.id ? (
+                                  <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
                               </button>
-                            )}
-
-                            {/* Collapse/Expand Toggle */}
-                            <button
-                              type="button"
-                              onClick={() => toggleCollapseResults(al.id)}
-                              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                              title={isCollapsed ? 'نمایش نتایج' : 'بستن نتایج'}
-                            >
-                              {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                            </button>
-                          </div>
+                            </div>
+                          )}
                         </div>
+                      ) : (
+                        <div className="bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-2 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="text-2xs font-medium">
+                            مشخصات مشتری (نام و شماره تماس) توسط مدیر حساب مخفی شده است.
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
 
-                        {!isCollapsed && (
-                          <>
-                            {matchedItems.length > 0 ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                {matchedItems.map((m) => {
-                                  const inExcel = isItemInExcel(m);
+                  {/* DEDICATED RESULTS SECTION FOR THIS ALERT */}
+                  <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 p-4 sm:p-5">
+                    <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          نتایج و املاک یافت‌شده در دیوار نجف‌آباد:
+                        </h5>
+                        <span
+                          className={`text-2xs px-2.5 py-0.5 rounded-full font-bold ${
+                            matchedItems.length > 0
+                              ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                          }`}
+                        >
+                          {matchedItems.length > 0
+                            ? `${fmt(matchedItems.length)} ملک پیدا شد`
+                            : 'هنوز موردی ثبت نشده'}
+                        </span>
+                      </div>
 
-                                  return (
-                                    <div
-                                      key={m.id}
-                                      onClick={() => {
-                                        if (onSelectProperty) onSelectProperty(m);
-                                        onClose();
-                                      }}
-                                      className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-red-400 dark:hover:border-red-500 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between gap-3 cursor-pointer group"
-                                    >
-                                      {/* Top Row: Thumbnail + Title & Price */}
-                                      <div className="flex gap-3 items-start">
-                                        {m.imageUrl ? (
-                                          <img
-                                            src={m.imageUrl}
-                                            alt={m.title}
-                                            referrerPolicy="no-referrer"
-                                            className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-100 dark:border-slate-800 shadow-2xs group-hover:scale-105 transition-transform"
-                                          />
-                                        ) : (
-                                          <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-slate-400 dark:text-slate-500">
-                                            <Building2 className="w-6 h-6" />
-                                          </div>
-                                        )}
-
-                                        <div className="min-w-0 flex-1">
-                                          <h6 className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors line-clamp-1">
-                                            {m.title || m.address}
-                                          </h6>
-
-                                          <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                                            <MapPin className="w-3 h-3 text-red-500 shrink-0" />
-                                            <span>{m.district ? `نجف‌آباد، ${m.district}` : m.address}</span>
-                                          </div>
-
-                                          <div className="mt-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 truncate">
-                                            {m.priceText || (m.price > 0 ? `${formatPriceShort(m.price, usePersianDigits)}` : 'توافقی')}
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Quick Specs Pill Row */}
-                                      <div className="grid grid-cols-3 gap-1 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl text-3xs text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700">
-                                        <div className="flex items-center gap-1 truncate" title="متراژ">
-                                          <Maximize2 className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
-                                          <span>{m.area ? `${fmt(m.area)} م²` : '—'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 truncate" title="تعداد اتاق">
-                                          <BedDouble className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
-                                          <span>{m.rooms ? `${fmt(m.rooms)} خواب` : '—'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 truncate" title="سال ساخت">
-                                          <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
-                                          <span>{formatBuiltYear(m, usePersianDigits)}</span>
-                                        </div>
-                                      </div>
-
-                                      {/* Bottom Actions Row: Move to Excel & Details */}
-                                      <div
-                                        className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-2xs"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500">
-                                          <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-                                          <span>{m.relativeTime || 'امروز'}</span>
-                                        </div>
-
-                                        <div className="flex items-center gap-1.5">
-                                          {inExcel ? (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800/70 text-3xs">
-                                              <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                                              <span>در اکسل موجود است</span>
-                                            </span>
-                                          ) : (
-                                            onAddToExcel && (
-                                              <button
-                                                type="button"
-                                                onClick={() => onAddToExcel(m)}
-                                                className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-3xs shadow-2xs transition-all cursor-pointer"
-                                                title="انتقال مستقیم به جدول اکسل من"
-                                              >
-                                                <FileSpreadsheet className="w-3 h-3" />
-                                                <span>انتقال به اکسل</span>
-                                              </button>
-                                            )
-                                          )}
-
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              if (onSelectProperty) onSelectProperty(m);
-                                              onClose();
-                                            }}
-                                            className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-300 text-slate-600 dark:text-slate-300 font-bold text-3xs transition-colors cursor-pointer"
-                                          >
-                                            مشاهده ↗
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center space-y-1">
-                                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                  در حال حاضر ملکی با این مشخصات در دیوار نجف‌آباد یافت نشده است.
-                                </p>
-                                <p className="text-3xs text-slate-400 dark:text-slate-500">
-                                  به محض انتشار هر ملک جدید با این معیارها در دیوار، زنگ هشدار به صدا درآمده و مستقیماً در این بخش قرار می‌گیرد.
-                                </p>
-                              </div>
-                            )}
-                          </>
+                      <div className="flex items-center gap-2">
+                        {matchedItems.length > 0 && onAddMultipleToExcel && (
+                          <button
+                            type="button"
+                            onClick={() => onAddMultipleToExcel(matchedItems)}
+                            className="px-3 py-1.5 text-2xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-700 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95 shadow-2xs"
+                            title="انتقال یکجای تمام این نتایج به جدول اکسل من"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+                            <span>انتقال همه ({fmt(matchedItems.length)} ملک) به اکسل</span>
+                          </button>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => toggleCollapseResults(al.id)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                          title={isCollapsed ? 'نمایش نتایج' : 'بستن نتایج'}
+                        >
+                          {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                        </button>
                       </div>
                     </div>
-                  );
-                })}
+
+                    {!isCollapsed && (
+                      <>
+                        {matchedItems.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            {matchedItems.map((m) => {
+                              const inExcel = isItemInExcel(m);
+
+                              return (
+                                <div
+                                  key={m.id}
+                                  onClick={() => {
+                                    if (onSelectProperty) onSelectProperty(m);
+                                    onClose();
+                                  }}
+                                  className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-red-400 dark:hover:border-red-500 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between gap-3 cursor-pointer group"
+                                >
+                                  <div className="flex gap-3 items-start">
+                                    {m.imageUrl ? (
+                                      <img
+                                        src={m.imageUrl}
+                                        alt={m.title}
+                                        referrerPolicy="no-referrer"
+                                        className="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-100 dark:border-slate-800 shadow-2xs group-hover:scale-105 transition-transform"
+                                      />
+                                    ) : (
+                                      <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 text-slate-400 dark:text-slate-500">
+                                        <Building2 className="w-6 h-6" />
+                                      </div>
+                                    )}
+
+                                    <div className="min-w-0 flex-1">
+                                      <h6 className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-red-700 dark:group-hover:text-red-400 transition-colors line-clamp-1">
+                                        {m.title || m.address}
+                                      </h6>
+
+                                      <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                                        <MapPin className="w-3 h-3 text-red-500 shrink-0" />
+                                        <span>{m.district ? `نجف‌آباد، ${m.district}` : m.address}</span>
+                                      </div>
+
+                                      <div className="mt-1 text-xs font-bold text-emerald-700 dark:text-emerald-400 truncate">
+                                        {m.priceText || (m.price && m.price > 0 ? `${formatPriceShort(m.price, usePersianDigits)}` : 'توافقی')}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-3 gap-1 bg-slate-50 dark:bg-slate-800 p-1.5 rounded-xl text-3xs text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700">
+                                    <div className="flex items-center gap-1 truncate" title="متراژ">
+                                      <Maximize2 className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
+                                      <span>{m.area ? `${fmt(m.area)} م²` : '—'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 truncate" title="تعداد اتاق">
+                                      <BedDouble className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
+                                      <span>{m.rooms ? `${fmt(m.rooms)} خواب` : '—'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 truncate" title="سال ساخت">
+                                      <Calendar className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" />
+                                      <span>{formatBuiltYear(m, usePersianDigits)}</span>
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-2xs"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500">
+                                      <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                                      <span>{m.relativeTime || 'امروز'}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                      {inExcel ? (
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200 dark:border-emerald-800/70 text-3xs">
+                                          <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                          <span>در اکسل موجود است</span>
+                                        </span>
+                                      ) : (
+                                        onAddToExcel && (
+                                          <button
+                                            type="button"
+                                            onClick={() => onAddToExcel(m)}
+                                            className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-3xs shadow-2xs transition-all cursor-pointer"
+                                            title="انتقال مستقیم به جدول اکسل من"
+                                          >
+                                            <FileSpreadsheet className="w-3 h-3" />
+                                            <span>انتقال به اکسل</span>
+                                          </button>
+                                        )
+                                      )}
+
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (onSelectProperty) onSelectProperty(m);
+                                          onClose();
+                                        }}
+                                        className="px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-700 dark:hover:text-red-300 text-slate-600 dark:text-slate-300 font-bold text-3xs transition-colors cursor-pointer"
+                                      >
+                                        مشاهده ↗
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center space-y-1">
+                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                              در حال حاضر ملکی با این مشخصات در دیوار نجف‌آباد یافت نشده است.
+                            </p>
+                            <p className="text-3xs text-slate-400 dark:text-slate-500">
+                              به محض انتشار هر ملک جدید با این معیارها در دیوار، زنگ هشدار به صدا درآمده و مستقیماً در این بخش قرار می‌گیرد.
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            };
+
+            return (
+              <div className="space-y-6">
+                {/* Admin-Shared Alerts Section (For Subusers like Reza when allowed by Ali) */}
+                {adminAlerts.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h3 className="text-xs font-black text-amber-900 dark:text-amber-200 flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <span>گوش‌به‌زنگ دیوار {adminOwnerName} ({fmt(adminAlerts.length)} مورد):</span>
+                      </h3>
+                      <span className="text-2xs text-slate-500 dark:text-slate-400 font-medium">
+                        {canViewCustomerDetails
+                          ? 'مشخصات مشتریان برای شما قابل مشاهده است'
+                          : 'مشخصات تماس مشتریان مخفی شده است'}
+                      </span>
+                    </div>
+                    <div className="space-y-5">
+                      {adminAlerts.map((al) => renderAlertCard(al, true))}
+                    </div>
+                  </div>
+                )}
+
+                {/* User's Own Alerts Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                      <BellRing className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      <span>هشدارهای ثبت‌شده شما ({fmt(alerts.length)} مورد):</span>
+                    </h3>
+                    <span className="text-2xs text-slate-500 dark:text-slate-400 font-medium">
+                      برای هر مورد، بخش اختصاصی نتایج دیوار با دکمه انتقال به اکسل قرار دارد.
+                    </span>
+                  </div>
+
+                  {alerts.length === 0 ? (
+                    adminAlerts.length === 0 ? (
+                      <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-200 dark:border-slate-700">
+                        <Bell className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                          هیچ گوش‌به‌زنگی هنوز ثبت نشده است
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 mb-4">
+                          مثلاً: «آپارتمان ۱۰۰ متری» یا «ویلایی ۵۰۰ متری» همراه با مشخصات مشتری را اضافه کنید.
+                        </p>
+                        {canCreateAlerts && (
+                          <button
+                            type="button"
+                            onClick={() => setShowCreateForm(true)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer active:scale-95"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>ثبت اولین هشدار</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        شما هنوز گوش‌به‌زنگ شخصی ثبت نکرده‌اید. موارد ثبت‌شده توسط {adminOwnerName} در بالا نمایش داده شده‌اند.
+                      </div>
+                    )
+                  ) : (
+                    <div className="space-y-5">
+                      {alerts.map((al) => renderAlertCard(al, false))}
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+            );
+          })()}
         </div>
 
         {/* Footer */}
