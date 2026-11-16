@@ -1417,11 +1417,7 @@ export default function App() {
         isOpen={isPropertyFormOpen}
         onClose={() => setIsPropertyFormOpen(false)}
         onSave={handleSaveProperty}
-        initialData={propertyToEdit}
-        availablePropertyTypes={availablePropertyTypes}
-        availableDocumentTypes={availableDocumentTypes}
-        availableFacades={availableFacades}
-        availableOrientations={availableOrientations}
+        itemToEdit={propertyToEdit}
         usePersianDigits={usePersianDigits}
       />
 

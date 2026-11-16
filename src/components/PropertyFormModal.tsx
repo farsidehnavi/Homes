@@ -25,13 +25,18 @@ import {
   Star,
   Plus,
   Link as LinkIcon,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
 } from 'lucide-react';
 import { RealEstateItem, TransactionType, PropertyType } from '../types';
-import { toPersianDigits, formatPrice, parseNumberFromString } from '../utils/formatters';
+import { formatPrice } from '../utils/formatters';
+import { LocationPickerMap } from './LocationPickerMap';
 
 interface PropertyFormModalProps {
   isOpen: boolean;
-  itemToEdit: RealEstateItem | null; // null => Add mode; non-null => Edit mode
+  itemToEdit?: RealEstateItem | null; // null => Add mode; non-null => Edit mode
+  initialData?: RealEstateItem | null; // backward-compatible alias
   onClose: () => void;
   onSave: (item: Partial<RealEstateItem>) => void;
   usePersianDigits: boolean;
@@ -40,11 +45,13 @@ interface PropertyFormModalProps {
 export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   isOpen,
   itemToEdit,
+  initialData,
   onClose,
   onSave,
   usePersianDigits,
 }) => {
-  const isEdit = Boolean(itemToEdit);
+  const effectiveEditItem = itemToEdit ?? initialData ?? null;
+  const isEdit = Boolean(effectiveEditItem);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState('');
@@ -73,35 +80,63 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   const [imageUrlInput, setImageUrlInput] = useState<string>('');
   const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (itemToEdit) {
-      setTitle(itemToEdit.title || '');
-      setTransactionType(itemToEdit.transactionType || (itemToEdit.deposit || itemToEdit.rent ? 'رهن و اجاره' : 'خرید و فروش'));
-      setPropertyType(itemToEdit.propertyType || 'آپارتمان');
-      setAddress(itemToEdit.address || '');
-      setDistrict(itemToEdit.district || '');
-      setArea(itemToEdit.area || 100);
-      setPrice(itemToEdit.price || 0);
-      setDeposit(itemToEdit.deposit || 0);
-      setRent(itemToEdit.rent || 0);
-      setRooms(itemToEdit.rooms || 2);
-      setFloor(itemToEdit.floor ?? 1);
-      setTotalFloors(itemToEdit.totalFloors || 4);
-      const existingYear = itemToEdit.builtYear ?? (itemToEdit.age !== undefined ? (itemToEdit.age > 1300 ? itemToEdit.age : itemToEdit.age === 0 ? 1403 : 1403 - itemToEdit.age) : 1400);
-      setBuiltYear(existingYear);
-      setAge(itemToEdit.age ?? 0);
-      setOrientation(itemToEdit.orientation || 'شمالی');
-      setFacade(itemToEdit.facade || 'سنگ');
-      setDocumentType(itemToEdit.documentType || 'تک برگ');
-      setHasParking(Boolean(itemToEdit.hasParking));
-      setHasElevator(Boolean(itemToEdit.hasElevator));
-      setHasStorage(Boolean(itemToEdit.hasStorage));
+  // Map location support
+  const [latitude, setLatitude] = useState<number | undefined>(undefined);
+  const [longitude, setLongitude] = useState<number | undefined>(undefined);
+  const [isMapSectionOpen, setIsMapSectionOpen] = useState<boolean>(true);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-      const existingImages = itemToEdit.images && itemToEdit.images.length > 0
-        ? itemToEdit.images
-        : itemToEdit.imageUrl
-        ? [itemToEdit.imageUrl]
-        : [];
+  useEffect(() => {
+    if (effectiveEditItem) {
+      setTitle(effectiveEditItem.title || '');
+      setTransactionType(
+        effectiveEditItem.transactionType ||
+          (effectiveEditItem.deposit || effectiveEditItem.rent ? 'رهن و اجاره' : 'خرید و فروش')
+      );
+      setPropertyType(effectiveEditItem.propertyType || 'آپارتمان');
+      setAddress(effectiveEditItem.address || '');
+      setDistrict(effectiveEditItem.district || '');
+      setArea(effectiveEditItem.area || 100);
+      setPrice(effectiveEditItem.price || 0);
+      setDeposit(effectiveEditItem.deposit || 0);
+      setRent(effectiveEditItem.rent || 0);
+      setRooms(effectiveEditItem.rooms || 2);
+      setFloor(effectiveEditItem.floor ?? 1);
+      setTotalFloors(effectiveEditItem.totalFloors || 4);
+      const existingYear =
+        effectiveEditItem.builtYear ??
+        (effectiveEditItem.age !== undefined
+          ? effectiveEditItem.age > 1300
+            ? effectiveEditItem.age
+            : effectiveEditItem.age === 0
+            ? 1403
+            : 1403 - effectiveEditItem.age
+          : 1400);
+      setBuiltYear(existingYear);
+      setAge(effectiveEditItem.age ?? 0);
+      setOrientation(effectiveEditItem.orientation || 'شمالی');
+      setFacade(effectiveEditItem.facade || 'سنگ');
+      setDocumentType(effectiveEditItem.documentType || 'تک برگ');
+      setHasParking(Boolean(effectiveEditItem.hasParking));
+      setHasElevator(Boolean(effectiveEditItem.hasElevator));
+      setHasStorage(Boolean(effectiveEditItem.hasStorage));
+      setLatitude(
+        typeof effectiveEditItem.latitude === 'number' && !isNaN(effectiveEditItem.latitude)
+          ? effectiveEditItem.latitude
+          : undefined
+      );
+      setLongitude(
+        typeof effectiveEditItem.longitude === 'number' && !isNaN(effectiveEditItem.longitude)
+          ? effectiveEditItem.longitude
+          : undefined
+      );
+
+      const existingImages =
+        effectiveEditItem.images && effectiveEditItem.images.length > 0
+          ? effectiveEditItem.images
+          : effectiveEditItem.imageUrl
+          ? [effectiveEditItem.imageUrl]
+          : [];
       setImages(existingImages);
     } else {
       // Reset for add
@@ -125,11 +160,15 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       setHasParking(true);
       setHasElevator(true);
       setHasStorage(true);
+      setLatitude(undefined);
+      setLongitude(undefined);
       setImages([]);
     }
     setImageUrlInput('');
     setShowUrlInput(false);
-  }, [itemToEdit, isOpen]);
+    setValidationError(null);
+    setIsMapSectionOpen(true);
+  }, [effectiveEditItem, isOpen]);
 
   if (!isOpen) return null;
 
@@ -188,9 +227,16 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!address.trim() && !title.trim()) {
-      alert('لطفاً عنوان یا آدرس ملک را وارد فرمایید.');
+      setValidationError('لطفاً عنوان یا آدرس ملک را وارد فرمایید.');
       return;
     }
+    setValidationError(null);
+
+    const hasValidLocation =
+      typeof latitude === 'number' &&
+      typeof longitude === 'number' &&
+      !isNaN(latitude) &&
+      !isNaN(longitude);
 
     const itemData: Partial<RealEstateItem> = {
       title: title.trim() || `${propertyType} در ${district || address}`,
@@ -224,6 +270,8 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           : `ودیعه: ${(numDeposit / 1000000).toLocaleString('fa-IR')} م • اجاره: ${(numRent / 1000000).toLocaleString('fa-IR')} م`,
       imageUrl: images.length > 0 ? images[0] : undefined,
       images: images.length > 0 ? images : undefined,
+      latitude: hasValidLocation ? latitude : undefined,
+      longitude: hasValidLocation ? longitude : undefined,
       source: 'excel',
     };
 
@@ -255,8 +303,8 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
               </h2>
               <p className="text-2xs text-slate-400 dark:text-slate-500">
                 {isEdit
-                  ? `ویرایش ردیف ${itemToEdit?.rowNumber || ''} — امکان ویرایش مشخصات، افزودن تصاویر و خروجی اکسل`
-                  : 'مشخصات ملک و تصاویر آن را ثبت کنید تا به جدول اضافه و در اکسل خروجی گرفته شود'}
+                  ? `ویرایش ردیف ${effectiveEditItem?.rowNumber || ''} — امکان ویرایش مشخصات، موقعیت روی نقشه، تصاویر و خروجی اکسل`
+                  : 'مشخصات، موقعیت روی نقشه و تصاویر ملک را ثبت کنید تا به جدول اضافه و در اکسل خروجی گرفته شود'}
               </p>
             </div>
           </div>
@@ -271,6 +319,12 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+          {validationError && (
+            <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{validationError}</span>
+            </div>
+          )}
           {/* IMAGE UPLOAD & GALLERY SECTION */}
           <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -557,10 +611,47 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             <input
               type="text"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                if (validationError) setValidationError(null);
+              }}
               placeholder="مثلاً: نجف‌آباد، خیابان منتظری جنوبی، کوچه ۱۸، پلاک ۴۰"
               className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden"
             />
+          </div>
+
+          {/* Interactive Map Location Picker */}
+          <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-2xl p-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => setIsMapSectionOpen((prev) => !prev)}
+              className="w-full flex items-center justify-between gap-2 text-right cursor-pointer"
+            >
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>انتخاب موقعیت ملک روی نقشه:</span>
+              </span>
+              <span className="inline-flex items-center gap-1 text-2xs font-semibold text-slate-500 dark:text-slate-400">
+                <span>{isMapSectionOpen ? 'بستن نقشه' : 'باز کردن نقشه'}</span>
+                {isMapSectionOpen ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </span>
+            </button>
+
+            {isMapSectionOpen && (
+              <LocationPickerMap
+                latitude={latitude}
+                longitude={longitude}
+                onChange={(lat, lng) => {
+                  setLatitude(lat);
+                  setLongitude(lng);
+                }}
+                usePersianDigits={usePersianDigits}
+              />
+            )}
           </div>
 
           {/* Building Specifications */}

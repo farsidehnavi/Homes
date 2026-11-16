@@ -107,6 +107,10 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         colIndex.rent = idx;
       else if (norm.includes('محله') || norm.includes('منطقه') || norm === 'district')
         colIndex.district = idx;
+      else if (norm.includes('عرض جغرافیایی') || norm === 'latitude' || norm === 'lat')
+        colIndex.latitude = idx;
+      else if (norm.includes('طول جغرافیایی') || norm === 'longitude' || norm === 'lng' || norm === 'lon')
+        colIndex.longitude = idx;
       else if (
         norm.includes('عکس') ||
         norm.includes('تصویر') ||
@@ -239,6 +243,11 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
         itemBuiltYear = 1403;
       }
 
+      const rawLat = getVal('latitude');
+      const rawLng = getVal('longitude');
+      const parsedLat = rawLat !== undefined && rawLat !== null && String(rawLat).trim() !== '' ? parseFloat(String(rawLat)) : NaN;
+      const parsedLng = rawLng !== undefined && rawLng !== null && String(rawLng).trim() !== '' ? parseFloat(String(rawLng)) : NaN;
+
       items.push({
         id: idx + 1,
         rowNumber: rowNumVal,
@@ -270,6 +279,8 @@ export const parseExcelFile = async (file: File): Promise<ExcelParseResult> => {
             : `ودیعه: ${(depositVal / 1000000).toLocaleString('fa-IR')} م • اجاره: ${(rentVal / 1000000).toLocaleString('fa-IR')} م`,
         imageUrl: parsedImages.length > 0 ? parsedImages[0] : undefined,
         images: parsedImages.length > 0 ? parsedImages : undefined,
+        latitude: Number.isFinite(parsedLat) ? parsedLat : undefined,
+        longitude: Number.isFinite(parsedLng) ? parsedLng : undefined,
         source: 'excel',
         rawRow,
       });
@@ -318,6 +329,8 @@ export const exportToExcel = (items: RealEstateItem[], fileName = 'املاک_د
     انباری: item.hasStorage ? 'دارد' : 'ندارد',
     'نوع سند': item.documentType,
     آدرس: item.address,
+    'عرض جغرافیایی': item.latitude ?? '',
+    'طول جغرافیایی': item.longitude ?? '',
     'تصاویر / عکس ملک': item.images && item.images.length > 0 ? item.images.join(' , ') : item.imageUrl || '',
   }));
 
