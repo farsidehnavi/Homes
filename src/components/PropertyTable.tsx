@@ -99,6 +99,9 @@ export const PropertyTable: React.FC<PropertyTableProps> = ({
         );
       case 'آپارتمان':
       default:
+        if (!type || !type.trim()) {
+          return <span className="text-slate-400 dark:text-slate-500">—</span>;
+        }
         return (
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/70">
             {type}

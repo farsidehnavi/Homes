@@ -244,9 +244,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
           >
             {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
           </span>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70">
-            {item.propertyType}
-          </span>
+          {item.propertyType && item.propertyType.trim() !== '' && (
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70">
+              {item.propertyType}
+            </span>
+          )}
           {item.district && (
             <span className="text-2xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-semibold">
               <MapPin className="w-3 h-3 text-red-500" />
@@ -421,7 +423,7 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
 
           <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
             <span className="text-slate-400 dark:text-slate-500 text-2xs block mb-1">نوع ملک</span>
-            <span className="font-bold text-slate-900 dark:text-slate-100">{item.propertyType}</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{item.propertyType?.trim() || '—'}</span>
           </div>
         </div>
       </div>
@@ -719,9 +721,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               >
                 {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70 truncate">
-                {item.propertyType}
-              </span>
+              {item.propertyType && item.propertyType.trim() !== '' && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70 truncate">
+                  {item.propertyType}
+                </span>
+              )}
             </div>
 
             <button
@@ -762,9 +766,11 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
               >
                 {isRent ? 'رهن و اجاره' : 'خرید و فروش'}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300">
-                {item.propertyType}
-              </span>
+              {item.propertyType && item.propertyType.trim() !== '' && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300">
+                  {item.propertyType}
+                </span>
+              )}
               <h3 className="text-base font-black text-slate-900 dark:text-slate-100 truncate max-w-md">
                 {item.title || item.address}
               </h3>

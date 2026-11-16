@@ -42,6 +42,36 @@ interface PropertyFormModalProps {
   usePersianDigits: boolean;
 }
 
+const normalizeNumericInput = (raw: string, allowNegative = false): string => {
+  const ascii = raw
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 1776))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 1632));
+
+  let cleaned = '';
+  for (let i = 0; i < ascii.length; i++) {
+    const ch = ascii[i];
+    if (ch >= '0' && ch <= '9') {
+      cleaned += ch;
+    } else if (allowNegative && ch === '-' && cleaned.length === 0) {
+      cleaned += ch;
+    }
+  }
+
+  if (cleaned.length > 1 && cleaned.startsWith('0')) {
+    cleaned = cleaned.replace(/^0+(?=\d)/, '');
+  } else if (cleaned.length > 2 && cleaned.startsWith('-0')) {
+    cleaned = '-' + cleaned.slice(1).replace(/^0+(?=\d)/, '');
+  }
+
+  return cleaned;
+};
+
+const cycleTriState = (val: boolean | undefined): boolean | undefined => {
+  if (val === undefined) return true;
+  if (val === true) return false;
+  return undefined;
+};
+
 export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
   isOpen,
   itemToEdit,
@@ -56,24 +86,23 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
 
   const [title, setTitle] = useState('');
   const [transactionType, setTransactionType] = useState<TransactionType>('خرید و فروش');
-  const [propertyType, setPropertyType] = useState<PropertyType>('آپارتمان');
+  const [propertyType, setPropertyType] = useState<PropertyType>('');
   const [address, setAddress] = useState('');
   const [district, setDistrict] = useState('');
-  const [area, setArea] = useState<number | ''>(100);
-  const [price, setPrice] = useState<number | ''>(3000000000);
-  const [deposit, setDeposit] = useState<number | ''>(200000000);
-  const [rent, setRent] = useState<number | ''>(5000000);
-  const [rooms, setRooms] = useState<number>(2);
-  const [floor, setFloor] = useState<number>(1);
-  const [totalFloors, setTotalFloors] = useState<number>(4);
-  const [builtYear, setBuiltYear] = useState<number | ''>(1400);
-  const [age, setAge] = useState<number>(3);
-  const [orientation, setOrientation] = useState<string>('شمالی');
-  const [facade, setFacade] = useState<string>('سنگ');
-  const [documentType, setDocumentType] = useState<string>('تک برگ');
-  const [hasParking, setHasParking] = useState<boolean>(true);
-  const [hasElevator, setHasElevator] = useState<boolean>(true);
-  const [hasStorage, setHasStorage] = useState<boolean>(true);
+  const [area, setArea] = useState<string>('');
+  const [price, setPrice] = useState<string>('');
+  const [deposit, setDeposit] = useState<string>('');
+  const [rent, setRent] = useState<string>('');
+  const [rooms, setRooms] = useState<string>('');
+  const [floor, setFloor] = useState<string>('');
+  const [totalFloors, setTotalFloors] = useState<string>('');
+  const [builtYear, setBuiltYear] = useState<string>('');
+  const [orientation, setOrientation] = useState<string>('');
+  const [facade, setFacade] = useState<string>('');
+  const [documentType, setDocumentType] = useState<string>('');
+  const [hasParking, setHasParking] = useState<boolean | undefined>(undefined);
+  const [hasElevator, setHasElevator] = useState<boolean | undefined>(undefined);
+  const [hasStorage, setHasStorage] = useState<boolean | undefined>(undefined);
 
   // Image support
   const [images, setImages] = useState<string[]>([]);
@@ -93,16 +122,26 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
         effectiveEditItem.transactionType ||
           (effectiveEditItem.deposit || effectiveEditItem.rent ? 'رهن و اجاره' : 'خرید و فروش')
       );
-      setPropertyType(effectiveEditItem.propertyType || 'آپارتمان');
+      setPropertyType(effectiveEditItem.propertyType || '');
       setAddress(effectiveEditItem.address || '');
       setDistrict(effectiveEditItem.district || '');
-      setArea(effectiveEditItem.area || 100);
-      setPrice(effectiveEditItem.price || 0);
-      setDeposit(effectiveEditItem.deposit || 0);
-      setRent(effectiveEditItem.rent || 0);
-      setRooms(effectiveEditItem.rooms || 2);
-      setFloor(effectiveEditItem.floor ?? 1);
-      setTotalFloors(effectiveEditItem.totalFloors || 4);
+      setArea(effectiveEditItem.area && effectiveEditItem.area > 0 ? String(effectiveEditItem.area) : '');
+      setPrice(effectiveEditItem.price && effectiveEditItem.price > 0 ? String(effectiveEditItem.price) : '');
+      setDeposit(effectiveEditItem.deposit && effectiveEditItem.deposit > 0 ? String(effectiveEditItem.deposit) : '');
+      setRent(effectiveEditItem.rent && effectiveEditItem.rent > 0 ? String(effectiveEditItem.rent) : '');
+      setRooms(effectiveEditItem.rooms && effectiveEditItem.rooms > 0 ? String(effectiveEditItem.rooms) : '');
+      setFloor(
+        effectiveEditItem.floor !== undefined && effectiveEditItem.floor !== null
+          ? String(effectiveEditItem.floor)
+          : ''
+      );
+      setTotalFloors(
+        effectiveEditItem.totalFloors !== undefined &&
+          effectiveEditItem.totalFloors !== null &&
+          effectiveEditItem.totalFloors > 0
+          ? String(effectiveEditItem.totalFloors)
+          : ''
+      );
       const existingYear =
         effectiveEditItem.builtYear ??
         (effectiveEditItem.age !== undefined
@@ -111,15 +150,14 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             : effectiveEditItem.age === 0
             ? 1403
             : 1403 - effectiveEditItem.age
-          : 1400);
-      setBuiltYear(existingYear);
-      setAge(effectiveEditItem.age ?? 0);
-      setOrientation(effectiveEditItem.orientation || 'شمالی');
-      setFacade(effectiveEditItem.facade || 'سنگ');
-      setDocumentType(effectiveEditItem.documentType || 'تک برگ');
-      setHasParking(Boolean(effectiveEditItem.hasParking));
-      setHasElevator(Boolean(effectiveEditItem.hasElevator));
-      setHasStorage(Boolean(effectiveEditItem.hasStorage));
+          : undefined);
+      setBuiltYear(existingYear !== undefined ? String(existingYear) : '');
+      setOrientation(effectiveEditItem.orientation || '');
+      setFacade(effectiveEditItem.facade || '');
+      setDocumentType(effectiveEditItem.documentType || '');
+      setHasParking(effectiveEditItem.hasParking);
+      setHasElevator(effectiveEditItem.hasElevator);
+      setHasStorage(effectiveEditItem.hasStorage);
       setLatitude(
         typeof effectiveEditItem.latitude === 'number' && !isNaN(effectiveEditItem.latitude)
           ? effectiveEditItem.latitude
@@ -139,27 +177,26 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
           : [];
       setImages(existingImages);
     } else {
-      // Reset for add
+      // Reset all fields empty for Add mode (no default values)
       setTitle('');
       setTransactionType('خرید و فروش');
-      setPropertyType('آپارتمان');
+      setPropertyType('');
       setAddress('');
-      setDistrict('ویلاشهر');
-      setArea(110);
-      setPrice(3500000000);
-      setDeposit(250000000);
-      setRent(6000000);
-      setRooms(2);
-      setFloor(1);
-      setTotalFloors(3);
-      setBuiltYear(1401);
-      setAge(2);
-      setOrientation('شمالی');
-      setFacade('سنگ');
-      setDocumentType('تک برگ');
-      setHasParking(true);
-      setHasElevator(true);
-      setHasStorage(true);
+      setDistrict('');
+      setArea('');
+      setPrice('');
+      setDeposit('');
+      setRent('');
+      setRooms('');
+      setFloor('');
+      setTotalFloors('');
+      setBuiltYear('');
+      setOrientation('');
+      setFacade('');
+      setDocumentType('');
+      setHasParking(undefined);
+      setHasElevator(undefined);
+      setHasStorage(undefined);
       setLatitude(undefined);
       setLongitude(undefined);
       setImages([]);
@@ -172,10 +209,10 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
 
   if (!isOpen) return null;
 
-  const numArea = Number(area) || 0;
-  const numPrice = Number(price) || 0;
-  const numDeposit = Number(deposit) || 0;
-  const numRent = Number(rent) || 0;
+  const numArea = area.trim() !== '' ? Number(area) || 0 : 0;
+  const numPrice = price.trim() !== '' ? Number(price) || 0 : 0;
+  const numDeposit = deposit.trim() !== '' ? Number(deposit) || 0 : 0;
+  const numRent = rent.trim() !== '' ? Number(rent) || 0 : 0;
   const pricePerMeter = numArea > 0 && numPrice > 0 ? Math.round(numPrice / numArea) : 0;
 
   // Handle local image file upload
@@ -238,23 +275,41 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       !isNaN(latitude) &&
       !isNaN(longitude);
 
+    const parsedFloor =
+      floor.trim() !== '' && floor.trim() !== '-' && !isNaN(Number(floor)) ? Number(floor) : undefined;
+    const parsedTotalFloors =
+      totalFloors.trim() !== '' && !isNaN(Number(totalFloors)) ? Number(totalFloors) : undefined;
+    const parsedRooms = rooms !== '' && !isNaN(Number(rooms)) ? Number(rooms) : undefined;
+    const parsedBuiltYear =
+      builtYear.trim() !== '' && !isNaN(Number(builtYear)) ? Number(builtYear) : undefined;
+    const parsedArea = area.trim() !== '' && !isNaN(Number(area)) ? Number(area) : undefined;
+
+    const computedAge =
+      parsedBuiltYear !== undefined
+        ? parsedBuiltYear > 1300 && parsedBuiltYear <= 1500
+          ? Math.max(0, 1403 - parsedBuiltYear)
+          : parsedBuiltYear > 1900
+          ? Math.max(0, 2025 - parsedBuiltYear)
+          : parsedBuiltYear
+        : undefined;
+
+    const fallbackTitle = [propertyType, district.trim() || address.trim()].filter(Boolean).join(' در ');
+
     const itemData: Partial<RealEstateItem> = {
-      title: title.trim() || `${propertyType} در ${district || address}`,
-      address: address.trim() || `نجف‌آباد، ${district}`,
-      district: district.trim(),
-      propertyType,
+      title: title.trim() || fallbackTitle || 'ملک جدید',
+      address: address.trim() || (district.trim() ? `نجف‌آباد، ${district.trim()}` : ''),
+      district: district.trim() || undefined,
+      propertyType: propertyType || '',
       transactionType,
-      area: numArea,
-      rooms,
-      floor,
-      totalFloors,
-      builtYear: typeof builtYear === 'number' ? builtYear : undefined,
-      age: typeof builtYear === 'number'
-        ? (builtYear > 1300 && builtYear <= 1500 ? Math.max(0, 1403 - builtYear) : builtYear > 1900 ? Math.max(0, 2025 - builtYear) : builtYear)
-        : age,
-      orientation,
-      facade,
-      documentType,
+      area: parsedArea,
+      rooms: parsedRooms,
+      floor: parsedFloor,
+      totalFloors: parsedTotalFloors,
+      builtYear: parsedBuiltYear,
+      age: computedAge,
+      orientation: orientation || undefined,
+      facade: facade || undefined,
+      documentType: documentType || undefined,
       hasParking,
       hasElevator,
       hasStorage,
@@ -266,8 +321,12 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
       rentText: transactionType === 'رهن و اجاره' && numRent > 0 ? `${formatPrice(numRent)} تومان` : undefined,
       priceText:
         transactionType === 'خرید و فروش'
-          ? `${formatPrice(numPrice)} تومان`
-          : `ودیعه: ${(numDeposit / 1000000).toLocaleString('fa-IR')} م • اجاره: ${(numRent / 1000000).toLocaleString('fa-IR')} م`,
+          ? numPrice > 0
+            ? `${formatPrice(numPrice)} تومان`
+            : undefined
+          : numDeposit > 0 || numRent > 0
+          ? `ودیعه: ${(numDeposit / 1000000).toLocaleString('fa-IR')} م • اجاره: ${(numRent / 1000000).toLocaleString('fa-IR')} م`
+          : undefined,
       imageUrl: images.length > 0 ? images[0] : undefined,
       images: images.length > 0 ? images : undefined,
       latitude: hasValidLocation ? latitude : undefined,
@@ -487,7 +546,10 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (validationError) setValidationError(null);
+                }}
                 placeholder="مثلاً: آپارتمان ۱۱۰ متری دو خواب در ویلاشهر"
                 className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden"
               />
@@ -500,6 +562,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
                 onChange={(e) => setPropertyType(e.target.value as PropertyType)}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden cursor-pointer"
               >
+                <option value="">انتخاب کنید...</option>
                 <option value="آپارتمان">آپارتمان</option>
                 <option value="خانه مسکونی">خانه مسکونی</option>
                 <option value="ویلایی">ویلایی</option>
@@ -515,14 +578,16 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">قیمت کل (تومان):</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  dir="ltr"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                  onChange={(e) => setPrice(normalizeNumericInput(e.target.value))}
                   placeholder="مثلاً: 3500000000"
-                  className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 focus:border-emerald-500 focus:outline-hidden"
+                  className="w-full text-xs text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 focus:border-emerald-500 focus:outline-hidden"
                 />
                 <span className="text-2xs text-emerald-700 dark:text-emerald-400 font-medium block">
-                  {numPrice > 0 ? `${formatPrice(numPrice)} تومان` : '۰ تومان'}
+                  {numPrice > 0 ? `${formatPrice(numPrice)} تومان` : '—'}
                 </span>
               </div>
 
@@ -539,28 +604,32 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">مبلغ رهن / ودیعه (تومان):</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  dir="ltr"
                   value={deposit}
-                  onChange={(e) => setDeposit(e.target.value === '' ? '' : Number(e.target.value))}
+                  onChange={(e) => setDeposit(normalizeNumericInput(e.target.value))}
                   placeholder="مثلاً: 250000000"
-                  className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 focus:border-blue-500 focus:outline-hidden"
+                  className="w-full text-xs text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 focus:border-blue-500 focus:outline-hidden"
                 />
                 <span className="text-2xs text-blue-700 dark:text-blue-400 font-medium block">
-                  {numDeposit > 0 ? `${formatPrice(numDeposit)} تومان` : '۰ تومان'}
+                  {numDeposit > 0 ? `${formatPrice(numDeposit)} تومان` : '—'}
                 </span>
               </div>
 
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">اجاره ماهیانه (تومان):</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  dir="ltr"
                   value={rent}
-                  onChange={(e) => setRent(e.target.value === '' ? '' : Number(e.target.value))}
+                  onChange={(e) => setRent(normalizeNumericInput(e.target.value))}
                   placeholder="مثلاً: 6000000"
-                  className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 focus:border-blue-500 focus:outline-hidden"
+                  className="w-full text-xs text-right bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 focus:border-blue-500 focus:outline-hidden"
                 />
                 <span className="text-2xs text-blue-700 dark:text-blue-400 font-medium block">
-                  {numRent > 0 ? `${formatPrice(numRent)} تومان` : '۰ تومان (رهن کامل)'}
+                  {numRent > 0 ? `${formatPrice(numRent)} تومان` : '—'}
                 </span>
               </div>
             </div>
@@ -571,12 +640,13 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">متراژ (متر مربع):</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                dir="ltr"
                 value={area}
-                onChange={(e) => setArea(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="110"
-                min="10"
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden"
+                onChange={(e) => setArea(normalizeNumericInput(e.target.value))}
+                placeholder="مثلاً: 110"
+                className="w-full text-xs text-right bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden"
               />
             </div>
 
@@ -595,13 +665,14 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">تعداد اتاق خواب:</label>
               <select
                 value={rooms}
-                onChange={(e) => setRooms(Number(e.target.value))}
+                onChange={(e) => setRooms(e.target.value)}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2.5 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden cursor-pointer"
               >
-                <option value={1}>۱ خواب</option>
-                <option value={2}>۲ خواب</option>
-                <option value={3}>۳ خواب</option>
-                <option value={4}>۴ خواب یا بیشتر</option>
+                <option value="">انتخاب کنید...</option>
+                <option value="1">۱ خواب</option>
+                <option value="2">۲ خواب</option>
+                <option value="3">۳ خواب</option>
+                <option value="4">۴ خواب یا بیشتر</option>
               </select>
             </div>
           </div>
@@ -659,31 +730,39 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             <div className="space-y-1">
               <label className="text-2xs font-semibold text-slate-600 dark:text-slate-400">طبقه:</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                dir="ltr"
                 value={floor}
-                onChange={(e) => setFloor(Number(e.target.value))}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2"
+                onChange={(e) => setFloor(normalizeNumericInput(e.target.value, true))}
+                placeholder="مثلاً: 2"
+                className="w-full text-xs text-right bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden"
               />
             </div>
 
             <div className="space-y-1">
               <label className="text-2xs font-semibold text-slate-600 dark:text-slate-400">کل طبقات:</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                dir="ltr"
                 value={totalFloors}
-                onChange={(e) => setTotalFloors(Number(e.target.value))}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2"
+                onChange={(e) => setTotalFloors(normalizeNumericInput(e.target.value))}
+                placeholder="مثلاً: 4"
+                className="w-full text-xs text-right bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden"
               />
             </div>
 
             <div className="space-y-1">
               <label className="text-2xs font-semibold text-slate-600 dark:text-slate-400">سال ساخت:</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                dir="ltr"
                 value={builtYear}
-                onChange={(e) => setBuiltYear(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="مثلاً: ۱۳۹۵ یا ۱۴۰۳"
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2"
+                onChange={(e) => setBuiltYear(normalizeNumericInput(e.target.value))}
+                placeholder="مثلاً: 1403"
+                className="w-full text-xs text-right bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2 focus:bg-white dark:focus:bg-slate-800 focus:border-indigo-500 focus:outline-hidden"
               />
             </div>
 
@@ -694,6 +773,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
                 onChange={(e) => setOrientation(e.target.value)}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2 cursor-pointer"
               >
+                <option value="">انتخاب کنید...</option>
                 <option value="شمالی">شمالی</option>
                 <option value="جنوبی">جنوبی</option>
                 <option value="شرقی">شرقی</option>
@@ -711,6 +791,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
                 onChange={(e) => setFacade(e.target.value)}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2 cursor-pointer"
               >
+                <option value="">انتخاب کنید...</option>
                 <option value="سنگ">سنگ</option>
                 <option value="آجر">آجر</option>
                 <option value="سرامیک">سرامیک</option>
@@ -726,6 +807,7 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
                 onChange={(e) => setDocumentType(e.target.value)}
                 className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg px-2.5 py-2 cursor-pointer"
               >
+                <option value="">انتخاب کنید...</option>
                 <option value="تک برگ">تک برگ</option>
                 <option value="منگوله‌دار">منگوله‌دار</option>
                 <option value="قولنامه‌ای">قولنامه‌ای</option>
@@ -740,41 +822,47 @@ export const PropertyFormModal: React.FC<PropertyFormModalProps> = ({
             <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
-                onClick={() => setHasParking(!hasParking)}
+                onClick={() => setHasParking(cycleTriState(hasParking))}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  hasParking
+                  hasParking === true
                     ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
+                    : hasParking === false
+                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300'
                     : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
                 }`}
               >
                 <Car className="w-3.5 h-3.5" />
-                <span>پارکینگ: {hasParking ? 'دارد' : 'ندارد'}</span>
+                <span>پارکینگ: {hasParking === true ? 'دارد' : hasParking === false ? 'ندارد' : 'نامشخص'}</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setHasElevator(!hasElevator)}
+                onClick={() => setHasElevator(cycleTriState(hasElevator))}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  hasElevator
+                  hasElevator === true
                     ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
+                    : hasElevator === false
+                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300'
                     : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
                 }`}
               >
                 <ArrowUpDown className="w-3.5 h-3.5" />
-                <span>آسانسور: {hasElevator ? 'دارد' : 'ندارد'}</span>
+                <span>آسانسور: {hasElevator === true ? 'دارد' : hasElevator === false ? 'ندارد' : 'نامشخص'}</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => setHasStorage(!hasStorage)}
+                onClick={() => setHasStorage(cycleTriState(hasStorage))}
                 className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  hasStorage
+                  hasStorage === true
                     ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
+                    : hasStorage === false
+                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300'
                     : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
                 }`}
               >
                 <Warehouse className="w-3.5 h-3.5" />
-                <span>انباری: {hasStorage ? 'دارد' : 'ندارد'}</span>
+                <span>انباری: {hasStorage === true ? 'دارد' : hasStorage === false ? 'ندارد' : 'نامشخص'}</span>
               </button>
             </div>
           </div>

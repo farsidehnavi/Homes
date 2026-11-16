@@ -117,6 +117,7 @@ export const PropertyCardList: React.FC<PropertyCardListProps> = ({
   const fmt = (n: number | string) => (usePersianDigits ? toPersianDigits(n) : n);
 
   const getTypeBadge = (type: string) => {
+    if (!type || !type.trim()) return null;
     switch (type) {
       case 'ویلایی':
         return (
