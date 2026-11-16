@@ -6,7 +6,48 @@ export interface DivarFetchResult {
   items: RealEstateItem[];
   metadata: DivarFetchMeta;
   source: 'live' | 'cached';
+  fetchMethod?: 'browser-direct' | 'server-proxy' | 'cached-fallback';
+  corsBlocked?: boolean;
   error?: string;
+}
+
+export interface DivarPostMapData {
+  latitude?: number;
+  longitude?: number;
+  mapImageUrl?: string;
+  topAddress?: string;
+}
+
+const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs = 10000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function getDivarHeaders(includeJsonContentType = false): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (includeJsonContentType) {
+    headers['Content-Type'] = 'application/json';
+  }
+  // Never attach forbidden 'User-Agent' header in browser fetch
+  if (!isBrowser) {
+    headers['User-Agent'] =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+  }
+  return headers;
 }
 
 export function getTimeCutoffMs(timeRange: DivarTimeRange = '24h'): number {
@@ -68,37 +109,135 @@ export async function fetchDivarPostDetails(token: string): Promise<any | null> 
     return postDetailsCache.get(token);
   }
 
+  const targetUrl = `https://api.divar.ir/v8/posts-v2/web/${token}`;
+
+  // 1. Direct client-side (or server-side) fetch
   try {
-    const res = await fetch(`https://api.divar.ir/v8/posts-v2/web/${token}`, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      },
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    postDetailsCache.set(token, json);
-    return json;
+    const res = await fetchWithTimeout(
+      targetUrl,
+      isBrowser ? {} : { headers: getDivarHeaders(false) },
+      8000
+    );
+    if (res.ok) {
+      const json = await res.json();
+      postDetailsCache.set(token, json);
+      return json;
+    }
   } catch {
-    return null;
+    // Direct browser fetch may fail due to CORS or transient network error
   }
+
+  // 2. Client-side CORS proxy fallback (GET works via allorigins on static Vercel deployments)
+  if (isBrowser) {
+    try {
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+      const proxyRes = await fetchWithTimeout(proxyUrl, {}, 9000);
+      if (proxyRes.ok) {
+        const json = await proxyRes.json();
+        if (json && Array.isArray(json.sections)) {
+          postDetailsCache.set(token, json);
+          return json;
+        }
+      }
+    } catch {
+      // Ignore proxy failure
+    }
+  }
+
+  return null;
 }
 
 export async function fetchRealDivarPostImages(token: string): Promise<string[]> {
   const detail = await fetchDivarPostDetails(token);
-  if (!detail) return [];
-
-  const widgets = detail.sections?.flatMap((s: any) => s.widgets || []) || [];
-  const carousel = widgets.find(
-    (w: any) => w.widget_type === 'IMAGE_CAROUSEL' || w.widget_type === 'IMAGES_SLIDER'
-  );
-  if (carousel && carousel.data && Array.isArray(carousel.data.items)) {
-    const urls: string[] = carousel.data.items
-      .map((it: any) => it.image?.url || it.image?.thumbnail_url)
-      .filter(Boolean);
-    return urls;
+  if (detail) {
+    const widgets = detail.sections?.flatMap((s: any) => s.widgets || []) || [];
+    const carousel = widgets.find(
+      (w: any) => w.widget_type === 'IMAGE_CAROUSEL' || w.widget_type === 'IMAGES_SLIDER'
+    );
+    if (carousel && carousel.data && Array.isArray(carousel.data.items)) {
+      const urls: string[] = carousel.data.items
+        .map((it: any) => it.image?.url || it.image?.thumbnail_url)
+        .filter(Boolean);
+      if (urls.length > 0) return urls;
+    }
   }
+
+  // Optional backend fallback when running with Express server
+  if (isBrowser) {
+    try {
+      const res = await fetchWithTimeout(`/api/divar/post/${encodeURIComponent(token)}/images`, {}, 6000);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data?.success && Array.isArray(data.images)) {
+          return data.images;
+        }
+      }
+    } catch {
+      // Ignore when no backend exists (e.g., static Vercel)
+    }
+  }
+
   return [];
+}
+
+export async function fetchDivarPostMapData(token: string): Promise<DivarPostMapData | null> {
+  const detail = await fetchDivarPostDetails(token);
+  if (detail) {
+    const widgets = detail.sections?.flatMap((s: any) => s.widgets || []) || [];
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+    let mapImageUrl: string | undefined;
+    let topAddress: string | undefined;
+
+    for (const w of widgets) {
+      if (w.widget_type === 'MAP_ROW' || (w.widget_type && w.widget_type.includes('MAP'))) {
+        const d = w.data || {};
+        const pt = d.location?.exact_data?.point || d.location?.fuzzy_data?.point || d.point;
+        if (pt && typeof pt.latitude === 'number' && typeof pt.longitude === 'number') {
+          latitude = pt.latitude;
+          longitude = pt.longitude;
+        }
+        if (d.image_url) {
+          mapImageUrl = d.image_url;
+        }
+      }
+      if (w.widget_type === 'EXPANDABLE_SECTION') {
+        const t = w.data?.title || '';
+        if (t.includes('در نجف‌آباد') || t.includes('در ')) {
+          const cleaned = t.replace(/^.*?در\s+/, '').replace(/^نجف‌آباد،?\s*/, '').trim();
+          if (cleaned) {
+            topAddress = 'نجف‌آباد، ' + cleaned;
+          }
+        }
+      }
+    }
+
+    return { latitude, longitude, mapImageUrl, topAddress };
+  }
+
+  // Optional backend fallback when running with Express server
+  if (isBrowser) {
+    try {
+      const res = await fetchWithTimeout(`/api/divar/post/${encodeURIComponent(token)}/map`, {}, 6000);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data?.success) {
+          return {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            mapImageUrl: data.mapImageUrl,
+            topAddress: data.topAddress,
+          };
+        }
+      }
+    } catch {
+      // Ignore when no backend exists (e.g., static Vercel)
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -477,6 +616,28 @@ function detectPropertyType(title: string): string {
   return 'خانه مسکونی';
 }
 
+async function fetchDetailsInBatches(
+  postRows: any[],
+  batchSize = 5
+): Promise<{ widget: any; detail: any }[]> {
+  const results: { widget: any; detail: any }[] = [];
+  for (let i = 0; i < postRows.length; i += batchSize) {
+    const chunk = postRows.slice(i, i + batchSize);
+    const chunkResults = await Promise.all(
+      chunk.map(async (w) => {
+        const token = w.data?.token;
+        let detail: any = null;
+        if (token) {
+          detail = await fetchDivarPostDetails(token);
+        }
+        return { widget: w, detail };
+      })
+    );
+    results.push(...chunkResults);
+  }
+  return results;
+}
+
 export async function fetchNajafabadDivar(
   timeRange: DivarTimeRange = '24h',
   forceRefresh = false
@@ -484,6 +645,10 @@ export async function fetchNajafabadDivar(
   const cutoffDiff = getTimeCutoffMs(timeRange);
   const cutoffTime = new Date(Date.now() - cutoffDiff);
   const cutoffIso = cutoffTime.toISOString();
+
+  let directErrorMessage: string | undefined;
+  let directAttempted = false;
+  let directSucceeded = false;
 
   try {
     const categories = [
@@ -506,47 +671,44 @@ export async function fetchNajafabadDivar(
           },
         };
 
-        const res = await fetch('https://api.divar.ir/v8/postlist/w/search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        directAttempted = true;
+        const res = await fetchWithTimeout(
+          'https://api.divar.ir/v8/postlist/w/search',
+          {
+            method: 'POST',
+            headers: getDivarHeaders(true),
+            body: JSON.stringify(payload),
           },
-          body: JSON.stringify(payload),
-        });
+          10000
+        );
 
-        if (!res.ok) continue;
+        if (!res.ok) {
+          directErrorMessage = `HTTP ${res.status}`;
+          continue;
+        }
 
         const json: any = await res.json();
+        directSucceeded = true;
         const widgets: any[] = json.list_widgets || [];
-        const postRows = widgets.filter((w) => w.widget_type === 'POST_ROW');
+        const allPostRows = widgets.filter((w) => w.widget_type === 'POST_ROW');
 
-        // Fetch details for posts to get accurate non-fabricated info
-        const postsWithDetails = await Promise.all(
-          postRows.map(async (w) => {
-            const token = w.data?.token;
-            let detail: any = null;
-            if (token) {
-              detail = await fetchDivarPostDetails(token);
-            }
-            return { widget: w, detail };
-          })
-        );
+        // Filter by time cutoff BEFORE fetching post details to avoid rate-limiting and wasted requests
+        const recentPostRows = allPostRows.filter((w) => {
+          const sortDateStr = w.action_log?.server_side_info?.info?.sort_date;
+          if (!sortDateStr) return false;
+          const sortDate = new Date(sortDateStr);
+          if (isNaN(sortDate.getTime())) return false;
+          return sortDate.getTime() >= cutoffTime.getTime();
+        });
+
+        // Fetch details in small batches for filtered posts
+        const postsWithDetails = await fetchDetailsInBatches(recentPostRows, 5);
 
         for (const { widget: w, detail } of postsWithDetails) {
           const d = w.data || {};
           const info = w.action_log?.server_side_info?.info || {};
           const sortDateStr = info.sort_date;
           if (!sortDateStr) continue;
-
-          const sortDate = new Date(sortDateStr);
-          if (isNaN(sortDate.getTime())) continue;
-
-          // Time filter check
-          if (sortDate.getTime() < cutoffTime.getTime()) {
-            continue;
-          }
 
           const title = d.title || 'آگهی املاک نجف‌آباد';
           const priceText = d.middle_description_text || '';
@@ -697,7 +859,9 @@ export async function fetchNajafabadDivar(
             rent: rent || 0,
             depositText,
             rentText,
-            priceText: priceText || (transType === 'رهن و اجاره' ? (depositText ? `ودیعه: ${depositText}` : 'توافقی') : 'توافقی'),
+            priceText:
+              priceText ||
+              (transType === 'رهن و اجاره' ? (depositText ? `ودیعه: ${depositText}` : 'توافقی') : 'توافقی'),
             district: districtClean,
             latitude: lat,
             longitude: lng,
@@ -712,8 +876,8 @@ export async function fetchNajafabadDivar(
           });
           rowNum++;
         }
-      } catch (e) {
-        // Continue
+      } catch (e: any) {
+        directErrorMessage = e?.message || 'Fetch error';
       }
     }
 
@@ -730,7 +894,7 @@ export async function fetchNajafabadDivar(
       item.rowNumber = index + 1;
     });
 
-    if (items.length > 0) {
+    if (items.length > 0 || directSucceeded) {
       return {
         success: true,
         items,
@@ -743,10 +907,35 @@ export async function fetchNajafabadDivar(
           totalCount: items.length,
         },
         source: 'live',
+        fetchMethod: isBrowser ? 'browser-direct' : 'server-proxy',
       };
     }
   } catch (err: any) {
-    console.warn('[DivarCrawler] Live fetch warning/fallback:', err?.message || err);
+    directErrorMessage = err?.message || String(err);
+    console.warn('[DivarCrawler] Live fetch warning/fallback:', directErrorMessage);
+  }
+
+  // If running in browser and direct fetch failed (e.g., CORS), try local backend API if available
+  if (isBrowser && !directSucceeded) {
+    try {
+      const res = await fetchWithTimeout(
+        `/api/divar/najafabad-24h?timeRange=${encodeURIComponent(timeRange)}&refresh=${forceRefresh ? 'true' : 'false'}`,
+        {},
+        15000
+      );
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const json = await res.json();
+        if (json && Array.isArray(json.items) && json.items.length > 0 && json.source === 'live') {
+          return {
+            ...json,
+            fetchMethod: 'server-proxy',
+          };
+        }
+      }
+    } catch {
+      // Static deployments (like Vercel SPA) won't have Express /api routes
+    }
   }
 
   // Fallback to verified local dataset filtered by cutoff
@@ -755,16 +944,21 @@ export async function fetchNajafabadDivar(
     return new Date(it.publishedAt).getTime() >= cutoffTime.getTime();
   });
 
+  const finalItems = filteredFallback.length > 0 ? filteredFallback : DIVAR_NAJAFABAD_24H_DATA;
+
   return {
     success: true,
-    items: filteredFallback.length > 0 ? filteredFallback : DIVAR_NAJAFABAD_24H_DATA,
+    items: finalItems,
     metadata: {
       ...DIVAR_METADATA,
       fetchedAt: new Date().toISOString(),
       cutoff24h: cutoffIso,
-      totalCount: filteredFallback.length,
+      totalCount: finalItems.length,
     },
     source: 'cached',
+    fetchMethod: 'cached-fallback',
+    corsBlocked: isBrowser && directAttempted && !directSucceeded,
+    error: directErrorMessage,
   };
 }
 

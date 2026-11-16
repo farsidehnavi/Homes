@@ -30,7 +30,7 @@ import { DivarAlertsModal, matchItemWithAlert } from './components/DivarAlertsMo
 import { Pagination } from './components/Pagination';
 import { exportToExcel } from './utils/excelUtils';
 import { normalizePersianText, toPersianDigits } from './utils/formatters';
-import { getTimeCutoffMs } from './utils/divarCrawler';
+import { getTimeCutoffMs, fetchNajafabadDivar } from './utils/divarCrawler';
 import { playNotificationChime } from './utils/audioAlert';
 import {
   getCurrentUser,
@@ -345,25 +345,31 @@ export default function App() {
     []
   );
 
-  // Fetch live Divar data
+  // Fetch live Divar data (client-side browser fetch first, with clean fallbacks)
   const fetchLiveDivar = useCallback(
     async (timeRange = divarTimeRange) => {
       setIsLoadingDivar(true);
       try {
-        const res = await fetch(`/api/divar/najafabad-24h?timeRange=${timeRange}&refresh=true`);
-        if (!res.ok) {
-          throw new Error(`خطای سرور: ${res.status}`);
-        }
-        const json = await res.json();
-        if (json && Array.isArray(json.items) && json.items.length > 0) {
-          setDivarData(json.items);
-          if (json.metadata) {
-            setDivarMeta(json.metadata);
+        const result = await fetchNajafabadDivar(timeRange, true);
+        if (result && Array.isArray(result.items)) {
+          setDivarData(result.items);
+          if (result.metadata) {
+            setDivarMeta(result.metadata);
           }
-          setLastSyncedAt(new Date());
-          showToast(`دریافت شد: ${toPersianDigits(json.items.length)} آگهی اخیر نجف‌آباد از دیوار`, 'success');
-        } else {
-          showToast('اطلاعات آگهی‌های دیوار بروزرسانی شد.', 'success');
+          if (result.source === 'live') {
+            setLastSyncedAt(new Date());
+            showToast(
+              `دریافت زنده: ${toPersianDigits(result.items.length)} آگهی اخیر نجف‌آباد از دیوار`,
+              'success'
+            );
+          } else {
+            showToast(
+              result.corsBlocked
+                ? 'مرورگر به دلیل محدودیت CORS اجازه دریافت مستقیم از دیوار را نداد؛ از دیتای پشتیبان استفاده شد.'
+                : 'عدم دسترسی موقت به دیوار، از دیتای پشتیبان استفاده شد.',
+              'alert'
+            );
+          }
         }
       } catch (err: any) {
         console.warn('Error fetching live Divar data:', err);
@@ -1318,6 +1324,9 @@ export default function App() {
           onSelectMode={(m) => {
             setCurrentMode(m);
             setCurrentPage(1);
+            if (m === 'divar') {
+              fetchLiveDivar(divarTimeRange);
+            }
           }}
           activeView={activeView}
           onSelectView={(v) => setActiveView(v)}

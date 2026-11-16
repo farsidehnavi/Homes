@@ -31,6 +31,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { RealEstateItem } from '../types';
+import { fetchDivarPostMapData, fetchRealDivarPostImages } from '../utils/divarCrawler';
 import { formatPrice, formatPriceShort, toPersianDigits, formatDepositRent, formatBuiltYear } from '../utils/formatters';
 
 interface PropertyDetailModalProps {
@@ -140,47 +141,50 @@ export const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({
     topAddress?: string;
   } | null>(null);
 
-  // Fetch live map data and exact location from Divar for this post
+  // Fetch live map data and exact location from Divar for this post (client-side)
   useEffect(() => {
+    let cancelled = false;
     setLiveMapData(null);
     if (item && item.divarToken) {
-      fetch(`/api/divar/post/${item.divarToken}/map`)
-        .then((res) => res.json())
+      fetchDivarPostMapData(item.divarToken)
         .then((data) => {
-          if (data && data.success) {
-            setLiveMapData({
-              latitude: data.latitude,
-              longitude: data.longitude,
-              mapImageUrl: data.mapImageUrl,
-              topAddress: data.topAddress,
-            });
+          if (!cancelled && data) {
+            setLiveMapData(data);
           }
         })
         .catch(() => {});
     }
+    return () => {
+      cancelled = true;
+    };
   }, [item]);
 
-  // Fetch real images live from Divar API for this specific post token
+  // Fetch real images live from Divar API for this specific post token (client-side)
   useEffect(() => {
+    let cancelled = false;
     setLiveDivarImages(null);
     setActiveImageIndex(0);
 
     if (item && item.divarToken) {
       setIsLoadingImages(true);
-      fetch(`/api/divar/post/${item.divarToken}/images`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && Array.isArray(data.images) && data.images.length > 0) {
-            setLiveDivarImages(data.images);
+      fetchRealDivarPostImages(item.divarToken)
+        .then((imgs) => {
+          if (!cancelled && Array.isArray(imgs) && imgs.length > 0) {
+            setLiveDivarImages(imgs);
           }
         })
         .catch((err) => {
           console.warn('Error fetching live Divar images:', err);
         })
         .finally(() => {
-          setIsLoadingImages(false);
+          if (!cancelled) {
+            setIsLoadingImages(false);
+          }
         });
     }
+    return () => {
+      cancelled = true;
+    };
   }, [item]);
 
   // Extract all real images
